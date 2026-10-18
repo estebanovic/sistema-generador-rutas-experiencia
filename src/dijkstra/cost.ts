@@ -28,6 +28,9 @@ const HIGHWAY_PENALTY: Record<HighwayType, number> = {
   track: 2.0,
   path: 3.0,
   service: 1.6,
+  // Calle compartida (pasaje peatonal con acceso vehicular): se incluye para el
+  // snap en barrios, pero penalizada como una pista (decisión D7).
+  living_street: 2.0,
 };
 
 const SMOOTHNESS_PENALTY: Record<SmoothnessType, number> = {

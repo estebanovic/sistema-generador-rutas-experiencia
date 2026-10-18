@@ -49,4 +49,5 @@ node --max-old-space-size=8192 scripts/baseline/metrics.js scripts/baseline/resu
 ## Historial de cambios de los scripts
 
 - 2026-10-18 (v1): versión inicial. 33 pares; 6 fallaban por cobertura (Casablanca no importada, Melipilla desconectada).
+- 2026-10-18 (F0.1): `lib.js` lee por defecto el almacén por way (`osm_ways`/`osm_nodes`). La topología, con sentidos, exclusiones D7 y vías privadas solo de origen o destino, sale de `dist/graph-compiler`, así que antes hay que correr `npm run build`. La superficie sigue saliendo del tag crudo con el mapeo congelado. Las corridas anteriores (v2, F0.0) se reproducen con `BASELINE_SOURCE=legacy`.
 - 2026-10-18 (v2, **conjunto fijo para todas las fases**): los 6 pares fallidos se reemplazaron por pares dentro de la cobertura: Plaza de Armas→Curacaví, Talagante→Curacaví, Providencia→Cerro San Cristóbal, Quilicura→Colina, Farellones→Valle Nevado y La Florida→Pirque. Referencia: `results/2026-10-18-linea-base/` (99/99 rutas OK).

@@ -8,7 +8,8 @@ export type HighwayType =
   | 'residential'
   | 'track'
   | 'path'
-  | 'service';
+  | 'service'
+  | 'living_street';
 
 export type SurfaceType =
   | 'asphalt'
@@ -44,6 +45,11 @@ export interface GraphEdge {
   highwayType: HighwayType;
   surface: SurfaceType;
   smoothness: SmoothnessType;
+  /**
+   * Vía privada: solo puede usarse en el tramo inicial o final de una ruta
+   * (salir de / llegar a un condominio o fundo), nunca como paso.
+   */
+  destinationOnly?: boolean;
 }
 
 export interface Graph {

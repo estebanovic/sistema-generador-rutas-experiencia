@@ -1,14 +1,22 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { GraphNode } from '../dijkstra/types';
 import { GraphService } from '../graph/graph.service';
-import { ElevationService } from '../elevation/elevation.service';
-import { OsmService } from '../osm/osm.service';
-import { OsmParser, ParsedEdge } from '../osm/osm.parser';
-import { ImportBboxDto } from './dto/import-bbox.dto';
+import { OsmStoreService } from '../graph/osm-store.service';
+import { FetchOptions, OsmService } from '../osm/osm.service';
+import { OsmParser } from '../osm/osm.parser';
+import { BoundingBox } from '../osm/osm.types';
 
 export interface ImportResult {
   nodes: number;
+  /** Segmentos importados (pares de nodos consecutivos de los ways). */
   edges: number;
+  ways: number;
+  deletedWays: number;
+}
+
+export interface ImportOptions {
+  /** 'vista' (botón del frontend) o 'teselas' (reimportación masiva). */
+  source?: 'vista' | 'teselas';
+  fetch?: FetchOptions;
 }
 
 @Injectable()
@@ -18,89 +26,45 @@ export class ImportService {
   constructor(
     private readonly osmService: OsmService,
     private readonly osmParser: OsmParser,
-    private readonly elevationService: ElevationService,
+    private readonly store: OsmStoreService,
     private readonly graphService: GraphService,
   ) {}
 
-  async import(bbox: ImportBboxDto): Promise<ImportResult> {
+  /**
+   * Import con reemplazo por way al almacén canónico. Ya no pide elevación
+   * (fuera del alcance de la tesis; el frontend consulta su propio perfil).
+   */
+  async import(bbox: BoundingBox, options: ImportOptions = {}): Promise<ImportResult> {
+    const source = options.source ?? 'vista';
     if (bbox.south >= bbox.north || bbox.west >= bbox.east) {
       throw new BadRequestException(
         'Bounding box inválido: se requiere south < north y west < east',
       );
     }
+    const startedAt = new Date();
 
-    // 1. Descargar OSM
-    const osmData = await this.osmService.fetchRoads(bbox);
+    // 1. Descargar OSM (ways completos; nunca una respuesta cortada).
+    const osmData = await this.osmService.fetchRoads(bbox, options.fetch);
 
-    // 2. Parsear → nodos y aristas sin elevación
-    const { nodes, edges } = this.osmParser.parse(osmData);
-    this.logger.log(`Parseado: ${nodes.length} nodos, ${edges.length} aristas.`);
-    if (nodes.length === 0) {
+    // 2. Parsear a ways crudos + nodos.
+    const parsed = this.osmParser.parse(osmData);
+    this.logger.log(`Parseado: ${parsed.ways.length} ways, ${parsed.nodes.length} nodos.`);
+    if (parsed.ways.length === 0 && source === 'vista') {
       throw new BadRequestException(
         'No se encontraron vías vehiculares en el bounding box indicado',
       );
     }
 
-    // 3. Enriquecer nodos con elevación (incremental: reutiliza lo ya conocido)
-    const known = await this.graphService.getExistingElevations(
-      nodes.map((n) => n.osmId),
-    );
-    for (const n of nodes) {
-      const e = known.get(n.osmId);
-      if (e !== undefined) n.elevation = e;
-    }
-    const missing = nodes.filter((n) => !known.has(n.osmId));
-    this.logger.log(
-      `Elevación: ${known.size} ya conocidas, ${missing.length} por pedir.`,
-    );
-    await this.elevationService.enrich(missing);
-    const elevatedNodes = nodes;
+    // 3. Reemplazo por way en el almacén.
+    const res = await this.store.applyImport(bbox, parsed, { source, server: osmData.server, startedAt });
 
-    // 4. Calcular elevationGain/Loss por arista (antes de sanear los NaN)
-    const enrichedEdges = this.calculateEdgeElevation(elevatedNodes, edges);
-
-    // Saneamos elevaciones desconocidas (NaN) a 0 para poder persistirlas.
-    for (const n of elevatedNodes) {
-      if (!Number.isFinite(n.elevation)) n.elevation = 0;
-    }
-
-    // 5. Guardar en MongoDB
-    await this.graphService.upsertNodes(elevatedNodes);
-    await this.graphService.upsertEdges(enrichedEdges);
-
-    // 6. Invalidar cache en memoria
+    // 4. Invalidar el grafo en memoria.
     this.graphService.clearCache();
 
-    this.logger.log('Importación completada.');
-    return { nodes: elevatedNodes.length, edges: enrichedEdges.length };
-  }
-
-  /** Asigna gain/loss a cada arista según la diferencia de elevación. */
-  private calculateEdgeElevation(
-    nodes: GraphNode[],
-    edges: ParsedEdge[],
-  ): ParsedEdge[] {
-    const elevationById = new Map<string, number>();
-    for (const n of nodes) elevationById.set(n.osmId, n.elevation);
-
-    for (const edge of edges) {
-      const from = elevationById.get(edge.fromOsmId);
-      const to = elevationById.get(edge.toOsmId);
-      // Si falta la elevación de algún extremo, no inventamos desnivel.
-      if (from === undefined || to === undefined || !Number.isFinite(from) || !Number.isFinite(to)) {
-        edge.elevationGain = 0;
-        edge.elevationLoss = 0;
-        continue;
-      }
-      const delta = to - from;
-      if (delta >= 0) {
-        edge.elevationGain = delta;
-        edge.elevationLoss = 0;
-      } else {
-        edge.elevationGain = 0;
-        edge.elevationLoss = -delta;
-      }
-    }
-    return edges;
+    const edges = parsed.ways.reduce((s, w) => s + w.nodeIds.length - 1, 0);
+    this.logger.log(
+      `Importación completada: ${res.ways} ways, ${res.nodes} nodos, ${res.deletedWays} ways borrados (versión de datos ${res.dataVersion}).`,
+    );
+    return { nodes: res.nodes, edges, ways: res.ways, deletedWays: res.deletedWays };
   }
 }

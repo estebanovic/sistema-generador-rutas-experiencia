@@ -1,6 +1,15 @@
 // Utilidades de la línea base. Leen Mongo en modo solo lectura y NO usan el
 // código del motor: las métricas deben ser comparables entre fases aunque el
 // motor cambie por completo.
+//
+// Fuente de datos (BASELINE_SOURCE):
+// - `osm` (por defecto desde F0.1): almacén por way. La topología (segmentos,
+//   sentidos, exclusiones D7) sale del compilador del backend
+//   (dist/graph-compiler; requiere `npm run build`), para medir el desvío sobre
+//   el mismo grafo que rutea. La superficie se toma del tag crudo con el mapeo
+//   de abajo, para que la métrica no cambie cuando cambie la normalización.
+// - `legacy`: colecciones anteriores a F0.1 (`nodes`/`edges`).
+const path = require('path');
 const mongoose = require('mongoose');
 
 const R0 = 6371000;
@@ -15,13 +24,42 @@ function hav(lat1, lon1, lat2, lon2) {
   return R0 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/** Mapeo de `surface` crudo → categoría, congelado para la línea base (igual al parser anterior a F0). */
+function surfaceOf(value) {
+  if (!value) return 'unknown';
+  if (SURF.includes(value)) return value;
+  if (value.startsWith('paved') || value === 'paving_stones') return 'concrete';
+  if (value === 'unpaved' || value === 'compacted' || value === 'fine_gravel') return 'gravel';
+  if (value === 'ground' || value === 'earth' || value === 'mud') return 'dirt';
+  return 'unknown';
+}
+
+async function loadLegacy(db) {
+  const nd = await db.collection('nodes').find({}, { projection: { _id: 0, osmId: 1, lat: 1, lon: 1 } }).toArray();
+  const ed = await db.collection('edges').find({}, { projection: { _id: 0, fromOsmId: 1, toOsmId: 1, distanceMeters: 1, curviness: 1, highwayType: 1, surface: 1, osmWayId: 1 } }).toArray();
+  return { nd, ed };
+}
+
+async function loadOsm(db) {
+  const { deriveGraph } = require(path.join(__dirname, '..', '..', 'dist', 'graph-compiler', 'derive'));
+  const [ways, nodes] = await Promise.all([
+    db.collection('osm_ways').find({}, { projection: { _id: 0, osmWayId: 1, nodeIds: 1, tags: 1 } }).toArray(),
+    db.collection('osm_nodes').find({}, { projection: { _id: 0, osmId: 1, lat: 1, lon: 1 } }).toArray(),
+  ]);
+  const coords = new Map(nodes.map((n) => [n.osmId, n]));
+  const rawSurface = new Map(ways.map((w) => [w.osmWayId, surfaceOf(w.tags && w.tags.surface)]));
+  const derived = deriveGraph(ways, (id) => coords.get(id));
+  const ed = derived.edges.map((e) => ({ ...e, surface: rawSurface.get(e.osmWayId) }));
+  return { nd: derived.nodes, ed };
+}
+
 /** Carga nodos y aristas a arrays tipados + CSR de salida. */
 async function loadRaw(uri = process.env.MONGO_URI || 'mongodb://localhost:27017/generador-rutas') {
   await mongoose.connect(uri);
   const db = mongoose.connection.db;
   const t0 = Date.now();
-  const nd = await db.collection('nodes').find({}, { projection: { _id: 0, osmId: 1, lat: 1, lon: 1 } }).toArray();
-  const ed = await db.collection('edges').find({}, { projection: { _id: 0, fromOsmId: 1, toOsmId: 1, distanceMeters: 1, curviness: 1, highwayType: 1, surface: 1, osmWayId: 1 } }).toArray();
+  const source = process.env.BASELINE_SOURCE === 'legacy' ? 'legacy' : 'osm';
+  const { nd, ed } = source === 'legacy' ? await loadLegacy(db) : await loadOsm(db);
   await mongoose.disconnect();
   const N = nd.length;
   const idx = new Map();
@@ -30,19 +68,21 @@ async function loadRaw(uri = process.env.MONGO_URI || 'mongodb://localhost:27017
   const ok = ed.filter((e) => idx.has(e.fromOsmId) && idx.has(e.toOsmId));
   const M = ok.length;
   const eFrom = new Int32Array(M), eTo = new Int32Array(M), eLen = new Float64Array(M), eCurv = new Float32Array(M);
-  const eHw = new Uint8Array(M), eSurf = new Uint8Array(M), eWay = new Float64Array(M);
+  const eHw = new Uint8Array(M), eSurf = new Uint8Array(M), eWay = new Float64Array(M), ePriv = new Uint8Array(M);
   ok.forEach((e, k) => {
     eFrom[k] = idx.get(e.fromOsmId); eTo[k] = idx.get(e.toOsmId); eLen[k] = e.distanceMeters; eCurv[k] = e.curviness;
+    // Tipos fuera de HW (living_street) cuentan como residential para las métricas.
     const h = HW.indexOf(e.highwayType); eHw[k] = h < 0 ? 6 : h;
     const s = SURF.indexOf(e.surface); eSurf[k] = s < 0 ? 6 : s;
     eWay[k] = Number(e.osmWayId || 0);
+    ePriv[k] = e.destinationOnly ? 1 : 0;
   });
   const off = new Int32Array(N + 1);
   for (let k = 0; k < M; k++) off[eFrom[k] + 1]++;
   for (let i = 0; i < N; i++) off[i + 1] += off[i];
   const pos = off.slice(0, N); const outE = new Int32Array(M);
   for (let k = 0; k < M; k++) outE[pos[eFrom[k]]++] = k;
-  return { N, M, idx, lat, lon, eFrom, eTo, eLen, eCurv, eHw, eSurf, eWay, off, outE, loadMs: Date.now() - t0 };
+  return { N, M, idx, lat, lon, eFrom, eTo, eLen, eCurv, eHw, eSurf, eWay, ePriv, off, outE, source, loadMs: Date.now() - t0 };
 }
 
 function forEachEdgeBetween(g, u, v, cb) {
@@ -132,12 +172,37 @@ class Heap {
 }
 
 /** Distancia mínima pura (metros) entre dos nodos del grafo crudo. */
+/**
+ * Vías privadas (D7): solo en el tramo inicial/final, igual que el motor. Una
+ * arista privada u→v es usable si u es interior del área privada del origen o
+ * v es interior del área privada del destino (interior = todas sus aristas
+ * salientes son privadas; el recorrido se detiene en el portón).
+ */
+function privateAllowance(g, s, t) {
+  const inside = (u) => { const a = g.off[u], b = g.off[u + 1]; if (a === b) return false; for (let p = a; p < b; p++) if (!g.ePriv[g.outE[p]]) return false; return true; };
+  if (!g.ePriv || !g.ePriv.some((x) => x)) return null;
+  if (!g.privIn) { // aristas privadas entrantes por nodo (una vez)
+    g.privIn = new Map();
+    for (let k = 0; k < g.M; k++) if (g.ePriv[k]) { const v = g.eTo[k]; (g.privIn.get(v) || g.privIn.set(v, []).get(v)).push(k); }
+  }
+  const fromOrigin = new Set(), toDest = new Set();
+  if (inside(s)) { const q = [s]; fromOrigin.add(s); while (q.length) { const u = q.pop(); for (let p = g.off[u]; p < g.off[u + 1]; p++) { const k = g.outE[p], v = g.eTo[k]; if (g.ePriv[k] && !fromOrigin.has(v) && inside(v)) { fromOrigin.add(v); q.push(v); } } } }
+  if (inside(t)) { const q = [t]; toDest.add(t); while (q.length) { const v = q.pop(); for (const k of g.privIn.get(v) || []) { const u = g.eFrom[k]; if (!toDest.has(u) && inside(u)) { toDest.add(u); q.push(u); } } } }
+  return { fromOrigin, toDest };
+}
+
+/** Distancia mínima pura (metros) entre dos nodos, con la misma regla de vías privadas que el motor. */
 function shortestLen(g, s, t) {
+  const priv = privateAllowance(g, s, t);
   const dist = new Float64Array(g.N).fill(Infinity); const vis = new Uint8Array(g.N); const H = new Heap();
   dist[s] = 0; H.push(s, 0);
   while (H.size) {
     const u = H.pop(); if (vis[u]) continue; vis[u] = 1; if (u === t) return dist[t];
-    for (let p = g.off[u]; p < g.off[u + 1]; p++) { const k = g.outE[p]; const v = g.eTo[k]; const nd = dist[u] + g.eLen[k]; if (nd < dist[v]) { dist[v] = nd; H.push(v, nd); } }
+    for (let p = g.off[u]; p < g.off[u + 1]; p++) {
+      const k = g.outE[p]; const v = g.eTo[k];
+      if (g.ePriv && g.ePriv[k] && !(priv && (priv.fromOrigin.has(u) || priv.toDest.has(v)))) continue;
+      const nd = dist[u] + g.eLen[k]; if (nd < dist[v]) { dist[v] = nd; H.push(v, nd); }
+    }
   }
   return Infinity;
 }

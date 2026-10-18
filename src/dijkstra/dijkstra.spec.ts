@@ -98,6 +98,65 @@ describe('dijkstra (motor actual) — soluciones conocidas', () => {
   });
 });
 
+describe('vías privadas: solo origen/destino, nunca de paso (D7)', () => {
+  /**
+   * Calle pública S—A—B—T (1000 + 3000 + 1000 m) con un atajo privado
+   * A—P—B (300 + 300 m). Un condominio cuelga del portón A: casa H, H—K—A
+   * (200 + 200 m, privado). Otro condominio cuelga de B: casa D, D—E—B.
+   */
+  const coords: Record<string, [number, number]> = {
+    S: [0, 0], A: [0, 0.01], P: [0.002, 0.025], B: [0, 0.04], T: [0, 0.05],
+    H: [0.004, 0.008], K: [0.002, 0.009], D: [0.004, 0.042], E: [0.002, 0.041],
+  };
+  const plain = synthetic(coords, [
+    { from: 'S', to: 'A', length: 1000 },
+    { from: 'A', to: 'B', length: 3000 },
+    { from: 'B', to: 'T', length: 1000 },
+    { from: 'A', to: 'P', length: 300 },
+    { from: 'P', to: 'B', length: 300 },
+    { from: 'H', to: 'K', length: 200 },
+    { from: 'K', to: 'A', length: 200 },
+    { from: 'D', to: 'E', length: 200 },
+    { from: 'E', to: 'B', length: 200 },
+  ]);
+  const privados = new Set(['AP', 'PA', 'PB', 'BP', 'HK', 'KH', 'KA', 'AK', 'DE', 'ED', 'EB', 'BE']);
+  for (const e of plain.edges) if (privados.has(e.fromOsmId + e.toOsmId)) e.destinationOnly = true;
+  const g = toGraph(plain);
+
+  it('no usa el atajo privado como paso entre calles públicas', () => {
+    expect(dijkstra(g, 'S', 'T', SOLO_DISTANCIA)!.path).toEqual(['S', 'A', 'B', 'T']);
+  });
+
+  it('partir desde el portón (calle pública) no habilita el atajo', () => {
+    expect(dijkstra(g, 'A', 'T', SOLO_DISTANCIA)!.path).toEqual(['A', 'B', 'T']);
+  });
+
+  it('sale de un condominio (origen adentro) y no encadena el atajo que comparte el portón', () => {
+    expect(dijkstra(g, 'H', 'T', SOLO_DISTANCIA)!.path).toEqual(['H', 'K', 'A', 'B', 'T']);
+  });
+
+  it('llega a un condominio (destino adentro)', () => {
+    expect(dijkstra(g, 'S', 'D', SOLO_DISTANCIA)!.path).toEqual(['S', 'A', 'B', 'E', 'D']);
+  });
+
+  it('de un condominio a otro: usa ambos accesos privados pero no el atajo', () => {
+    expect(dijkstra(g, 'H', 'D', SOLO_DISTANCIA)!.path).toEqual(['H', 'K', 'A', 'B', 'E', 'D']);
+  });
+
+  it('sin marca de privado, el atajo sí se usa (control)', () => {
+    const libre = toGraph(
+      synthetic(coords, [
+        { from: 'S', to: 'A', length: 1000 },
+        { from: 'A', to: 'B', length: 3000 },
+        { from: 'B', to: 'T', length: 1000 },
+        { from: 'A', to: 'P', length: 300 },
+        { from: 'P', to: 'B', length: 300 },
+      ]),
+    );
+    expect(dijkstra(libre, 'S', 'T', SOLO_DISTANCIA)!.path).toEqual(['S', 'A', 'P', 'B', 'T']);
+  });
+});
+
 describe('oráculo: el motor actual coincide con la copia congelada anterior a F0', () => {
   const pesos: [string, RouteWeights][] = [
     ['solo-distancia', SOLO_DISTANCIA],

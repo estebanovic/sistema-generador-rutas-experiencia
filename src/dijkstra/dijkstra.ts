@@ -53,6 +53,76 @@ class MinHeap {
   }
 }
 
+// ── Vías privadas (solo origen/destino) ─────────────────────
+
+/** Aristas privadas entrantes por nodo; se calcula una vez por grafo. null = no hay privadas. */
+const privateIncoming = new WeakMap<Graph, Map<string, GraphEdge[]> | null>();
+
+function incomingPrivate(graph: Graph): Map<string, GraphEdge[]> | null {
+  if (privateIncoming.has(graph)) return privateIncoming.get(graph)!;
+  let map: Map<string, GraphEdge[]> | null = null;
+  for (const list of graph.adjacency.values()) {
+    for (const e of list) {
+      if (!e.destinationOnly) continue;
+      map ??= new Map();
+      const l = map.get(e.toOsmId);
+      if (l) l.push(e);
+      else map.set(e.toOsmId, [e]);
+    }
+  }
+  privateIncoming.set(graph, map);
+  return map;
+}
+
+/** Nodo dentro de un área privada: todas sus aristas salientes son privadas. */
+function insidePrivate(graph: Graph, id: string): boolean {
+  const out = graph.adjacency.get(id) ?? [];
+  return out.length > 0 && out.every((e) => e.destinationOnly);
+}
+
+/**
+ * Qué aristas privadas puede usar esta consulta. Se recorre el área privada
+ * del origen (y la del destino) solo por nodos INTERIORES —todas sus aristas
+ * salientes privadas—; el recorrido se detiene en el portón (nodo que también
+ * toca una vía pública). Una arista privada u→v es usable si u es interior del
+ * área del origen (tramo inicial, incluida la salida al portón) o si v es
+ * interior del área del destino (tramo final, incluida la entrada desde el
+ * portón). Partir de una calle pública junto a un portón no habilita nada, y
+ * dos áreas privadas que comparten un portón no se encadenan: una vía privada
+ * nunca se usa como atajo de paso.
+ */
+function privateAllowance(graph: Graph, starts: string[], ends: Set<string>) {
+  const incoming = incomingPrivate(graph);
+  if (!incoming) return null;
+  const fromOrigin = new Set<string>();
+  const queue = starts.filter((s) => insidePrivate(graph, s));
+  for (const s of queue) fromOrigin.add(s);
+  while (queue.length) {
+    const u = queue.pop()!;
+    for (const e of graph.adjacency.get(u) ?? []) {
+      const v = e.toOsmId;
+      if (e.destinationOnly && !fromOrigin.has(v) && insidePrivate(graph, v)) {
+        fromOrigin.add(v);
+        queue.push(v);
+      }
+    }
+  }
+  const toDest = new Set<string>();
+  const back = [...ends].filter((t) => insidePrivate(graph, t));
+  for (const t of back) toDest.add(t);
+  while (back.length) {
+    const v = back.pop()!;
+    for (const e of incoming.get(v) ?? []) {
+      const u = e.fromOsmId;
+      if (!toDest.has(u) && insidePrivate(graph, u)) {
+        toDest.add(u);
+        back.push(u);
+      }
+    }
+  }
+  return { fromOrigin, toDest };
+}
+
 export interface DijkstraOptions {
   // Nodos a "desincentivar" (multiplican el costo de entrar en ellos). Sirve
   // para que un tramo evite calles ya usadas y no se devuelva por el mismo lado.
@@ -101,6 +171,7 @@ function dijkstraCore(
 
   const avoidNodes = options?.avoidNodes;
   const avoidPenalty = options?.avoidPenalty ?? 6;
+  const priv = privateAllowance(graph, starts, endSet);
 
   const dist = new Map<string, number>();
   const prev = new Map<string, string>();
@@ -129,6 +200,12 @@ function dijkstraCore(
     const distId = dist.get(id) ?? Infinity;
     for (const edge of graph.adjacency.get(id) ?? []) {
       if (visited.has(edge.toOsmId)) continue;
+      if (
+        edge.destinationOnly &&
+        !(priv && (priv.fromOrigin.has(id) || priv.toDest.has(edge.toOsmId)))
+      ) {
+        continue; // vía privada fuera del tramo inicial/final: no se usa de paso
+      }
       let edgeCost = calculateEdgeCost(edge, weights);
       if (avoidNodes && avoidNodes.has(edge.toOsmId)) edgeCost *= avoidPenalty;
       const cost = distId + edgeCost;

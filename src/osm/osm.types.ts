@@ -16,6 +16,8 @@ export type OsmElement = OsmNodeElement | OsmWayElement | { type: string };
 
 export interface OverpassResponse {
   elements: OsmElement[];
+  /** Overpass lo agrega cuando la consulta se cortó (timeout, memoria): la respuesta está incompleta. */
+  remark?: string;
 }
 
 export interface BoundingBox {

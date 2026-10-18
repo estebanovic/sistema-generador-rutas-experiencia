@@ -112,7 +112,7 @@ const log = (s) => { lines.push(s); console.log(s); };
 
   const okRuns = raw.runs.filter((r) => r.ok).length;
   const summary = {
-    date: raw.date, api: raw.api, coldMs: Math.round(raw.coldMs), routesOk: okRuns, routesTotal: raw.runs.length,
+    date: raw.date, api: raw.api, dataSource: g.source, coldMs: Math.round(raw.coldMs), routesOk: okRuns, routesTotal: raw.runs.length,
     params: { curvyThresholdDegPerKm: CURVY, curvature: CURV_PARAMS },
     profiles: Object.fromEntries(PROFILES.map((p) => { const a = agg[p]; return [p, {
       n: a.n, msP50: Math.round(med(a.ms)), msP95: Math.round(p95(a.ms)),
@@ -126,7 +126,7 @@ const log = (s) => { lines.push(s); console.log(s); };
     errors: [...new Set(raw.runs.filter((r) => !r.ok).map((e) => `${e.pair}: ${e.error}`))],
   };
 
-  log(`## línea base — ${raw.date} — API ${raw.api}`);
+  log(`## línea base — ${raw.date} — API ${raw.api} — datos: ${g.source}`);
   log(`primera llamada ${(raw.coldMs / 1000).toFixed(1)} s | rutas OK ${okRuns}/${raw.runs.length}`);
   for (const p of PROFILES) {
     const s = summary.profiles[p];

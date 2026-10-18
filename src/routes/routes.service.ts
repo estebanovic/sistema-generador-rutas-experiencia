@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { dijkstra, dijkstraMultiSource } from '../dijkstra/dijkstra';
 import { RouteWeights } from '../dijkstra/cost';
-import { Graph, RouteResult } from '../dijkstra/types';
-import { bearing } from '../osm/osm.parser';
+import { Graph, RouteResult, RouteStats } from '../dijkstra/types';
+import { bearing } from '../graph-compiler/geo';
 import { GraphService } from '../graph/graph.service';
 import { CalculateRouteDto, TripLength } from './dto/calculate-route.dto';
 import { PROFILES } from './profiles';
@@ -16,11 +16,32 @@ const TRIP_OFFSET: Record<TripLength, number> = {
   long: 0.65,
 };
 
+/**
+ * Respuesta de la API. El desnivel es `null` cuando el grafo no tiene datos de
+ * elevación (fuente por way, desde F0.1): el frontend muestra "sin datos" en
+ * vez de un 0 que parecería un dato real.
+ */
+export type RouteResponse = Omit<RouteResult, 'stats'> & {
+  stats: Omit<RouteStats, 'elevationGainMeters' | 'elevationLossMeters'> & {
+    elevationGainMeters: number | null;
+    elevationLossMeters: number | null;
+  };
+};
+
 @Injectable()
 export class RoutesService {
   constructor(private readonly graphService: GraphService) {}
 
-  async calculate(dto: CalculateRouteDto): Promise<RouteResult> {
+  async calculate(dto: CalculateRouteDto): Promise<RouteResponse> {
+    const result = await this.calculateRoute(dto);
+    if (this.graphService.hasElevation()) return result;
+    return {
+      ...result,
+      stats: { ...result.stats, elevationGainMeters: null, elevationLossMeters: null },
+    };
+  }
+
+  private async calculateRoute(dto: CalculateRouteDto): Promise<RouteResult> {
     const weights = this.resolveWeights(dto);
     const tripLength: TripLength = dto.tripLength ?? 'direct';
 
