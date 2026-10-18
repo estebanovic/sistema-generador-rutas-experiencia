@@ -105,6 +105,8 @@ export interface CompiledMeta {
   rawNodeCount: number;
   sccCount: number;
   mainSccSize: number;
+  /** Tramos públicos marcados como privados por estar encerrados en un área privada (D16). */
+  enclaveChains: number;
 }
 
 export const EDGE_FLAG_DESTINATION_ONLY = 1;

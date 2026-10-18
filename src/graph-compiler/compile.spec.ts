@@ -149,6 +149,51 @@ describe('componentes fuertemente conexas (D15)', () => {
   });
 });
 
+describe('enclaves (D16)', () => {
+  // Red pública S–A–B–T (ciclo con X para que no todo sea un tramo). Portón
+  // privado A–P; detrás, calles "públicas" P–Q–R sin otra salida: enclave.
+  const g = toGraph(
+    synthetic(
+      { S: [0, 0], A: [0, 0.001], B: [0, 0.002], T: [0, 0.003], X: [0.001, 0.0015], P: [-0.001, 0.001], Q: [-0.002, 0.001], R: [-0.002, 0.002] },
+      [
+        { from: 'S', to: 'A', length: 100 },
+        { from: 'A', to: 'B', length: 100 },
+        { from: 'B', to: 'T', length: 100 },
+        { from: 'A', to: 'X', length: 150 },
+        { from: 'X', to: 'B', length: 150 },
+        { from: 'A', to: 'P', length: 100, destinationOnly: true },
+        { from: 'P', to: 'Q', length: 100 },
+        { from: 'Q', to: 'R', length: 100 },
+        { from: 'R', to: 'P', length: 120 },
+      ],
+    ),
+  );
+  const privado = (a: string, b: string) => {
+    for (let c = 0; c < g.meta.chainCount; c++) {
+      const ids = new Set<string>();
+      for (let p = g.chainStart[c]; p < g.chainStart[c + 1]; p++) ids.add(geoOsmIdString(g, p));
+      if (ids.has(a) && ids.has(b)) return (g.chainFlags[c] & 1) === 1;
+    }
+    throw new Error(`sin tramo ${a}-${b}`);
+  };
+
+  it('las calles públicas detrás de un portón privado pasan a ser privadas', () => {
+    expect(privado('Q', 'R')).toBe(true);
+    expect(g.meta.enclaveChains).toBeGreaterThan(0);
+  });
+
+  it('la red pública principal no se toca', () => {
+    expect(privado('S', 'A')).toBe(false);
+    expect(privado('A', 'X')).toBe(false);
+  });
+
+  it('desde dentro del enclave se puede salir, y de paso no se usa', () => {
+    const r = dijkstra(g, endpointOfRawNode(g, 'Q')!, endpointOfRawNode(g, 'T')!, PROFILES['moto-curvas']);
+    expect(r).not.toBeNull();
+    expect(r!.path[0]).toBe('Q');
+  });
+});
+
 describe('puentes (excepción del acceso, D14)', () => {
   // Ciclo A–B–C–A; de C sale un acceso C–D–E (D queda dentro del tramo) hacia un
   // "condominio" en árbol E–F, E–G. Además X–Y unidos por dos vías paralelas.

@@ -273,6 +273,11 @@ export function compileGraph(input: CompileInput): CompiledGraph {
 
   // ── Conectividad: CFC (snap, D15), grado y puentes (excepción del acceso, D14) ──
   const scc = stronglyConnectedComponents(N, outStart, edgeTo);
+
+  // ── Enclaves (D16): calles públicas a las que solo se entra o de las que solo
+  // se sale por vías privadas (típico: calles internas de un condominio cuyo
+  // portón está etiquetado como privado) pasan a ser parte del área privada. ──
+  const enclaveChains = markEnclaves(N, M, T, outStart, edgeTo, edgeFlags, inStart, inEdge, edgeFrom, chainNode0, chainNode1, chainFlags, chainFwd, chainBwd, scc.comp, scc.largest);
   const nodeInMainScc = new Uint8Array(N);
   for (let i = 0; i < N; i++) if (scc.comp[i] === scc.largest) nodeInMainScc[i] = 1;
   const nodeDegree = new Int32Array(N);
@@ -296,6 +301,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       rawNodeCount: R,
       sccCount: scc.count,
       mainSccSize: scc.largestSize,
+      enclaveChains,
     },
     ...(numeric ? {} : { rawLabels: raw.map((n) => n.osmId) }),
     nodeOsmId, nodeLat, nodeLon, nodeInMainScc, nodeDegree,
@@ -318,4 +324,95 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     g.twinFrac = tw.twinFrac;
   }
   return g;
+}
+
+/**
+ * Marca como privados (solo origen/destino) los tramos públicos que no se
+ * pueden alcanzar desde la red pública principal, o desde los que no se puede
+ * volver a ella, usando solo vías públicas, pero que sí están conectados al
+ * resto por vías privadas (decisión D16). La red pública principal es la mayor
+ * componente fuertemente conexa del subgrafo de aristas públicas. Modifica
+ * `edgeFlags` y `chainFlags` en el lugar y devuelve cuántos tramos marcó.
+ */
+function markEnclaves(
+  N: number,
+  M: number,
+  T: number,
+  outStart: Int32Array,
+  edgeTo: Int32Array,
+  edgeFlags: Uint8Array,
+  inStart: Int32Array,
+  inEdge: Int32Array,
+  edgeFrom: Int32Array,
+  chainNode0: Int32Array,
+  chainNode1: Int32Array,
+  chainFlags: Uint8Array,
+  chainFwd: Int32Array,
+  chainBwd: Int32Array,
+  comp: Int32Array,
+  mainComp: number,
+): number {
+  const isPublic = (e: number) => (edgeFlags[e] & EDGE_FLAG_DESTINATION_ONLY) === 0;
+  // Subgrafo público en CSR.
+  const pubStart = new Int32Array(N + 1);
+  for (let e = 0; e < M; e++) if (isPublic(e)) pubStart[edgeFrom[e] + 1]++;
+  for (let i = 0; i < N; i++) pubStart[i + 1] += pubStart[i];
+  const cur = pubStart.slice(0, N);
+  const pubTo = new Int32Array(pubStart[N]);
+  for (let u = 0; u < N; u++) {
+    for (let e = outStart[u]; e < outStart[u + 1]; e++) if (isPublic(e)) pubTo[cur[u]++] = edgeTo[e];
+  }
+  const pub = stronglyConnectedComponents(N, pubStart, pubTo);
+  if (pub.largest < 0) return 0;
+
+  // Alcanzable desde la red pública principal (F) y que puede volver a ella (B), solo por vías públicas.
+  const F = new Uint8Array(N);
+  const B = new Uint8Array(N);
+  const queue: number[] = [];
+  for (let i = 0; i < N; i++) {
+    if (pub.comp[i] === pub.largest) {
+      F[i] = 1;
+      B[i] = 1;
+      queue.push(i);
+    }
+  }
+  const seeds = [...queue];
+  while (queue.length) {
+    const u = queue.pop()!;
+    for (let p = pubStart[u]; p < pubStart[u + 1]; p++) {
+      const v = pubTo[p];
+      if (!F[v]) {
+        F[v] = 1;
+        queue.push(v);
+      }
+    }
+  }
+  for (const s of seeds) queue.push(s); // sin spread: son cientos de miles
+  while (queue.length) {
+    const v = queue.pop()!;
+    for (let p = inStart[v]; p < inStart[v + 1]; p++) {
+      const e = inEdge[p];
+      if (!isPublic(e)) continue;
+      const u = edgeFrom[e];
+      if (!B[u]) {
+        B[u] = 1;
+        queue.push(u);
+      }
+    }
+  }
+
+  let marked = 0;
+  for (let t = 0; t < T; t++) {
+    if (chainFlags[t] & EDGE_FLAG_DESTINATION_ONLY) continue;
+    const a = chainNode0[t];
+    const b = chainNode1[t];
+    const publicOk = F[a] && B[a] && F[b] && B[b];
+    const connected = comp[a] === mainComp && comp[b] === mainComp;
+    if (publicOk || !connected) continue;
+    chainFlags[t] |= EDGE_FLAG_DESTINATION_ONLY;
+    if (chainFwd[t] >= 0) edgeFlags[chainFwd[t]] |= EDGE_FLAG_DESTINATION_ONLY;
+    if (chainBwd[t] >= 0) edgeFlags[chainBwd[t]] |= EDGE_FLAG_DESTINATION_ONLY;
+    marked++;
+  }
+  return marked;
 }

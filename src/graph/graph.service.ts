@@ -25,6 +25,9 @@ import { pruneSnapshots, readSnapshot, snapshotFileName, writeSnapshot } from '.
  */
 export type GraphSource = 'osm' | 'legacy';
 
+/** Distancia máxima de ajuste del snap (D17). */
+export const MAX_SNAP_M = 1000;
+/** Radio de búsqueda para distinguir los mensajes de error (red lejana, isla, sin vías). */
 const SNAP_RADIUS_M = 5000;
 
 /** Cada cuánto se consulta `graph_meta.dataVersion` para detectar imports hechos por otro proceso (CLI). */
@@ -182,8 +185,16 @@ export class GraphService implements OnModuleInit {
   async snap(lat: number, lon: number, k: number): Promise<SnapCandidate[]> {
     const g = await this.getGraph();
     const idx = spatialIndex(g);
-    const found = idx.nearest(lat, lon, k, SNAP_RADIUS_M, (c) => chainInMainScc(g, c));
+    const inMain = (c: number) => chainInMainScc(g, c);
+    const found = idx.nearest(lat, lon, k, MAX_SNAP_M, inMain);
     if (found.length > 0) return found;
+    // D17: más allá de 1 km no se ajusta; se informa a qué distancia está la red.
+    const [far] = idx.nearest(lat, lon, 1, SNAP_RADIUS_M, inMain);
+    if (far) {
+      throw new NotFoundException(
+        `El punto (${lat}, ${lon}) está a ${Math.round(far.dist)} m de la red vial conectada; el máximo para ajustarlo es ${MAX_SNAP_M} m.`,
+      );
+    }
     if (idx.nearest(lat, lon, 1, SNAP_RADIUS_M).length > 0) {
       throw new NotFoundException(
         `El punto (${lat}, ${lon}) está fuera de la red conectada: las vías cercanas forman una isla sin conexión con el resto del grafo.`,

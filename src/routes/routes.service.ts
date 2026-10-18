@@ -4,6 +4,7 @@ import { RouteWeights } from '../dijkstra/cost';
 import { CompiledGraph } from '../dijkstra/compiled-graph';
 import { RouteResult, RouteStats } from '../dijkstra/types';
 import { bearing } from '../graph-compiler/geo';
+import { SnapCandidate } from '../dijkstra/snap';
 import { GraphService } from '../graph/graph.service';
 import { CalculateRouteDto, TripLength } from './dto/calculate-route.dto';
 import { PROFILES } from './profiles';
@@ -27,19 +28,39 @@ export type RouteResponse = Omit<RouteResult, 'stats'> & {
     elevationGainMeters: number | null;
     elevationLossMeters: number | null;
   };
+  /**
+   * Ajuste del snap (D17): punto de la vía donde empieza/termina la ruta y su
+   * distancia al punto pedido. El snap falla si supera 1 km.
+   */
+  snap: { origin: SnapInfo; destination: SnapInfo };
 };
+
+export interface SnapInfo {
+  distanceMeters: number;
+  lat: number;
+  lon: number;
+}
+
+function snapInfo(ep: Endpoint | undefined): SnapInfo {
+  const c = ep as SnapCandidate | undefined;
+  return c && 'dist' in c
+    ? { distanceMeters: Math.round(c.dist * 10) / 10, lat: c.lat, lon: c.lon }
+    : { distanceMeters: 0, lat: NaN, lon: NaN };
+}
 
 @Injectable()
 export class RoutesService {
   constructor(private readonly graphService: GraphService) {}
 
   async calculate(dto: CalculateRouteDto): Promise<RouteResponse> {
-    // nodeIdx/edgeIdx son internos del motor: no salen en la API.
-    const { nodeIdx: _n, edgeIdx: _e, tramos: _t, origin: _o, dest: _d, ...result } = await this.calculateRoute(dto);
-    if (this.graphService.hasElevation()) return result;
+    // nodeIdx/edgeIdx/tramos son internos del motor: no salen en la API.
+    const { nodeIdx: _n, edgeIdx: _e, tramos: _t, origin, dest, ...result } = await this.calculateRoute(dto);
+    const snap = { origin: snapInfo(origin), destination: snapInfo(dest) };
+    if (this.graphService.hasElevation()) return { ...result, snap };
     return {
       ...result,
       stats: { ...result.stats, elevationGainMeters: null, elevationLossMeters: null },
+      snap,
     };
   }
 
