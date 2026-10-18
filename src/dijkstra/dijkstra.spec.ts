@@ -2,6 +2,7 @@ import { Endpoint, EngineRoute, Position, dijkstra, dijkstraMultiSource, endpoin
 import { MINOR_ROAD_PENALTY, RouteWeights, W_MAX, costFromSums, edgeFeatures } from './cost';
 import { CompiledGraph, geoOsmIdString, nodeIndex } from './compiled-graph';
 import { assertSinRepeticion } from './no-repeat';
+import { TramoOverlay } from './overlay';
 import { PROFILES } from '../routes/profiles';
 import {
   PlainGraph,
@@ -24,9 +25,8 @@ function ep(g: CompiledGraph, id: string): Endpoint {
 }
 
 /** Ruta entre dos IDs de fixture; verifica siempre el RNF-SinRepetición. */
-function ruta(g: CompiledGraph, a: string, b: string, w: RouteWeights, evitar?: string[]): EngineRoute | null {
-  const avoidNodes = evitar ? new Set(evitar.map((x) => nodeIndex(g, x))) : undefined;
-  const r = dijkstra(g, ep(g, a), ep(g, b), w, avoidNodes ? { avoidNodes } : undefined);
+function ruta(g: CompiledGraph, a: string, b: string, w: RouteWeights, blocked?: TramoOverlay): EngineRoute | null {
+  const r = dijkstra(g, ep(g, a), ep(g, b), w, blocked ? { blocked } : undefined);
   if (r) assertSinRepeticion(r);
   return r;
 }
@@ -83,7 +83,7 @@ describe('dijkstra (motor compactado) — soluciones conocidas', () => {
     expect(r.path).toEqual(['S2', 'T']);
   });
 
-  it('avoidNodes desvía el camino si hay alternativa razonable', () => {
+  it('un tramo bloqueado (overlay duro) desvía el camino si hay alternativa', () => {
     // S—X—T corto (X es una unión: tiene un ramal X—Y); S—B—T un poco más largo.
     const g = toGraph(
       synthetic({ S: [0, 0], X: [0.001, 0.005], Y: [0.003, 0.005], B: [-0.001, 0.005], T: [0, 0.01] }, [
@@ -94,8 +94,11 @@ describe('dijkstra (motor compactado) — soluciones conocidas', () => {
         { from: 'B', to: 'T', length: 550 },
       ]),
     );
-    expect(ruta(g, 'S', 'T', SOLO_DISTANCIA)!.path).toEqual(['S', 'X', 'T']);
-    expect(ruta(g, 'S', 'T', SOLO_DISTANCIA, ['X'])!.path).toEqual(['S', 'B', 'T']);
+    const corta = ruta(g, 'S', 'T', SOLO_DISTANCIA)!;
+    expect(corta.path).toEqual(['S', 'X', 'T']);
+    const usado = new TramoOverlay(g);
+    usado.addRoute(corta);
+    expect(ruta(g, 'S', 'T', SOLO_DISTANCIA, usado)!.path).toEqual(['S', 'B', 'T']);
   });
 
   // Bug corregido en F0.2 (plan, §1.8): las estadísticas corresponden a la

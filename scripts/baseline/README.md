@@ -67,3 +67,4 @@ node --max-old-space-size=8192 scripts/baseline/metrics.js scripts/baseline/resu
   - **Vías privadas en `lib.js`**, para seguir al motor: se replica D16 (las calles de enclave cuentan como privadas) y el nodo de inicio y el de fin siempre abren su acceso privado (con los nodos fantasma la ruta puede empezar a mitad de un tramo privado). Sin esto, Puente Alto→El Alfalfal no tenía camino en la línea base.
   - Referencia con D2: `results/2026-10-18-F0.5/` (regenerado) y `results/2026-10-18-F0.5-oferta/`.
 - 2026-10-18 (F2): sin cambios en los scripts. `run.js` sigue enviando `tripLength: 'direct'` hasta F0.6. Resultados en `results/2026-10-18-F2/` y `results/2026-10-18-F2-oferta/`.
+- 2026-10-18 (F0.6): `requestBody()` en `run.js` ya no envía `tripLength` (la API lo rechaza). Las rutas directas no cambian. Resultados en `results/2026-10-18-F0.6/` y `results/2026-10-18-F0.6-oferta/`.

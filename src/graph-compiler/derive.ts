@@ -8,7 +8,6 @@ import {
   isDestinationOnly,
   parseHighway,
   parseOneway,
-  parseSmoothness,
 } from './normalize';
 import { RawWay } from './raw';
 import { SurfaceSource, inferSurfaces } from './surface';
@@ -91,7 +90,6 @@ export function deriveGraph(
     stats.waysUsed++;
     const highwayType = parseHighway(way.tags.highway);
     const { surface, source: surfaceSource } = surfaces.get(way.osmWayId)!;
-    const smoothness = parseSmoothness(way.tags.smoothness);
     const oneway = parseOneway(way.tags);
     const destinationOnly = isDestinationOnly(way.tags);
     if (destinationOnly) stats.destinationOnly.ways++;
@@ -108,12 +106,9 @@ export function deriveGraph(
         distanceMeters: distance,
         curviness: normalizedCurviness(density),
         curvatureDegPerKm: density,
-        elevationGain: 0,
-        elevationLoss: 0,
         highwayType,
         surface,
         surfaceSource,
-        smoothness,
         ...(destinationOnly ? { destinationOnly: true } : {}),
         osmWayId: way.osmWayId,
       });
@@ -125,8 +120,8 @@ export function deriveGraph(
       const distance = haversine(a.lat, a.lon, b.lat, b.lon);
       if (distance <= 0) continue;
       if (destinationOnly) stats.destinationOnly.km += distance / 1000;
-      if (!used.has(a.osmId)) used.set(a.osmId, { osmId: a.osmId, lat: a.lat, lon: a.lon, elevation: 0 });
-      if (!used.has(b.osmId)) used.set(b.osmId, { osmId: b.osmId, lat: b.lat, lon: b.lon, elevation: 0 });
+      if (!used.has(a.osmId)) used.set(a.osmId, { osmId: a.osmId, lat: a.lat, lon: a.lon });
+      if (!used.has(b.osmId)) used.set(b.osmId, { osmId: b.osmId, lat: b.lat, lon: b.lon });
       if (oneway !== 'backward') push(a, b, distance, segDensity[i]);
       if (oneway !== 'forward') push(b, a, distance, segDensity[i]);
     }

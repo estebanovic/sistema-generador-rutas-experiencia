@@ -16,14 +16,13 @@ import { oppositeTwins, WayLabels } from './twins';
  * Versión de la lógica derivada (normalización, compactación, features, CFC…).
  * Subirla invalida los snapshots y obliga a recompilar, sin reimportar.
  */
-export const COMPILER_VERSION = 'f2-1';
+export const COMPILER_VERSION = 'f0.6-1';
 
 export interface CompileInput {
   nodes: GraphNode[];
   edges: (GraphEdge & { osmWayId?: string; surfaceSource?: SurfaceSource })[];
   source: string;
   dataVersion: number;
-  hasElevation: boolean;
   /** name/ref de cada way (para las calzadas gemelas, D13). */
   wayLabels?: Map<string, WayLabels>;
 }
@@ -35,8 +34,6 @@ interface Segment {
   ab: boolean; // se puede ir a→b
   ba: boolean; // se puede ir b→a
   edge: GraphEdge & { osmWayId?: string; surfaceSource?: SurfaceSource }; // atributos (los de la arista a→b o b→a)
-  gainAB: number;
-  lossAB: number;
   private: boolean;
 }
 
@@ -66,7 +63,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     const s = segKey.get(key);
     if (s === undefined) {
       segKey.set(key, segs.length);
-      segs.push({ a: u, b: v, ab: true, ba: false, edge: e, gainAB: e.elevationGain, lossAB: e.elevationLoss, private: !!e.destinationOnly });
+      segs.push({ a: u, b: v, ab: true, ba: false, edge: e, private: !!e.destinationOnly });
     } else if (segs[s].a === u) {
       segs[s].ab = true;
     } else {
@@ -176,8 +173,6 @@ export function compileGraph(input: CompileInput): CompiledGraph {
   const geoCumMinor = new Float64Array(P);
   const segCurv = new Float32Array(P);
   const segCurvDeg = new Float32Array(P);
-  const segGain = new Float32Array(P);
-  const segLoss = new Float32Array(P);
   const segHighway = new Uint8Array(P);
   const segSurface = new Uint8Array(P);
   /** Procedencia de la superficie (índice en SURFACE_SOURCES; 255 = sin dato, p. ej. legacy). */
@@ -215,12 +210,9 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       geoCumStraight[p] = geoCumStraight[p - 1] + len * f.straightness;
       geoCumUnpaved[p] = geoCumUnpaved[p - 1] + len * f.unpaved;
       geoCumMinor[p] = geoCumMinor[p - 1] + len * f.minorRoad;
-      const forward = s.a === pts[j - 1];
       segCurv[p - 1] = e.curviness;
       // Las colecciones legacy no traen °/km: se aproxima desde la sinuosidad normalizada.
       segCurvDeg[p - 1] = e.curvatureDegPerKm ?? e.curviness * CURVATURE_SATURATION_DEG_PER_KM;
-      segGain[p - 1] = forward ? s.gainAB : s.lossAB;
-      segLoss[p - 1] = forward ? s.lossAB : s.gainAB;
       const h = HIGHWAY_CODES.indexOf(e.highwayType);
       segHighway[p - 1] = h < 0 ? HIGHWAY_CODES.indexOf('residential') : h;
       const sf = SURFACE_CODES.indexOf(e.surface);
@@ -296,7 +288,6 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       source: input.source,
       dataVersion: input.dataVersion,
       compilerVersion: COMPILER_VERSION,
-      hasElevation: input.hasElevation,
       builtAt: new Date().toISOString(),
       nodeCount: N,
       edgeCount: M,
@@ -314,7 +305,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     inStart, inEdge,
     chainStart, chainFwd, chainBwd, chainNode0, chainNode1, chainIsBridge, chainFlags,
     geoOsmId, geoLat, geoLon, geoCumLen, geoCumStraight, geoCumUnpaved, geoCumMinor,
-    segCurv, segCurvDeg, segGain, segLoss, segHighway, segSurface, segSurfaceSource, segWay,
+    segCurv, segCurvDeg, segHighway, segSurface, segSurfaceSource, segWay,
     twinStart: new Int32Array(M + 1),
     twinEdge: new Int32Array(0),
     twinFrac: new Float32Array(0),

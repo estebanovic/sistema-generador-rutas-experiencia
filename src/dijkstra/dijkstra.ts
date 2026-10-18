@@ -2,6 +2,7 @@ import { RouteResult } from './types';
 import { CURVY_THRESHOLD_DEG_PER_KM } from '../graph-compiler/curviness';
 import { SURFACE_SOURCES } from '../graph-compiler/surface';
 import { RouteWeights, costFromSums } from './cost';
+import { TramoOverlay } from './overlay';
 import {
   CompiledGraph,
   EDGE_FLAG_DESTINATION_ONLY,
@@ -50,10 +51,17 @@ export interface EngineRoute extends RouteResult {
 }
 
 export interface DijkstraOptions {
-  // Nodos (de unión) a "desincentivar": multiplican el costo de entrar en ellos.
-  // Sirve para que un tramo evite calles ya usadas y no se devuelva por el mismo lado.
-  avoidNodes?: Set<number>;
-  avoidPenalty?: number;
+  /**
+   * Tramos ya usados (RNF-SinRepetición, §1.11): no se recorren completos ni en
+   * pedazos que se superpongan con lo usado. Lo usa `routeVia` entre piernas.
+   */
+  blocked?: TramoOverlay;
+  /**
+   * Si el origen / el destino pueden abrir el acceso a su área privada (D7). Por
+   * defecto sí. Con `false` no se parte ni se llega por un tramo privado:
+   * `routeVia` lo apaga en los waypoints, que nunca son privados (F5).
+   */
+  privateAccess?: { origin?: boolean; dest?: boolean };
 }
 
 // ── Heap binario (mismo algoritmo y desempates que el motor anterior) ──
@@ -309,8 +317,12 @@ export function dijkstraMultiSource(
 ): EngineRoute | null {
   const N = g.meta.nodeCount;
   const validNode = (n: number) => Number.isInteger(n) && n >= 0 && n < N;
-  const avoidNodes = options?.avoidNodes;
-  const avoidPenalty = options?.avoidPenalty ?? 6;
+  const blocked = options?.blocked;
+  const originAccess = options?.privateAccess?.origin ?? true;
+  const destAccess = options?.privateAccess?.dest ?? true;
+  const isPrivateChain = (c: number) => (g.chainFlags[c] & EDGE_FLAG_DESTINATION_ONLY) !== 0;
+  // ¿Se puede recorrer el pedazo [a, b] (metros) del tramo c sin repetir lo ya usado?
+  const free = (c: number, a: number, b: number) => !blocked || blocked.isFree(c, a, b);
 
   // Semillas: nodo de unión → mejor costo inicial desde algún origen.
   const seedCost = new Map<number, number>();
@@ -326,10 +338,11 @@ export function dijkstraMultiSource(
     const n = asNode(g, o);
     if (n !== null) return seed(n, 0, { origin: i, mode: 'node' });
     const p = o as Position;
+    if (!originAccess && isPrivateChain(p.chain)) return;
     const at = sumsAt(g, p);
     const total = sumsAt(g, endPos(g, p.chain));
-    if (g.chainFwd[p.chain] >= 0) seed(g.chainNode1[p.chain], costOf(minus(total, at), weights), { origin: i, mode: 'fwd' });
-    if (g.chainBwd[p.chain] >= 0) seed(g.chainNode0[p.chain], costOf(at, weights), { origin: i, mode: 'bwd' });
+    if (g.chainFwd[p.chain] >= 0 && free(p.chain, at.len, total.len)) seed(g.chainNode1[p.chain], costOf(minus(total, at), weights), { origin: i, mode: 'fwd' });
+    if (g.chainBwd[p.chain] >= 0 && free(p.chain, 0, at.len)) seed(g.chainNode0[p.chain], costOf(at, weights), { origin: i, mode: 'bwd' });
   });
 
   // Destinos: nodo de unión → costo extra para llegar desde él a algún destino.
@@ -342,10 +355,11 @@ export function dijkstraMultiSource(
     const n = asNode(g, d);
     if (n !== null) return addTarget(n, { dest: i, mode: 'node', cost: 0 });
     const q = d as Position;
+    if (!destAccess && isPrivateChain(q.chain)) return;
     const at = sumsAt(g, q);
     const total = sumsAt(g, endPos(g, q.chain));
-    if (g.chainFwd[q.chain] >= 0) addTarget(g.chainNode0[q.chain], { dest: i, mode: 'fwd', cost: costOf(at, weights) });
-    if (g.chainBwd[q.chain] >= 0) addTarget(g.chainNode1[q.chain], { dest: i, mode: 'bwd', cost: costOf(minus(total, at), weights) });
+    if (g.chainFwd[q.chain] >= 0 && free(q.chain, 0, at.len)) addTarget(g.chainNode0[q.chain], { dest: i, mode: 'fwd', cost: costOf(at, weights) });
+    if (g.chainBwd[q.chain] >= 0 && free(q.chain, at.len, total.len)) addTarget(g.chainNode1[q.chain], { dest: i, mode: 'bwd', cost: costOf(minus(total, at), weights) });
   });
 
   // Recorrido directo dentro de un mismo tramo (origen y destino en el mismo tramo).
@@ -353,10 +367,12 @@ export function dijkstraMultiSource(
   let bestDirect: { o: number; d: number } | null = null;
   origins.forEach((o, i) => {
     if ('node' in o) return;
+    if ((!originAccess || !destAccess) && isPrivateChain(o.chain)) return;
     dests.forEach((d, j) => {
       if ('node' in d || d.chain !== o.chain) return;
       const a = sumsAt(g, o);
       const b = sumsAt(g, d);
+      if (!free(o.chain, Math.min(a.len, b.len), Math.max(a.len, b.len))) return;
       let c = Infinity;
       if (b.len >= a.len && g.chainFwd[o.chain] >= 0) c = costOf(minus(b, a), weights);
       else if (b.len < a.len && g.chainBwd[o.chain] >= 0) c = costOf(minus(a, b), weights);
@@ -374,12 +390,12 @@ export function dijkstraMultiSource(
   // salidas lo sean (p. ej. una calle pública de un sentido que termina en un
   // portón).
   const viaPrivate = (n: number, chain: number | null) => chain === null || (g.chainFlags[chain] & EDGE_FLAG_DESTINATION_ONLY) !== 0;
-  const privOrigins = [...seedInfo.entries()]
-    .filter(([n, si]) => viaPrivate(n, si.mode === 'node' ? null : (origins[si.origin] as Position).chain))
-    .map(([n]) => n);
-  const privTargets = [...target.entries()]
-    .filter(([n, ti]) => viaPrivate(n, ti.mode === 'node' ? null : (dests[ti.dest] as Position).chain))
-    .map(([n]) => n);
+  const privOrigins = originAccess
+    ? [...seedInfo.entries()].filter(([n, si]) => viaPrivate(n, si.mode === 'node' ? null : (origins[si.origin] as Position).chain)).map(([n]) => n)
+    : [];
+  const privTargets = destAccess
+    ? [...target.entries()].filter(([n, ti]) => viaPrivate(n, ti.mode === 'node' ? null : (dests[ti.dest] as Position).chain)).map(([n]) => n)
+    : [];
   const priv = privateAllowance(g, privOrigins, privTargets);
   const fromOrigin = priv?.fromOrigin;
   const toDest = priv?.toDest;
@@ -387,11 +403,9 @@ export function dijkstraMultiSource(
   const ws = workspace(g);
   const { stamp, dist, distStamp, visitedStamp, prevEdge } = ws;
   const heap = new MinHeap();
-  const { outStart, edgeTo, edgeLen, edgeSumStraight, edgeSumUnpaved, edgeSumMinor, edgeFlags } = g;
+  const { outStart, edgeTo, edgeLen, edgeSumStraight, edgeSumUnpaved, edgeSumMinor, edgeFlags, edgeChain } = g;
 
-  for (const [n, c0] of seedCost) {
-    // Llegar a un nodo evitado por un pedazo de tramo (nodo fantasma) se encarece igual que por una arista.
-    const c = avoidNodes && avoidNodes.has(n) ? c0 * avoidPenalty : c0;
+  for (const [n, c] of seedCost) {
     dist[n] = c;
     distStamp[n] = stamp;
     prevEdge[n] = -1;
@@ -422,9 +436,8 @@ export function dijkstraMultiSource(
       ) {
         continue; // vía privada fuera del tramo inicial/final: no se usa de paso
       }
-      let edgeCost = costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights);
-      if (avoidNodes && avoidNodes.has(v)) edgeCost *= avoidPenalty;
-      const cost = distU + edgeCost;
+      if (blocked && blocked.isUsed(edgeChain[e])) continue; // tramo ya recorrido por otra pierna
+      const cost = distU + costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights);
       if (cost < (distStamp[v] === stamp ? dist[v] : Infinity)) {
         dist[v] = cost;
         distStamp[v] = stamp;
@@ -505,8 +518,6 @@ export function buildRouteResult(
   const coordinates: [number, number][] = [];
   const tramos: TramoUse[] = [];
   let distanceMeters = 0;
-  let elevationGain = 0;
-  let elevationLoss = 0;
   let curvinessMeters = 0;
   let degMeters = 0;
   let curvyMeters = 0;
@@ -563,9 +574,6 @@ export function buildRouteResult(
       if (frac <= 0) continue;
       const len = segLen * frac;
       distanceMeters += len;
-      // Desnivel en el sentido de recorrido.
-      elevationGain += frac * (forward ? g.segGain[j] : g.segLoss[j]);
-      elevationLoss += frac * (forward ? g.segLoss[j] : g.segGain[j]);
       curvinessMeters += g.segCurv[j] * len;
       degMeters += g.segCurvDeg[j] * len;
       if (g.segCurvDeg[j] >= CURVY_THRESHOLD_DEG_PER_KM) curvyMeters += len;
@@ -584,8 +592,6 @@ export function buildRouteResult(
     totalCost,
     stats: {
       distanceMeters,
-      elevationGainMeters: elevationGain,
-      elevationLossMeters: elevationLoss,
       // Ponderada por largo.
       curviness: distanceMeters > 0 ? curvinessMeters / distanceMeters : 0,
       curvinessDegPerKm: distanceMeters > 0 ? degMeters / distanceMeters : 0,

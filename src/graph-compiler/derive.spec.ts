@@ -69,9 +69,4 @@ describe('deriveGraph', () => {
     expect(g.edges.filter((e) => e.osmWayId === '1').every((e) => !e.destinationOnly)).toBe(true);
     expect(g.stats.destinationOnly.ways).toBe(1);
   });
-
-  it('sin elevación: gain/loss en 0', () => {
-    const g = deriveGraph([way('1', ['a', 'b'], { highway: 'residential' })], coordsOf);
-    expect(g.edges.every((e) => e.elevationGain === 0 && e.elevationLoss === 0)).toBe(true);
-  });
 });

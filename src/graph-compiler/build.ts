@@ -29,28 +29,25 @@ export async function buildFromStore(db: Db): Promise<{ graph: CompiledGraph; de
   const derived = deriveGraph(ways, (id) => coords.get(id));
   const wayLabels = new Map<string, WayLabels>();
   for (const w of ways) if (w.tags.name || w.tags.ref) wayLabels.set(w.osmWayId, { name: w.tags.name, ref: w.tags.ref });
-  const graph = compileGraph({ nodes: derived.nodes, edges: derived.edges, source: 'osm', dataVersion, hasElevation: false, wayLabels });
+  const graph = compileGraph({ nodes: derived.nodes, edges: derived.edges, source: 'osm', dataVersion, wayLabels });
   return { graph, derive: derived.stats };
 }
 
 /** Colecciones anteriores a F0.1 (`nodes`/`edges`) → CSR. */
 export async function buildFromLegacy(db: Db): Promise<CompiledGraph> {
   const [nodeDocs, edgeDocs] = await Promise.all([
-    db.collection('nodes').find({}, { projection: { _id: 0, osmId: 1, lat: 1, lon: 1, elevation: 1 } }).toArray(),
+    db.collection('nodes').find({}, { projection: { _id: 0, osmId: 1, lat: 1, lon: 1 } }).toArray(),
     db.collection('edges').find({}, { projection: { _id: 0, __v: 0 } }).toArray(),
   ]);
-  const nodes: GraphNode[] = nodeDocs.map((n) => ({ osmId: n.osmId, lat: n.lat, lon: n.lon, elevation: n.elevation ?? 0 }));
+  const nodes: GraphNode[] = nodeDocs.map((n) => ({ osmId: n.osmId, lat: n.lat, lon: n.lon }));
   const edges: (GraphEdge & { osmWayId?: string })[] = edgeDocs.map((e) => ({
     fromOsmId: e.fromOsmId,
     toOsmId: e.toOsmId,
     distanceMeters: e.distanceMeters,
     curviness: e.curviness,
-    elevationGain: e.elevationGain,
-    elevationLoss: e.elevationLoss,
     highwayType: e.highwayType,
     surface: e.surface,
-    smoothness: e.smoothness,
     osmWayId: e.osmWayId,
   }));
-  return compileGraph({ nodes, edges, source: 'legacy', dataVersion: 0, hasElevation: true });
+  return compileGraph({ nodes, edges, source: 'legacy', dataVersion: 0 });
 }

@@ -13,7 +13,6 @@ import {
   GraphEdge,
   GraphNode,
   HighwayType,
-  SmoothnessType,
   SurfaceType,
 } from '../../src/dijkstra/types';
 
@@ -26,7 +25,7 @@ export interface PlainGraph {
 
 /** Grafo en el formato del motor (CSR compilado). */
 export function toGraph(p: PlainGraph): CompiledGraph {
-  return compileGraph({ nodes: p.nodes, edges: p.edges, source: 'test', dataVersion: 0, hasElevation: true });
+  return compileGraph({ nodes: p.nodes, edges: p.edges, source: 'test', dataVersion: 0 });
 }
 
 // ── Fixture real ─────────────────────────────────────────────
@@ -43,17 +42,15 @@ export function loadFixture(name: string): PlainGraph & { meta: FixtureFile['met
   const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as FixtureFile;
   return {
     meta: raw.meta,
-    nodes: raw.nodes.map(([osmId, lat, lon, elevation]) => ({ osmId, lat, lon, elevation })),
-    edges: raw.edges.map(([fromOsmId, toOsmId, distanceMeters, curviness, elevationGain, elevationLoss, highwayType, surface, smoothness, osmWayId]) => ({
+    nodes: raw.nodes.map(([osmId, lat, lon]) => ({ osmId, lat, lon })),
+    // El archivo conserva las columnas de elevación y smoothness del export (anterior a F0.6); se ignoran.
+    edges: raw.edges.map(([fromOsmId, toOsmId, distanceMeters, curviness, , , highwayType, surface, , osmWayId]) => ({
       fromOsmId,
       toOsmId,
       distanceMeters,
       curviness,
-      elevationGain,
-      elevationLoss,
       highwayType: highwayType as HighwayType,
       surface: surface as SurfaceType,
-      smoothness: smoothness as SmoothnessType,
       osmWayId,
     })),
   };
@@ -74,11 +71,8 @@ export interface EdgeSpec {
   curviness?: number;
   highwayType?: HighwayType;
   surface?: SurfaceType;
-  smoothness?: SmoothnessType;
   /** true = solo from→to. Por defecto la arista es de doble sentido. */
   oneway?: boolean;
-  elevationGain?: number;
-  elevationLoss?: number;
   /** Vía privada (solo origen/destino). */
   destinationOnly?: boolean;
   /** Way de OSM; por defecto uno distinto por spec (`w<índice>`). */
@@ -97,7 +91,6 @@ export function synthetic(
     osmId,
     lat,
     lon,
-    elevation: 0,
   }));
   const edges: (GraphEdge & { osmWayId?: string })[] = [];
   specs.forEach((s, i) => {
@@ -107,12 +100,11 @@ export function synthetic(
       curviness: s.curviness ?? 0,
       highwayType: s.highwayType ?? 'secondary',
       surface: s.surface ?? 'asphalt',
-      smoothness: s.smoothness ?? 'good',
       ...(s.destinationOnly ? { destinationOnly: true } : {}),
     };
-    edges.push({ ...base, fromOsmId: s.from, toOsmId: s.to, elevationGain: s.elevationGain ?? 0, elevationLoss: s.elevationLoss ?? 0 });
+    edges.push({ ...base, fromOsmId: s.from, toOsmId: s.to });
     if (!s.oneway) {
-      edges.push({ ...base, fromOsmId: s.to, toOsmId: s.from, elevationGain: s.elevationLoss ?? 0, elevationLoss: s.elevationGain ?? 0 });
+      edges.push({ ...base, fromOsmId: s.to, toOsmId: s.from });
     }
   });
   return { nodes, edges };

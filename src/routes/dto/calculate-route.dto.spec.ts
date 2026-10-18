@@ -44,3 +44,13 @@ describe('CalculateRouteDto: pesos del perfil custom (F2)', () => {
     ).toEqual([`customWeights.${campo}`]);
   });
 });
+
+describe('CalculateRouteDto: campos retirados en F0.6', () => {
+  it('rechaza tripLength (la vuelta con waypoints desviados ya no existe)', async () => {
+    expect(await errores({ ...base, profile: 'moto-curvas', tripLength: 'direct' })).toEqual(['tripLength']);
+  });
+
+  it('acepta el pedido mínimo', async () => {
+    expect(await errores({ ...base, profile: '4x4' })).toEqual([]);
+  });
+});

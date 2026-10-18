@@ -20,19 +20,10 @@ export type SurfaceType =
   | 'cobblestone'
   | 'unknown';
 
-export type SmoothnessType =
-  | 'excellent'
-  | 'good'
-  | 'intermediate'
-  | 'bad'
-  | 'very_bad'
-  | 'impassable';
-
 export interface GraphNode {
   osmId: string;
   lat: number;
   lon: number;
-  elevation: number;
 }
 
 export interface GraphEdge {
@@ -43,11 +34,8 @@ export interface GraphEdge {
   curviness: number;
   /** Densidad de giro en °/km (F0.4); ausente en las colecciones legacy. */
   curvatureDegPerKm?: number;
-  elevationGain: number;
-  elevationLoss: number;
   highwayType: HighwayType;
   surface: SurfaceType;
-  smoothness: SmoothnessType;
   /**
    * Vía privada: solo puede usarse en el tramo inicial o final de una ruta
    * (salir de / llegar a un condominio o fundo), nunca como paso.
@@ -57,8 +45,6 @@ export interface GraphEdge {
 
 export interface RouteStats {
   distanceMeters: number;
-  elevationGainMeters: number;
-  elevationLossMeters: number;
   /** Sinuosidad normalizada [0,1] media, ponderada por largo. */
   curviness: number;
   /** Densidad de giro media (°/km), ponderada por largo. */

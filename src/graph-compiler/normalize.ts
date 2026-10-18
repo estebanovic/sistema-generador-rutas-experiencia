@@ -1,4 +1,4 @@
-import { HighwayType, SmoothnessType } from '../dijkstra/types';
+import { HighwayType } from '../dijkstra/types';
 
 /**
  * Normalización de tags crudos de OSM a atributos de ruteo, y reglas de
@@ -102,14 +102,6 @@ export function isDestinationOnly(tags: Record<string, string>): boolean {
 
 export function parseHighway(value?: string): HighwayType {
   return (value && HIGHWAY_MAP[value]) || 'residential';
-}
-
-const SMOOTHNESS_VALUES: ReadonlySet<string> = new Set([
-  'excellent', 'good', 'intermediate', 'bad', 'very_bad', 'impassable',
-]);
-
-export function parseSmoothness(value?: string): SmoothnessType {
-  return value && SMOOTHNESS_VALUES.has(value) ? (value as SmoothnessType) : 'intermediate';
 }
 
 /**

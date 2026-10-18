@@ -19,7 +19,8 @@ const { P, PAIRS } = SETS[SET];
 // Cuerpo de la petición. Si el contrato de la API cambia en una fase, adaptar
 // SOLO esta función (y anotarlo en el README).
 function requestBody(o, d, profile) {
-  return { origin: { lat: o[0], lon: o[1] }, destination: { lat: d[0], lon: d[1] }, profile, tripLength: 'direct' };
+  // Desde F0.6 la API no acepta tripLength (antes se enviaba 'direct').
+  return { origin: { lat: o[0], lon: o[1] }, destination: { lat: d[0], lon: d[1] }, profile };
 }
 
 async function call(o, d, profile) {

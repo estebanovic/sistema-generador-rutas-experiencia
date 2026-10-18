@@ -21,7 +21,9 @@ export interface RawWay {
 /**
  * Tags que se guardan crudos. La normalización (tipo de vía, superficie,
  * sentido, exclusiones) se hace al compilar, así se puede cambiar sin
- * reimportar.
+ * reimportar. `smoothness` se sigue guardando aunque el modelo de ruteo no lo
+ * usa desde F0.6 (casi no está etiquetado): quitarlo haría que el próximo
+ * import viera como modificados todos los ways que lo tienen.
  */
 export const STORED_TAGS = [
   'highway',

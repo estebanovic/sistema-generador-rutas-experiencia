@@ -251,7 +251,6 @@ describe('calzadas gemelas (D13)', () => {
     edges: plain.edges,
     source: 'test',
     dataVersion: 0,
-    hasElevation: false,
     wayLabels: new Map([
       ['1', { name: 'Avenida X' }],
       ['2', { name: 'avenida x ' }],

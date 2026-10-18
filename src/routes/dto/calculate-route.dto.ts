@@ -12,9 +12,6 @@ import {
 import { W_MAX } from '../../dijkstra/cost';
 import { PROFILE_NAMES, ProfileName } from '../profiles';
 
-export const TRIP_LENGTHS = ['direct', 'short', 'medium', 'long'] as const;
-export type TripLength = (typeof TRIP_LENGTHS)[number];
-
 export class LatLonDto {
   @Type(() => Number)
   @IsNumber()
@@ -48,6 +45,10 @@ export class RouteWeightsDto {
   surfaceWeight: number;
 }
 
+/**
+ * Desde F0.6 no existe `tripLength` (la "vuelta" con waypoints desviados): la
+ * modalidad con longitud objetivo se hará con la ILS. Enviarlo es un error.
+ */
 export class CalculateRouteDto {
   @ValidateNested()
   @Type(() => LatLonDto)
@@ -65,9 +66,4 @@ export class CalculateRouteDto {
   @ValidateNested()
   @Type(() => RouteWeightsDto)
   customWeights?: RouteWeightsDto;
-
-  // Largo de la "vuelta": direct = óptima; short/medium/long = desvíos crecientes.
-  @IsOptional()
-  @IsIn(TRIP_LENGTHS)
-  tripLength?: TripLength;
 }

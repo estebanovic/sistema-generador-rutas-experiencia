@@ -88,10 +88,6 @@ export class GraphService implements OnModuleInit {
     return this.building;
   }
 
-  hasElevation(): boolean {
-    return this.graph?.meta.hasElevation ?? this.source === 'legacy';
-  }
-
   /** Estadísticas de la última derivación compilada en este proceso (si la hubo). */
   deriveStats(): DeriveStats | null {
     return this.lastDeriveStats;

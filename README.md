@@ -79,7 +79,7 @@ Respuesta:
 - `path`: osmIds de los nodos recorridos.
 - `coordinates`: `[lat, lon]`; el primero y el último son el punto ajustado sobre la vía.
 - `totalCost`: costo de la ruta en metros equivalentes (siempre ≥ la distancia; ver "Función de costo").
-- `stats`: distancia, sinuosidad y desglose por tipo de vía y superficie. El desnivel es `null` porque no hay datos de elevación.
+- `stats`: distancia, sinuosidad (`curviness`, `curvinessDegPerKm`, `curvyShare`) y desglose por tipo de vía, superficie y procedencia de la superficie.
 - `snap`: `{ origin, destination }`, cada uno `{ distanceMeters, lat, lon }`: el punto de la vía donde empieza o termina la ruta y su distancia al punto pedido.
 
 Errores del ajuste (snap), con HTTP 404:
@@ -102,6 +102,8 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | `stats.surfaceSourceBreakdown`: metros por procedencia de la superficie (`declarada`, `tracktype`, `vecindad`, `tipo`). | Compatible (campo nuevo). |
 | 2026-10-18 | `customWeights` solo admite `curvinessWeight` (0 a 4) y `surfaceWeight` (-4 a 4). `distanceWeight` y `elevationWeight` se eliminan: enviarlos responde 400. | Rompe a los clientes que usan el perfil `custom` (rango y campos nuevos). |
 | 2026-10-18 | `totalCost` cambia de escala: ahora son metros equivalentes, ≥ `stats.distanceMeters`. Los perfiles predefinidos tienen pesos nuevos, así que sus rutas cambian. | Compatible en tipo; cambia el significado del número. |
+| 2026-10-18 | Se eliminan `stats.elevationGainMeters` y `stats.elevationLossMeters` (antes `null`): el backend ya no maneja elevación. | Rompe a los clientes que leen esos campos; el desnivel, si se muestra, lo obtiene el frontend por su cuenta. |
+| 2026-10-18 | Se elimina `tripLength` (la "vuelta" con waypoints desviados): enviarlo responde 400. La ruta es siempre la directa del perfil. | Rompe a los clientes que lo envían, aunque sea `direct`. |
 
 ## Función de costo
 

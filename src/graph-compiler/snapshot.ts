@@ -52,8 +52,6 @@ const ARRAYS: [keyof CompiledGraph, TypedArrayCtor][] = [
   ['geoCumMinor', Float64Array],
   ['segCurv', Float32Array],
   ['segCurvDeg', Float32Array],
-  ['segGain', Float32Array],
-  ['segLoss', Float32Array],
   ['segHighway', Uint8Array],
   ['segSurface', Uint8Array],
   ['segSurfaceSource', Uint8Array],

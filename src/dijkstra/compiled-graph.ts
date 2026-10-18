@@ -1,4 +1,4 @@
-import { HighwayType, SmoothnessType, SurfaceType } from './types';
+import { HighwayType, SurfaceType } from './types';
 
 /**
  * Grafo compilado y COMPACTADO (desde F0.3): arrays tipados en CSR. Es lo
@@ -78,9 +78,6 @@ export interface CompiledGraph {
   segCurv: Float32Array;
   /** Densidad de giro del segmento (°/km). */
   segCurvDeg: Float32Array;
-  /** Desnivel positivo/negativo en el sentido de la geometría. */
-  segGain: Float32Array;
-  segLoss: Float32Array;
   segHighway: Uint8Array;
   segSurface: Uint8Array;
   /** Procedencia de la superficie: índice en SURFACE_SOURCES (declarada, tracktype, vecindad, tipo); 255 = sin dato. */
@@ -98,7 +95,6 @@ export interface CompiledMeta {
   source: string;
   dataVersion: number;
   compilerVersion: string;
-  hasElevation: boolean;
   builtAt: string;
   nodeCount: number;
   edgeCount: number;
@@ -120,9 +116,6 @@ export const HIGHWAY_CODES: readonly HighwayType[] = [
 ];
 export const SURFACE_CODES: readonly SurfaceType[] = [
   'asphalt', 'concrete', 'gravel', 'dirt', 'sand', 'cobblestone', 'unknown',
-];
-export const SMOOTHNESS_CODES: readonly SmoothnessType[] = [
-  'excellent', 'good', 'intermediate', 'bad', 'very_bad', 'impassable',
 ];
 
 const labelIndex = new WeakMap<CompiledGraph, Map<string, number>>();
