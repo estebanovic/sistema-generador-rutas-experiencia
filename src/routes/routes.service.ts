@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Endpoint, EngineRoute, dijkstraMultiSource } from '../dijkstra/dijkstra';
 import { RouteWeights } from '../dijkstra/cost';
 import { RouteResult } from '../dijkstra/types';
-import { SnapCandidate } from '../dijkstra/snap';
+import { SNAP_K, SnapCandidate } from '../dijkstra/snap';
 import { GraphService } from '../graph/graph.service';
 import { CalculateRouteDto } from './dto/calculate-route.dto';
 import { PROFILES } from './profiles';
@@ -56,10 +56,9 @@ export class RoutesService {
     // snap a uno solo cae mal en autopistas divididas y produce rodeos
     // absurdos. Solo tramos de la componente fuertemente conexa mayor (D15);
     // si no hay, snap() responde 'fuera de la red conectada' o 'no hay vías'.
-    const K = 6;
     const [startCandidates, endCandidates] = await Promise.all([
-      this.graphService.snap(dto.origin.lat, dto.origin.lon, K),
-      this.graphService.snap(dto.destination.lat, dto.destination.lon, K),
+      this.graphService.snap(dto.origin.lat, dto.origin.lon, SNAP_K),
+      this.graphService.snap(dto.destination.lat, dto.destination.lon, SNAP_K),
     ]);
 
     // Elige la mejor combinación origen/destino entre candidatos.

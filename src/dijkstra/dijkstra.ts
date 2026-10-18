@@ -62,6 +62,12 @@ export interface DijkstraOptions {
    * `routeVia` lo apaga en los waypoints, que nunca son privados (F5).
    */
   privateAccess?: { origin?: boolean; dest?: boolean };
+  /** Si se pasa, el motor suma aquí los nodos asentados (para el bench y para comparar con A*, F3). */
+  stats?: SearchStats;
+}
+
+export interface SearchStats {
+  settled: number;
 }
 
 // ── Heap binario (mismo algoritmo y desempates que el motor anterior) ──
@@ -413,11 +419,13 @@ export function dijkstraMultiSource(
   }
 
   let bestNode = -1;
+  let settled = 0;
   while (heap.size > 0) {
     if (heap.topKey() >= best) break; // nada pendiente puede mejorar la mejor solución
     const u = heap.pop();
     if (visitedStamp[u] === stamp) continue;
     visitedStamp[u] = stamp;
+    settled++;
     const distU = dist[u];
 
     const tg = target.get(u);
@@ -447,6 +455,7 @@ export function dijkstraMultiSource(
     }
   }
 
+  if (options?.stats) options.stats.settled += settled;
   if (best === Infinity) return null;
 
   // ── Reconstrucción en pedazos de tramo ──

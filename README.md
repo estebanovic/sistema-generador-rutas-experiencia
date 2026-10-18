@@ -33,6 +33,19 @@ Reimportación masiva por teselas:
 npm run build && node dist/cli/reimport-tiles.js --bbox <s>,<w>,<n>,<e>
 ```
 
+## Tests y medición
+
+```bash
+npm test                    # Jest: motor, compilador, DTO y rutas doradas
+npx jest test/golden -u     # actualiza las rutas doradas (solo si el cambio es intencional)
+npm run build && npm run bench   # tiempo del motor y nodos asentados, en proceso
+```
+
+- **Rutas doradas** (`test/golden.spec.ts`): las 144 rutas de la línea base (los dos conjuntos de pares × 3 perfiles), calculadas sobre el grafo real como lo hace la API y congeladas en `test/__snapshots__/`. Un cambio que altere una ruta hace fallar el test hasta que se actualice el snapshot con `-u`. Necesitan el snapshot del grafo en `data/graph-cache/` (lo escribe el servidor al arrancar); si no está, se saltan con un aviso.
+- **Verificador de no repetición:** todos los tests que calculan rutas pasan por `assertSinRepeticion`.
+- **Bench** (`scripts/bench.js`): las mismas consultas, más una con los pesos en 0, repetidas `--reps` veces (5 por defecto). Informa p50/p95/máx en ms y los nodos asentados por perfil; `--out archivo.json` guarda el resultado.
+- **Línea base** (`scripts/baseline/`): métricas de calidad contra la API corriendo; ver su README.
+
 ## Endpoints
 
 ### `POST /import`

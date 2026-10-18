@@ -10,7 +10,7 @@ import * as path from 'path';
 import { Worker } from 'worker_threads';
 import { Connection } from 'mongoose';
 import { CompiledGraph } from '../dijkstra/compiled-graph';
-import { SnapCandidate, chainInMainScc, spatialIndex } from '../dijkstra/snap';
+import { MAX_SNAP_M, SnapCandidate, chainInMainScc, snapCandidates, spatialIndex } from '../dijkstra/snap';
 import { buildFromLegacy, buildFromStore, readDataVersion } from '../graph-compiler/build';
 import { COMPILER_VERSION } from '../graph-compiler/compile';
 import { DeriveStats } from '../graph-compiler/derive';
@@ -25,8 +25,6 @@ import { pruneSnapshots, readSnapshot, snapshotFileName, writeSnapshot } from '.
  */
 export type GraphSource = 'osm' | 'legacy';
 
-/** Distancia máxima de ajuste del snap (D17). */
-export const MAX_SNAP_M = 1000;
 /** Radio de búsqueda para distinguir los mensajes de error (red lejana, isla, sin vías). */
 const SNAP_RADIUS_M = 5000;
 
@@ -180,10 +178,10 @@ export class GraphService implements OnModuleInit {
    */
   async snap(lat: number, lon: number, k: number): Promise<SnapCandidate[]> {
     const g = await this.getGraph();
+    const found = snapCandidates(g, lat, lon, k);
+    if (found.length > 0) return found;
     const idx = spatialIndex(g);
     const inMain = (c: number) => chainInMainScc(g, c);
-    const found = idx.nearest(lat, lon, k, MAX_SNAP_M, inMain);
-    if (found.length > 0) return found;
     // D17: más allá de 1 km no se ajusta; se informa a qué distancia está la red.
     const [far] = idx.nearest(lat, lon, 1, SNAP_RADIUS_M, inMain);
     if (far) {

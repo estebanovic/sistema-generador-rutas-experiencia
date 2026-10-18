@@ -134,3 +134,17 @@ export function spatialIndex(g: CompiledGraph): SpatialIndex {
 export function chainInMainScc(g: CompiledGraph, chain: number): boolean {
   return g.nodeInMainScc[g.chainNode0[chain]] === 1 && g.nodeInMainScc[g.chainNode1[chain]] === 1;
 }
+
+/** Candidatos por punto del snap multi-candidato (en autopistas divididas, el más cercano suele ser la calzada equivocada). */
+export const SNAP_K = 6;
+/** Distancia máxima de ajuste del snap (D17). */
+export const MAX_SNAP_M = 1000;
+
+/**
+ * Candidatos del snap tal como los usa la API: hasta `k` tramos de la
+ * componente fuertemente conexa mayor (D15) a menos de `MAX_SNAP_M`. Vacío si
+ * no hay ninguno (el servicio decide el mensaje de error).
+ */
+export function snapCandidates(g: CompiledGraph, lat: number, lon: number, k = SNAP_K): SnapCandidate[] {
+  return spatialIndex(g).nearest(lat, lon, k, MAX_SNAP_M, (c) => chainInMainScc(g, c));
+}

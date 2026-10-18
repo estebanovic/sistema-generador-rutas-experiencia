@@ -9,7 +9,8 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "test": "jest"
+    "test": "jest",
+    "bench": "node --max-old-space-size=4096 scripts/bench.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",

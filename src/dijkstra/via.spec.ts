@@ -14,9 +14,12 @@ function ep(g: CompiledGraph, id: string): Endpoint {
   return e;
 }
 
-/** routeVia sobre IDs de fixture (un candidato por punto). */
-const via = (g: CompiledGraph, ids: (string | Position)[], overlay?: TramoOverlay) =>
-  routeVia(g, ids.map((x) => [typeof x === 'string' ? ep(g, x) : x]), SOLO_DISTANCIA, overlay);
+/** routeVia sobre IDs de fixture (un candidato por punto); verifica siempre el RNF-SinRepetición. */
+const via = (g: CompiledGraph, ids: (string | Position)[], overlay?: TramoOverlay) => {
+  const r = routeVia(g, ids.map((x) => [typeof x === 'string' ? ep(g, x) : x]), SOLO_DISTANCIA, overlay);
+  if (r) assertSinRepeticion(r);
+  return r;
+};
 
 /** Posición a una fracción `t` del segmento a→b, esté como esté orientado en su tramo. */
 function pos(g: CompiledGraph, a: string, b: string, t: number): Position {
@@ -109,7 +112,9 @@ describe('routeVia: bloqueo duro de tramos entre piernas (§1.11)', () => {
     overlay.reset();
     overlay.addRoute(ida);
     overlay.removeRoute(ida);
-    expect(dijkstra(g, ep(g, 'S'), ep(g, 'T'), SOLO_DISTANCIA, { blocked: overlay })!.path).toEqual(['S', 'X', 'T']);
+    const libre = dijkstra(g, ep(g, 'S'), ep(g, 'T'), SOLO_DISTANCIA, { blocked: overlay })!;
+    expect(libre.path).toEqual(['S', 'X', 'T']);
+    assertSinRepeticion(libre);
   });
 
   describe('vías privadas solo en el acceso desde el origen y hacia el destino (D7, F5)', () => {

@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-18T21:56:40.435Z",
+  "snapshot": "graph-osm-v21-f0.6-1.bin",
+  "node": "v22.20.0",
+  "reps": 5,
+  "queries": 192,
+  "loadMs": 46,
+  "spatialIndexMs": 424,
+  "profiles": {
+    "pesos-en-0": {
+      "p50": 7.16,
+      "p95": 32.19,
+      "max": 36.01,
+      "settledMean": 67106,
+      "settledP95": 175800,
+      "fail": 0
+    },
+    "moto-curvas": {
+      "p50": 4.98,
+      "p95": 29.7,
+      "max": 35.54,
+      "settledMean": 50954,
+      "settledP95": 158954,
+      "fail": 0
+    },
+    "4x4": {
+      "p50": 4.87,
+      "p95": 31.54,
+      "max": 36.55,
+      "settledMean": 61492,
+      "settledP95": 177862,
+      "fail": 0
+    },
+    "scenic": {
+      "p50": 4.75,
+      "p95": 29.46,
+      "max": 33.89,
+      "settledMean": 51294,
+      "settledP95": 158601,
+      "fail": 0
+    }
+  },
+  "all": {
+    "p50": 5.12,
+    "p95": 31.15,
+    "max": 36.55
+  }
+}

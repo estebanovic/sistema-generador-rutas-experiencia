@@ -81,6 +81,7 @@ describe('dijkstra (motor compactado) — soluciones conocidas', () => {
     );
     const r = dijkstraMultiSource(g, [ep(g, 'S1'), ep(g, 'S2')], [ep(g, 'T')], SOLO_DISTANCIA)!;
     expect(r.path).toEqual(['S2', 'T']);
+    assertSinRepeticion(r);
   });
 
   it('un tramo bloqueado (overlay duro) desvía el camino si hay alternativa', () => {
@@ -154,6 +155,7 @@ describe('nodos fantasma (snap a mitad de un tramo)', () => {
   it('el pedazo hacia atrás también vale si el tramo es de doble sentido', () => {
     const r = dijkstra(g, pos(g, 0.75), pos(g, 0.25), SOLO_DISTANCIA)!;
     expect(r.stats.distanceMeters).toBeCloseTo(500, 9);
+    assertSinRepeticion(r);
   });
 
   it('en un tramo de un sentido, ir "hacia atrás" obliga a dar la vuelta', () => {
@@ -169,6 +171,7 @@ describe('nodos fantasma (snap a mitad de un tramo)', () => {
     const r = dijkstra(g, pos(g, 0.4), { node: nodeIndex(g, 'T') }, SOLO_DISTANCIA)!;
     expect(r.stats.distanceMeters).toBeCloseTo(600, 9);
     expect(r.path).toEqual(['T']);
+    assertSinRepeticion(r);
   });
 });
 

@@ -68,3 +68,4 @@ node --max-old-space-size=8192 scripts/baseline/metrics.js scripts/baseline/resu
   - Referencia con D2: `results/2026-10-18-F0.5/` (regenerado) y `results/2026-10-18-F0.5-oferta/`.
 - 2026-10-18 (F2): sin cambios en los scripts. `run.js` sigue enviando `tripLength: 'direct'` hasta F0.6. Resultados en `results/2026-10-18-F2/` y `results/2026-10-18-F2-oferta/`.
 - 2026-10-18 (F0.6): `requestBody()` en `run.js` ya no envía `tripLength` (la API lo rechaza). Las rutas directas no cambian. Resultados en `results/2026-10-18-F0.6/` y `results/2026-10-18-F0.6-oferta/`.
+- 2026-10-18 (F1): sin cambios en los scripts. Rutas idénticas a F0.6. `results/2026-10-18-F1/bench.json` guarda la referencia de `npm run bench` (tiempo del motor y nodos asentados) para comparar con A\* en F3.

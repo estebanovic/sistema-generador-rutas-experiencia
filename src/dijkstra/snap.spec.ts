@@ -2,6 +2,7 @@ import { synthetic, toGraph } from '../../test/fixtures/graph-fixtures';
 import { haversine } from '../graph-compiler/geo';
 import { geoOsmIdString } from './compiled-graph';
 import { dijkstra } from './dijkstra';
+import { assertSinRepeticion } from './no-repeat';
 import { chainInMainScc, spatialIndex } from './snap';
 import { PROFILES } from '../routes/profiles';
 
@@ -70,5 +71,6 @@ describe('snap con nodos fantasma (índice espacial en memoria)', () => {
     const esperado = haversine(lat0, -70.595, lat0, -70.585);
     expect(Math.abs(r.stats.distanceMeters - esperado)).toBeLessThan(1);
     expect(r.path).toEqual(['B']); // pasa por el único nodo crudo entre ambas proyecciones
+    assertSinRepeticion(r);
   });
 });

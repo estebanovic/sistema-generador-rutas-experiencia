@@ -4,6 +4,7 @@ import * as path from 'path';
 import { CompiledGraph, geoOsmIdString, nodeIndex } from '../dijkstra/compiled-graph';
 import { costFromFeatures, costFromSums, edgeFeatures } from '../dijkstra/cost';
 import { dijkstra, endpointOfRawNode } from '../dijkstra/dijkstra';
+import { assertSinRepeticion } from '../dijkstra/no-repeat';
 import { PROFILES } from '../routes/profiles';
 import { EdgeSpec, diamante, loadFixture, randomPairs, synthetic, toGraph } from '../../test/fixtures/graph-fixtures';
 import { compileGraph } from './compile';
@@ -190,6 +191,7 @@ describe('enclaves (D16)', () => {
     const r = dijkstra(g, endpointOfRawNode(g, 'Q')!, endpointOfRawNode(g, 'T')!, PROFILES['moto-curvas']);
     expect(r).not.toBeNull();
     expect(r!.path[0]).toBe('Q');
+    assertSinRepeticion(r!);
   });
 });
 
@@ -302,6 +304,7 @@ describe('snapshot', () => {
       const r2 = dijkstra(h, endpointOfRawNode(h, a)!, endpointOfRawNode(h, b)!, PROFILES['moto-curvas']);
       expect(r2?.totalCost).toBe(r1?.totalCost);
       expect(r2?.path).toEqual(r1?.path);
+      if (r2) assertSinRepeticion(r2);
     }
   });
 
