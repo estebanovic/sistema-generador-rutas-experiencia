@@ -16,8 +16,12 @@ import { GraphEdge, HighwayType, SurfaceType } from './types';
  *   smoothness casi no está etiquetado; plan, §1.4).
  */
 
-/** Peso máximo de cada criterio (D4). */
-export const W_MAX = 4;
+/**
+ * Peso máximo de cada criterio (D4). Era 4 en F2; se subió a 6 tras F4, cuando
+ * el presupuesto de desvío ya acota las rutas: con 6, 4x4 llega al 70% del
+ * máximo alcanzable en más pares sin salir de su presupuesto.
+ */
+export const W_MAX = 6;
 
 export interface RouteWeights {
   /** 0..W_MAX: cuánto se evitan los tramos rectos (preferencia por curvas). */

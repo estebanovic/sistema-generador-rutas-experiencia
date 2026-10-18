@@ -7,7 +7,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
   "rutas": {
     "casablanca→lasDichas 4x4": {
       "camino": "20481eb99409",
-      "costo": 81684.1,
+      "costo": 114031.3,
       "lambda": 0,
       "metros": 16989.6,
       "nodos": 388,
@@ -27,11 +27,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
       "nodos": 374,
     },
     "curacavi→casablanca 4x4": {
-      "camino": "2ba92170973e",
-      "costo": 133095.5,
+      "camino": "17d3a3cb41a9",
+      "costo": 184300.3,
       "lambda": 0,
-      "metros": 29696.7,
-      "nodos": 637,
+      "metros": 30283.7,
+      "nodos": 657,
     },
     "curacavi→casablanca moto-curvas": {
       "camino": "4ba6bf59d2e0",
@@ -48,11 +48,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
       "nodos": 1444,
     },
     "curacavi→cuestaZapata 4x4": {
-      "camino": "a682631e2dfd",
-      "costo": 77647.9,
+      "camino": "89b19bb29a48",
+      "costo": 105830.1,
       "lambda": 0,
-      "metros": 20700.8,
-      "nodos": 599,
+      "metros": 21287.8,
+      "nodos": 619,
     },
     "curacavi→cuestaZapata moto-curvas": {
       "camino": "aecba8b8a832",
@@ -69,11 +69,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
       "nodos": 1135,
     },
     "islaMaipo→aculeo 4x4": {
-      "camino": "485739079514",
-      "costo": 130702,
+      "camino": "e3f80a2ce0cc",
+      "costo": 179440.5,
       "lambda": 0,
-      "metros": 32224,
-      "nodos": 1295,
+      "metros": 33127,
+      "nodos": 1319,
     },
     "islaMaipo→aculeo moto-curvas": {
       "camino": "2fa4de8379f8",
@@ -91,7 +91,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "laDehesa→laParva 4x4": {
       "camino": "301ff5d94c40",
-      "costo": 192205.4,
+      "costo": 266955.2,
       "lambda": 0,
       "metros": 42685.5,
       "nodos": 2675,
@@ -112,7 +112,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "laDehesa→yerbaLoca 4x4": {
       "camino": "af0da87a4c35",
-      "costo": 118435,
+      "costo": 163736.1,
       "lambda": 0,
       "metros": 27812.3,
       "nodos": 1765,
@@ -132,11 +132,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
       "nodos": 1602,
     },
     "melipilla→sanPedro 4x4": {
-      "camino": "a45c682e0acd",
-      "costo": 185900.3,
+      "camino": "3dad67fb6d8e",
+      "costo": 253375.6,
       "lambda": 0,
-      "metros": 50655.6,
-      "nodos": 1133,
+      "metros": 51602.4,
+      "nodos": 1180,
     },
     "melipilla→sanPedro moto-curvas": {
       "camino": "3a11e2e58853",
@@ -154,7 +154,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "noviciado→curacavi 4x4": {
       "camino": "5ac7ac2d75b8",
-      "costo": 193909.6,
+      "costo": 267104.6,
       "lambda": 0,
       "metros": 47519.7,
       "nodos": 1244,
@@ -174,11 +174,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
       "nodos": 1379,
     },
     "paine→aculeo 4x4": {
-      "camino": "de0b58ea9a5a",
-      "costo": 125713.6,
+      "camino": "7e26f1710f9b",
+      "costo": 172322.8,
       "lambda": 0,
-      "metros": 31250.6,
-      "nodos": 977,
+      "metros": 32153.6,
+      "nodos": 1001,
     },
     "paine→aculeo moto-curvas": {
       "camino": "549f277513aa",
@@ -196,7 +196,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "pirque→rioClarillo 4x4": {
       "camino": "ce21fc1b3d6c",
-      "costo": 62709.1,
+      "costo": 85056.5,
       "lambda": 0,
       "metros": 18014.4,
       "nodos": 586,
@@ -217,7 +217,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "puenteAlto→elAlfalfal 4x4": {
       "camino": "8b1ac0ede3a5",
-      "costo": 204560.4,
+      "costo": 282219.2,
       "lambda": 0,
       "metros": 48337.9,
       "nodos": 1936,
@@ -238,7 +238,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "puenteAlto→elCanelo 4x4": {
       "camino": "7b8d8681c043",
-      "costo": 58388.9,
+      "costo": 79078.1,
       "lambda": 0,
       "metros": 16088.7,
       "nodos": 545,
@@ -259,7 +259,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "sanAlfonso→banosMorales 4x4": {
       "camino": "c64c089c8954",
-      "costo": 134159.8,
+      "costo": 186521.3,
       "lambda": 0,
       "metros": 29436.7,
       "nodos": 1703,
@@ -280,7 +280,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "sanJoseMaipo→elYeso 4x4": {
       "camino": "823a797e2d0b",
-      "costo": 123451,
+      "costo": 162229.5,
       "lambda": 0,
       "metros": 45204.5,
       "nodos": 1986,
@@ -301,7 +301,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
     },
     "sanJoseMaipo→lagunillas 4x4": {
       "camino": "6111083f29e7",
-      "costo": 65330.3,
+      "costo": 91167.6,
       "lambda": 0,
       "metros": 13410,
       "nodos": 790,
@@ -331,7 +331,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
   "rutas": {
     "buin→caleraTango 4x4": {
       "camino": "fa4e2a1f911c",
-      "costo": 86506,
+      "costo": 117538,
       "lambda": 0,
       "metros": 24442,
       "nodos": 628,
@@ -352,7 +352,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "buin→islaMaipo 4x4": {
       "camino": "cb9ffc482b78",
-      "costo": 95247.1,
+      "costo": 132486.3,
       "lambda": 0,
       "metros": 20768.6,
       "nodos": 455,
@@ -372,11 +372,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
       "nodos": 533,
     },
     "caleraTango→talagante 4x4": {
-      "camino": "833725443526",
-      "costo": 81956.8,
+      "camino": "9ff50fcea061",
+      "costo": 113562.5,
       "lambda": 0,
-      "metros": 18281.1,
-      "nodos": 327,
+      "metros": 21768.9,
+      "nodos": 481,
     },
     "caleraTango→talagante moto-curvas": {
       "camino": "543d7a85fbfa",
@@ -394,7 +394,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "colina→aeropuerto 4x4": {
       "camino": "7bf9722af202",
-      "costo": 130334,
+      "costo": 180104.7,
       "lambda": 0,
       "metros": 30441.3,
       "nodos": 669,
@@ -415,7 +415,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "colina→lampa 4x4": {
       "camino": "fa55e75a2c35",
-      "costo": 118624.7,
+      "costo": 164578.9,
       "lambda": 0,
       "metros": 26716.2,
       "nodos": 698,
@@ -436,8 +436,8 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "colina→lasCondes 4x4": {
       "camino": "09f7fdec54e2",
-      "costo": 161338.7,
-      "lambda": 0,
+      "costo": 225371.6,
+      "lambda": 0.093,
       "metros": 33272.8,
       "nodos": 1257,
     },
@@ -457,7 +457,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "curacavi→mariaPinto 4x4": {
       "camino": "c95d13b62477",
-      "costo": 99560.5,
+      "costo": 137408.1,
       "lambda": 0,
       "metros": 23865.2,
       "nodos": 635,
@@ -478,7 +478,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "farellones→valleNevado 4x4": {
       "camino": "fbfe4c101dd3",
-      "costo": 66348.3,
+      "costo": 92887.6,
       "lambda": 0,
       "metros": 13269.7,
       "nodos": 780,
@@ -499,8 +499,8 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "laDehesa→colina 4x4": {
       "camino": "7b7f34b4c69a",
-      "costo": 177089.8,
-      "lambda": 1.0274,
+      "costo": 247423.2,
+      "lambda": 2.043,
       "metros": 36423,
       "nodos": 1630,
     },
@@ -520,7 +520,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "laDehesa→farellones 4x4": {
       "camino": "0172a4b09506",
-      "costo": 166906.3,
+      "costo": 231536.4,
       "lambda": 0,
       "metros": 37625.7,
       "nodos": 2390,
@@ -541,7 +541,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "laFlorida→pirque 4x4": {
       "camino": "a4193ef50460",
-      "costo": 66913.8,
+      "costo": 93679.3,
       "lambda": 0,
       "metros": 13382.8,
       "nodos": 492,
@@ -562,7 +562,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "lampa→aeropuerto 4x4": {
       "camino": "e8c8f90c8b6f",
-      "costo": 70367.5,
+      "costo": 96031.7,
       "lambda": 0,
       "metros": 19039.3,
       "nodos": 418,
@@ -583,7 +583,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "lasCondes→farellones 4x4": {
       "camino": "a7f57a0a1444",
-      "costo": 199816.4,
+      "costo": 277618.7,
       "lambda": 0,
       "metros": 44211.8,
       "nodos": 2656,
@@ -604,7 +604,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "lasCondes→puenteAlto 4x4": {
       "camino": "31579e709a30",
-      "costo": 118858.7,
+      "costo": 166402.2,
       "lambda": 0,
       "metros": 23771.7,
       "nodos": 721,
@@ -625,7 +625,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "maipu→curacavi 4x4": {
       "camino": "656b62a5faa5",
-      "costo": 217516.1,
+      "costo": 302908.2,
       "lambda": 0,
       "metros": 46731.9,
       "nodos": 1087,
@@ -646,7 +646,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "maipu→lampa 4x4": {
       "camino": "a21d0bbbe456",
-      "costo": 134323.2,
+      "costo": 180947.9,
       "lambda": 0,
       "metros": 41065.8,
       "nodos": 1065,
@@ -667,7 +667,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "maipu→padreHurtado 4x4": {
       "camino": "663b18529580",
-      "costo": 43477.5,
+      "costo": 59586.4,
       "lambda": 0,
       "metros": 11259.6,
       "nodos": 344,
@@ -688,7 +688,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "padreHurtado→curacavi 4x4": {
       "camino": "af4d82098990",
-      "costo": 226310.4,
+      "costo": 314824.1,
       "lambda": 0,
       "metros": 49282.8,
       "nodos": 1675,
@@ -708,11 +708,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
       "nodos": 1873,
     },
     "penaflor→elMonte 4x4": {
-      "camino": "884a96ad6102",
-      "costo": 98440.5,
+      "camino": "378e5dff69b7",
+      "costo": 137650.8,
       "lambda": 0,
-      "metros": 19966.7,
-      "nodos": 546,
+      "metros": 19953.1,
+      "nodos": 543,
     },
     "penaflor→elMonte moto-curvas": {
       "camino": "fc51bbdb42bb",
@@ -729,11 +729,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
       "nodos": 742,
     },
     "pirque→buin 4x4": {
-      "camino": "abd69014e208",
-      "costo": 72880.2,
+      "camino": "5cdc386e0571",
+      "costo": 97402.5,
       "lambda": 0,
-      "metros": 23636.4,
-      "nodos": 508,
+      "metros": 24435.6,
+      "nodos": 540,
     },
     "pirque→buin moto-curvas": {
       "camino": "5f854b7e23cd",
@@ -751,7 +751,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "pirque→sanJoseMaipo 4x4": {
       "camino": "2e1a1ed61641",
-      "costo": 75516.2,
+      "costo": 93863.8,
       "lambda": 0,
       "metros": 38586.7,
       "nodos": 2818,
@@ -772,7 +772,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "plazaArmas→curacavi 4x4": {
       "camino": "5a31a2336700",
-      "costo": 237455.8,
+      "costo": 330823.8,
       "lambda": 0,
       "metros": 50719.9,
       "nodos": 1235,
@@ -793,7 +793,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "plazaArmas→farellones 4x4": {
       "camino": "308b62193f7a",
-      "costo": 234933,
+      "costo": 326782,
       "lambda": 0,
       "metros": 51235.1,
       "nodos": 2960,
@@ -814,7 +814,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "plazaArmas→providencia 4x4": {
       "camino": "30a32746bc49",
-      "costo": 20543.9,
+      "costo": 28761.5,
       "lambda": 0,
       "metros": 4108.8,
       "nodos": 200,
@@ -835,7 +835,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "providencia→maipu 4x4": {
       "camino": "68f3f6c9c7fb",
-      "costo": 89731.9,
+      "costo": 125624.6,
       "lambda": 0,
       "metros": 17946.4,
       "nodos": 652,
@@ -856,7 +856,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "providencia→sanCristobal 4x4": {
       "camino": "b044c4fe0075",
-      "costo": 26826.3,
+      "costo": 37553.8,
       "lambda": 0,
       "metros": 5371.5,
       "nodos": 340,
@@ -876,11 +876,11 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
       "nodos": 361,
     },
     "puenteAlto→buin 4x4": {
-      "camino": "96d461117340",
-      "costo": 85691.5,
+      "camino": "1b640e82d0e9",
+      "costo": 115566.5,
       "lambda": 0,
-      "metros": 25774.6,
-      "nodos": 767,
+      "metros": 26573.8,
+      "nodos": 799,
     },
     "puenteAlto→buin moto-curvas": {
       "camino": "762716c74606",
@@ -898,7 +898,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "puenteAlto→pirque 4x4": {
       "camino": "a926279cec8c",
-      "costo": 15800.2,
+      "costo": 22120.3,
       "lambda": 0,
       "metros": 3160,
       "nodos": 173,
@@ -919,7 +919,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "puenteAlto→sanJoseMaipo 4x4": {
       "camino": "f2712ce6231f",
-      "costo": 90220.9,
+      "costo": 114450.4,
       "lambda": 0,
       "metros": 41527.7,
       "nodos": 2986,
@@ -940,7 +940,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "quilicura→colina 4x4": {
       "camino": "45dcb0f73033",
-      "costo": 103534.5,
+      "costo": 144930.4,
       "lambda": 0,
       "metros": 20698,
       "nodos": 602,
@@ -961,7 +961,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "sanJoseMaipo→sanAlfonso 4x4": {
       "camino": "585e3a87081b",
-      "costo": 58373.9,
+      "costo": 80446.3,
       "lambda": 0,
       "metros": 14120.8,
       "nodos": 507,
@@ -982,7 +982,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "talagante→curacavi 4x4": {
       "camino": "e404168d41fe",
-      "costo": 285214.9,
+      "costo": 396764.1,
       "lambda": 0,
       "metros": 62076.9,
       "nodos": 1896,
@@ -1003,7 +1003,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia
     },
     "talagante→penaflor 4x4": {
       "camino": "c4feda4e4d00",
-      "costo": 47780.9,
+      "costo": 66893.3,
       "lambda": 0,
       "metros": 9556.2,
       "nodos": 196,

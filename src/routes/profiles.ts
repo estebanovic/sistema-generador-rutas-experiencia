@@ -13,7 +13,7 @@ export type ProfileName = (typeof PROFILE_NAMES)[number];
  */
 export const PROFILES: Record<Exclude<ProfileName, 'custom'>, RouteWeights> = {
   'moto-curvas': { curvinessWeight: 3, surfaceWeight: 0 },
-  '4x4': { curvinessWeight: 0, surfaceWeight: -4 },
+  '4x4': { curvinessWeight: 0, surfaceWeight: -6 },
   scenic: { curvinessWeight: 4, surfaceWeight: 2 },
 };
 

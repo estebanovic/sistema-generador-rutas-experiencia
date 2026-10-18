@@ -84,8 +84,8 @@ Perfiles: `moto-curvas`, `4x4`, `scenic`, `custom`. Con `custom` debés enviar
 }
 ```
 
-- `curvinessWeight` (0 a 4): cuánto se evitan las rectas.
-- `surfaceWeight` (-4 a 4): mayor que 0 evita lo sin pavimentar; menor que 0 evita el pavimento (prefiere ripio y tierra).
+- `curvinessWeight` (0 a 6): cuánto se evitan las rectas.
+- `surfaceWeight` (-6 a 6): mayor que 0 evita lo sin pavimentar; menor que 0 evita el pavimento (prefiere ripio y tierra).
 
 Opcional en cualquier perfil: `maxDetourRatio` (1,0 a 3,0), el presupuesto de desvío. La ruta no puede medir más que ese múltiplo de la ruta más corta entre los mismos puntos. Por defecto se usa el del perfil (ver "Función de costo"). Solo hay límite superior.
 
@@ -127,6 +127,7 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | Se elimina `tripLength` (la "vuelta" con waypoints desviados): enviarlo responde 400. La ruta es siempre la directa del perfil. | Rompe a los clientes que lo envían, aunque sea `direct`. |
 | 2026-10-18 | `GET /` ya no sirve el visor legado (`public/index.html`, D9); la vista es el frontend aparte. | Solo afecta a quien usaba ese visor. |
 | 2026-10-18 | Campo opcional `maxDetourRatio` (1,0–3,0; por defecto el del perfil) y bloque `detour` en la respuesta. La ruta respeta siempre el presupuesto, así que puede cambiar donde la óptima lo excedía (en la línea base, La Dehesa→Colina en 4x4). | Compatible (campos nuevos); cambia la ruta solo donde el presupuesto ata. |
+| 2026-10-18 | El peso máximo de `customWeights` sube de 4 a 6: `curvinessWeight` 0 a 6 y `surfaceWeight` -6 a 6 (D4). El perfil 4x4 pasa de `surfaceWeight` -4 a -6, así que algunas de sus rutas cambian. | Compatible para quien enviaba valores válidos; amplía el rango. |
 
 ## Función de costo
 
@@ -141,12 +142,12 @@ recargo de superficie = surfaceWeight · sinPavimentar          si surfaceWeight
 - `rectitud` = 1 − min(1, densidad de giro / 100 °/km): 1 en una recta, 0 desde 100 °/km.
 - `sinPavimentar`: asfalto y hormigón 0, adoquín 0,3, ripio, tierra y arena 1.
 - Con los pesos en 0 la ruta es la más corta (salvo el recargo fijo de `living_street` y `service`).
-- Con peso 4, una ruta más larga gana si cada 4 m extra ahorran al menos 1 m de lo que el perfil evita.
+- Con peso 6 (el máximo), una ruta más larga gana si cada 6 m extra ahorran al menos 1 m de lo que el perfil evita.
 
 | Perfil | `curvinessWeight` | `surfaceWeight` | Presupuesto de desvío por defecto |
 |---|---|---|---|
 | moto-curvas | 3 | 0 | ×1,5 |
-| 4x4 | 0 | -4 | ×2,0 |
+| 4x4 | 0 | -6 | ×2,0 |
 | scenic | 4 | 2 | ×1,5 |
 
 El presupuesto de desvío (largo de la ruta / distancia mínima) lo impone el motor con LARAC: si la ruta óptima del perfil lo excede, se busca la mejor que cabe, con una poda elíptica exacta. El usuario lo puede cambiar con `maxDetourRatio`.

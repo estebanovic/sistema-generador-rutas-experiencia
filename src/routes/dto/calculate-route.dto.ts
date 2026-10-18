@@ -25,7 +25,7 @@ export class LatLonDto {
 }
 
 /**
- * Pesos del perfil `custom` (F2): de 0 a W_MAX (4). Desde F2 ya no existen
+ * Pesos del perfil `custom` (F2): de 0 a W_MAX (6; era 4 hasta D4). Desde F2 ya no existen
  * `distanceWeight` (la distancia es la base del costo) ni `elevationWeight`
  * (sin datos de elevación); enviarlos es un error de validación.
  */

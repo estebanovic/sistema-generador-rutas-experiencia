@@ -21,16 +21,17 @@ async function errores(body: Record<string, unknown>): Promise<string[]> {
 const base = { origin: { lat: -33.4, lon: -70.6 }, destination: { lat: -33.5, lon: -70.7 } };
 
 describe('CalculateRouteDto: pesos del perfil custom (F2)', () => {
-  it('acepta pesos de 0 a 4 (superficie de -4 a 4)', async () => {
-    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 4, surfaceWeight: -4 } })).toEqual([]);
+  it('acepta pesos de 0 a 6 (superficie de -6 a 6)', async () => {
+    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 6, surfaceWeight: -6 } })).toEqual([]);
+    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 4.5, surfaceWeight: 5 } })).toEqual([]);
     expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 0, surfaceWeight: 2.5 } })).toEqual([]);
   });
 
   it('rechaza pesos fuera de rango', async () => {
-    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 4.5, surfaceWeight: 0 } })).toEqual([
+    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 6.5, surfaceWeight: 0 } })).toEqual([
       'customWeights.curvinessWeight',
     ]);
-    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 1, surfaceWeight: -5 } })).toEqual([
+    expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: 1, surfaceWeight: -7 } })).toEqual([
       'customWeights.surfaceWeight',
     ]);
     expect(await errores({ ...base, profile: 'custom', customWeights: { curvinessWeight: -1, surfaceWeight: 0 } })).toEqual([
