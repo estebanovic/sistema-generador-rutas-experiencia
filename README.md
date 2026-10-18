@@ -104,6 +104,7 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | `totalCost` cambia de escala: ahora son metros equivalentes, ≥ `stats.distanceMeters`. Los perfiles predefinidos tienen pesos nuevos, así que sus rutas cambian. | Compatible en tipo; cambia el significado del número. |
 | 2026-10-18 | Se eliminan `stats.elevationGainMeters` y `stats.elevationLossMeters` (antes `null`): el backend ya no maneja elevación. | Rompe a los clientes que leen esos campos; el desnivel, si se muestra, lo obtiene el frontend por su cuenta. |
 | 2026-10-18 | Se elimina `tripLength` (la "vuelta" con waypoints desviados): enviarlo responde 400. La ruta es siempre la directa del perfil. | Rompe a los clientes que lo envían, aunque sea `direct`. |
+| 2026-10-18 | `GET /` ya no sirve el visor legado (`public/index.html`, D9); la vista es el frontend aparte. | Solo afecta a quien usaba ese visor. |
 
 ## Función de costo
 

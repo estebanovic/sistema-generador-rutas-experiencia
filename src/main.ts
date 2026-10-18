@@ -1,14 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
   app.enableCors();
-  // Sirve el visor de mapa (public/index.html) en la raíz.
-  app.useStaticAssets(join(__dirname, '..', 'public'));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
