@@ -156,8 +156,7 @@ function workspace(g: CompiledGraph): Workspace {
 interface Sums {
   len: number;
   st: number;
-  ro: number;
-  gr: number;
+  un: number;
   mi: number;
 }
 
@@ -178,14 +177,13 @@ function sumsAt(g: CompiledGraph, p: Position): Sums {
   return {
     len: interp(g.geoCumLen, p),
     st: interp(g.geoCumStraight, p),
-    ro: interp(g.geoCumRough, p),
-    gr: interp(g.geoCumGrade, p),
+    un: interp(g.geoCumUnpaved, p),
     mi: interp(g.geoCumMinor, p),
   };
 }
 
-const minus = (a: Sums, b: Sums): Sums => ({ len: a.len - b.len, st: a.st - b.st, ro: a.ro - b.ro, gr: a.gr - b.gr, mi: a.mi - b.mi });
-const costOf = (s: Sums, w: RouteWeights) => costFromSums(s.len, s.st, s.ro, s.gr, s.mi, w);
+const minus = (a: Sums, b: Sums): Sums => ({ len: a.len - b.len, st: a.st - b.st, un: a.un - b.un, mi: a.mi - b.mi });
+const costOf = (s: Sums, w: RouteWeights) => costFromSums(s.len, s.st, s.un, s.mi, w);
 
 // ── Vías privadas (solo origen/destino, decisión D7) ──
 
@@ -389,7 +387,7 @@ export function dijkstraMultiSource(
   const ws = workspace(g);
   const { stamp, dist, distStamp, visitedStamp, prevEdge } = ws;
   const heap = new MinHeap();
-  const { outStart, edgeTo, edgeLen, edgeSumStraight, edgeSumRough, edgeSumGrade, edgeSumMinor, edgeFlags } = g;
+  const { outStart, edgeTo, edgeLen, edgeSumStraight, edgeSumUnpaved, edgeSumMinor, edgeFlags } = g;
 
   for (const [n, c0] of seedCost) {
     // Llegar a un nodo evitado por un pedazo de tramo (nodo fantasma) se encarece igual que por una arista.
@@ -424,7 +422,7 @@ export function dijkstraMultiSource(
       ) {
         continue; // vía privada fuera del tramo inicial/final: no se usa de paso
       }
-      let edgeCost = costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumRough[e], edgeSumGrade[e], edgeSumMinor[e], weights);
+      let edgeCost = costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights);
       if (avoidNodes && avoidNodes.has(v)) edgeCost *= avoidPenalty;
       const cost = distU + edgeCost;
       if (cost < (distStamp[v] === stamp ? dist[v] : Infinity)) {

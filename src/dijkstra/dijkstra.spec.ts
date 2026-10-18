@@ -1,20 +1,20 @@
 import { Endpoint, EngineRoute, Position, dijkstra, dijkstraMultiSource, endpointOfRawNode } from './dijkstra';
-import { RouteWeights } from './cost';
+import { MINOR_ROAD_PENALTY, RouteWeights, W_MAX, costFromSums, edgeFeatures } from './cost';
 import { CompiledGraph, geoOsmIdString, nodeIndex } from './compiled-graph';
 import { assertSinRepeticion } from './no-repeat';
-import { dijkstra as dijkstraLegacy } from './legacy/dijkstra.legacy';
 import { PROFILES } from '../routes/profiles';
 import {
+  PlainGraph,
   diamante,
   grilla,
   loadFixture,
   randomPairs,
   synthetic,
   toGraph,
-  toLegacyGraph,
 } from '../../test/fixtures/graph-fixtures';
 
-const SOLO_DISTANCIA: RouteWeights = { distanceWeight: 1, curvinessWeight: 0, elevationWeight: 0, surfaceWeight: 0 };
+/** Pesos en 0: el costo es la distancia (más el recargo fijo de vías menores, D7). */
+const SOLO_DISTANCIA: RouteWeights = { curvinessWeight: 0, surfaceWeight: 0 };
 
 /** Extremo para un ID de los fixtures (nodo de unión o posición dentro de un tramo). */
 function ep(g: CompiledGraph, id: string): Endpoint {
@@ -38,8 +38,8 @@ describe('dijkstra (motor compactado) — soluciones conocidas', () => {
     const r = ruta(g, 'S', 'T', SOLO_DISTANCIA)!;
     expect(r.path).toEqual(['S', 'A', 'T']);
     expect(r.stats.distanceMeters).toBe(1000);
-    // Mismo costo que el motor anterior a F0 (suma arista por arista).
-    expect(r.totalCost).toBeCloseTo(dijkstraLegacy(toLegacyGraph(plain), 'S', 'T', SOLO_DISTANCIA)!.totalCost, 9);
+    // Con los pesos en 0 el costo es la distancia.
+    expect(r.totalCost).toBe(1000);
   });
 
   it('diamante: moto-curvas elige el camino curvo aunque sea 30% más largo', () => {
@@ -143,7 +143,7 @@ describe('nodos fantasma (snap a mitad de un tramo)', () => {
   it('origen y destino en el mismo tramo: recorre solo el pedazo entre ambos', () => {
     const r = dijkstra(g, pos(g, 0.25), pos(g, 0.75), SOLO_DISTANCIA)!;
     expect(r.stats.distanceMeters).toBeCloseTo(500, 9);
-    expect(r.totalCost).toBeCloseTo(500 * (0.15 + 0.6 + 0.3 * ((1.1 - 0.8) / 2.2)), 6);
+    expect(r.totalCost).toBeCloseTo(500, 9);
     expect(r.coordinates).toHaveLength(2);
     assertSinRepeticion(r);
   });
@@ -251,50 +251,233 @@ describe('vías privadas: solo origen/destino, nunca de paso (D7)', () => {
   });
 });
 
-describe('oráculo: el motor compactado da el mismo costo que la copia congelada anterior a F0', () => {
-  const pesos: [string, RouteWeights][] = [
-    ['solo-distancia', SOLO_DISTANCIA],
-    ['moto-curvas', PROFILES['moto-curvas']],
-    ['4x4', PROFILES['4x4']],
-    ['scenic', PROFILES.scenic],
-  ];
+// ── Función de costo (F2) ──
+//
+// Desde F2 el oráculo ya no es el motor anterior a F0 (otro costo), sino un
+// Dijkstra de referencia por aristas crudas con el costo nuevo, más
+// propiedades que debe cumplir cualquier costo L·(1 + Σ wᵢ·pᵢ).
 
-  // En la grilla hay muchos caminos de igual costo: se compara el costo, no el camino.
-  it.each(pesos)('sintéticos (%s)', (_nombre, w) => {
-    for (const plain of [diamante(), grilla(5)]) {
-      const g = toGraph(plain);
-      const gl = toLegacyGraph(plain);
-      for (const [a, b] of randomPairs(plain, 20, 1)) {
+/** Dijkstra de referencia sobre el grafo plano (aristas crudas, sin compactar), con el costo de cost.ts. */
+function referencia(p: PlainGraph, a: string, b: string, w: RouteWeights): number | null {
+  const adj = new Map<string, { to: string; cost: number }[]>();
+  for (const e of p.edges) {
+    const f = edgeFeatures(e);
+    const L = e.distanceMeters;
+    const cost = costFromSums(L, L * f.straightness, L * f.unpaved, L * f.minorRoad, w);
+    const l = adj.get(e.fromOsmId);
+    if (l) l.push({ to: e.toOsmId, cost });
+    else adj.set(e.fromOsmId, [{ to: e.toOsmId, cost }]);
+  }
+  const dist = new Map<string, number>([[a, 0]]);
+  const done = new Set<string>();
+  const heap: [number, string][] = [[0, a]];
+  const push = (x: [number, string]) => {
+    heap.push(x);
+    let i = heap.length - 1;
+    while (i > 0) {
+      const q = (i - 1) >> 1;
+      if (heap[q][0] <= heap[i][0]) break;
+      [heap[q], heap[i]] = [heap[i], heap[q]];
+      i = q;
+    }
+  };
+  const pop = (): [number, string] => {
+    const top = heap[0];
+    const last = heap.pop()!;
+    if (heap.length > 0) {
+      heap[0] = last;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1;
+        const r = l + 1;
+        let m = i;
+        if (l < heap.length && heap[l][0] < heap[m][0]) m = l;
+        if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
+        if (m === i) break;
+        [heap[m], heap[i]] = [heap[i], heap[m]];
+        i = m;
+      }
+    }
+    return top;
+  };
+  while (heap.length) {
+    const [d, u] = pop();
+    if (done.has(u)) continue;
+    done.add(u);
+    if (u === b) return d;
+    for (const { to, cost } of adj.get(u) ?? []) {
+      if (d + cost < (dist.get(to) ?? Infinity)) {
+        dist.set(to, d + cost);
+        push([d + cost, to]);
+      }
+    }
+  }
+  return null;
+}
+
+/** Metros recorridos por la ruta y Σ largo × feature (rectitud, sin pavimentar), desde sus tramos. */
+function totales(g: CompiledGraph, r: EngineRoute) {
+  const at = (arr: Float64Array, c: number, s: number) => {
+    let lo = g.chainStart[c];
+    let hi = g.chainStart[c + 1] - 1;
+    while (hi - lo > 1) {
+      const m = (lo + hi) >> 1;
+      if (g.geoCumLen[m] <= s) lo = m;
+      else hi = m;
+    }
+    const L0 = g.geoCumLen[lo];
+    const L1 = g.geoCumLen[hi];
+    const t = L1 > L0 ? (s - L0) / (L1 - L0) : 0;
+    return arr[lo] + t * (arr[hi] - arr[lo]);
+  };
+  let len = 0;
+  let recto = 0;
+  let sinPavimentar = 0;
+  for (const u of r.tramos) {
+    len += u.s1 - u.s0;
+    recto += at(g.geoCumStraight, u.chain, u.s1) - at(g.geoCumStraight, u.chain, u.s0);
+    sinPavimentar += at(g.geoCumUnpaved, u.chain, u.s1) - at(g.geoCumUnpaved, u.chain, u.s0);
+  }
+  return { len, recto, sinPavimentar, pavimentado: len - sinPavimentar };
+}
+
+/** Generador determinista (mulberry32). */
+function azar(seed: number) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+describe('función de costo (F2): propiedades sobre el subgrafo real de Farellones', () => {
+  const plain = loadFixture('farellones');
+  const g = toGraph(plain);
+  const pares = randomPairs(plain, 40, 2026);
+
+  it('compacta a menos del 25% de los nodos', () => {
+    expect(g.meta.nodeCount / g.meta.rawNodeCount).toBeLessThan(0.25);
+  });
+
+  it('costo ≥ L en todas las aristas, con pesos extremos y al azar', () => {
+    const rnd = azar(7);
+    const pesos: RouteWeights[] = [
+      { curvinessWeight: 0, surfaceWeight: 0 },
+      { curvinessWeight: W_MAX, surfaceWeight: W_MAX },
+      { curvinessWeight: W_MAX, surfaceWeight: -W_MAX },
+      ...Array.from({ length: 20 }, () => ({ curvinessWeight: rnd() * W_MAX, surfaceWeight: (2 * rnd() - 1) * W_MAX })),
+    ];
+    let violaciones = 0;
+    for (const w of pesos) {
+      for (let e = 0; e < g.meta.edgeCount; e++) {
+        const c = costFromSums(g.edgeLen[e], g.edgeSumStraight[e], g.edgeSumUnpaved[e], g.edgeSumMinor[e], w);
+        if (!(c >= g.edgeLen[e])) violaciones++;
+      }
+    }
+    expect(violaciones).toBe(0);
+  });
+
+  it.each(Object.entries({ 'pesos en 0': SOLO_DISTANCIA, ...PROFILES }))(
+    'mismo costo que el Dijkstra de referencia por aristas crudas (%s)',
+    (_nombre, w) => {
+      for (const [a, b] of pares) {
         const r = ruta(g, a, b, w);
-        const rl = dijkstraLegacy(gl, a, b, w);
-        expect(r?.totalCost).toBeCloseTo(rl!.totalCost, 6);
+        const ref = referencia(plain, a, b, w);
+        if (ref === null) {
+          expect(r).toBeNull();
+          continue;
+        }
+        expect(Math.abs(r!.totalCost - ref) / ref).toBeLessThan(1e-9);
+      }
+    },
+  );
+
+  it('con los pesos en 0, el costo es el largo más, a lo sumo, el recargo de vías menores', () => {
+    for (const [a, b] of pares) {
+      const r = ruta(g, a, b, SOLO_DISTANCIA);
+      if (!r) continue;
+      const { len } = totales(g, r);
+      expect(r.totalCost).toBeGreaterThanOrEqual(len - 1e-6);
+      expect(r.totalCost).toBeLessThanOrEqual(len * (1 + MINOR_ROAD_PENALTY) + 1e-6);
+    }
+  });
+
+  // Ruta óptima con costo A + w·B: si w crece, B no puede crecer (sumando las
+  // dos desigualdades de optimalidad queda (w₂ − w₁)(B₂ − B₁) ≤ 0).
+  it('monotonía: más peso a las curvas nunca agrega metros rectos', () => {
+    for (const [a, b] of pares) {
+      let antes = Infinity;
+      for (const c of [0, 0.5, 1, 2, W_MAX]) {
+        const r = ruta(g, a, b, { curvinessWeight: c, surfaceWeight: 0 });
+        if (!r) break;
+        const { recto } = totales(g, r);
+        expect(recto).toBeLessThanOrEqual(antes + 1e-6);
+        antes = recto;
       }
     }
   });
 
-  describe('subgrafo real de Farellones (orígenes y destinos en nodos crudos)', () => {
-    const plain = loadFixture('farellones');
-    const g = toGraph(plain);
-    const gl = toLegacyGraph(plain);
-    const pares = randomPairs(plain, 40, 2026);
-
-    it('compacta a menos del 25% de los nodos', () => {
-      expect(g.meta.nodeCount / g.meta.rawNodeCount).toBeLessThan(0.25);
-    });
-
-    it.each(pesos)('40 pares al azar con semilla fija (%s)', (_nombre, w) => {
-      for (const [a, b] of pares) {
-        const r = ruta(g, a, b, w);
-        const rl = dijkstraLegacy(gl, a, b, w);
-        if (rl === null) {
-          expect(r).toBeNull();
-          continue;
-        }
-        expect(r).not.toBeNull();
-        const rel = Math.abs(r!.totalCost - rl.totalCost) / rl.totalCost;
-        expect(rel).toBeLessThan(1e-9);
-        expect(r!.path).toEqual(rl.path);
+  it('monotonía: más peso positivo a la superficie nunca agrega metros sin pavimentar', () => {
+    for (const [a, b] of pares) {
+      let antes = Infinity;
+      for (const s of [0, 0.5, 1, 2, W_MAX]) {
+        const r = ruta(g, a, b, { curvinessWeight: 1, surfaceWeight: s });
+        if (!r) break;
+        const { sinPavimentar } = totales(g, r);
+        expect(sinPavimentar).toBeLessThanOrEqual(antes + 1e-6);
+        antes = sinPavimentar;
       }
-    });
+    }
+  });
+
+  it('monotonía: más peso negativo a la superficie nunca agrega metros pavimentados', () => {
+    for (const [a, b] of pares) {
+      let antes = Infinity;
+      for (const s of [0, -0.5, -1, -2, -W_MAX]) {
+        const r = ruta(g, a, b, { curvinessWeight: 0, surfaceWeight: s });
+        if (!r) break;
+        const { pavimentado } = totales(g, r);
+        expect(pavimentado).toBeLessThanOrEqual(antes + 1e-6);
+        antes = pavimentado;
+      }
+    }
+  });
+});
+
+describe('función de costo (F2): perfiles y vías menores', () => {
+  type Attrs = Partial<{ curviness: number; surface: 'asphalt' | 'gravel'; highwayType: 'living_street' | 'service' }>;
+  /** Dos caminos S→T: por A (1000 m) y por B (largo y atributos a elección). */
+  const dos = (a: Attrs, b: Attrs, largoB: number) =>
+    toGraph(
+      synthetic({ S: [0, 0], A: [0.003, 0.0045], B: [-0.004, 0.0045], T: [0, 0.009] }, [
+        { from: 'S', to: 'A', length: 500, ...a },
+        { from: 'A', to: 'T', length: 500, ...a },
+        { from: 'S', to: 'B', length: largoB / 2, ...b },
+        { from: 'B', to: 'T', length: largoB / 2, ...b },
+      ]),
+    );
+
+  it('4x4 toma el ripio aunque sea 30% más largo; con los pesos en 0, el pavimento', () => {
+    const g = dos({}, { surface: 'gravel' }, 1300);
+    expect(ruta(g, 'S', 'T', PROFILES['4x4'])!.path).toEqual(['S', 'B', 'T']);
+    expect(ruta(g, 'S', 'T', SOLO_DISTANCIA)!.path).toEqual(['S', 'A', 'T']);
+  });
+
+  it('scenic prefiere la curva pavimentada a la curva de ripio; moto-curvas toma la más corta de las dos', () => {
+    const g = dos({ curviness: 1, surface: 'gravel' }, { curviness: 1, surface: 'asphalt' }, 1100);
+    expect(ruta(g, 'S', 'T', PROFILES.scenic)!.path).toEqual(['S', 'B', 'T']);
+    expect(ruta(g, 'S', 'T', PROFILES['moto-curvas'])!.path).toEqual(['S', 'A', 'T']);
+  });
+
+  it.each(['living_street', 'service'] as const)('%s lleva un recargo fijo (D7): con los pesos en 0 cuesta 1,5 veces su largo', (hw) => {
+    // 1000 m de vía menor cuestan 1500: gana un camino normal de 1400 m...
+    const r = ruta(dos({ highwayType: hw }, {}, 1400), 'S', 'T', SOLO_DISTANCIA)!;
+    expect(r.path).toEqual(['S', 'B', 'T']);
+    expect(r.totalCost).toBeCloseTo(1400, 9);
+    // ...pero no uno de 1600.
+    const r2 = ruta(dos({ highwayType: hw }, {}, 1600), 'S', 'T', SOLO_DISTANCIA)!;
+    expect(r2.path).toEqual(['S', 'A', 'T']);
+    expect(r2.totalCost).toBeCloseTo(1000 * (1 + MINOR_ROAD_PENALTY), 9);
   });
 });

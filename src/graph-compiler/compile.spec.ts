@@ -114,11 +114,10 @@ describe('compactación', () => {
       const segmentos = plain.edges
         .filter((e) => e.fromOsmId < e.toOsmId)
         .reduce((s, e) => {
-          const f = edgeFeatures(e);
-          return s + costFromFeatures(e.distanceMeters, f.straightness, f.roughness, f.grade, f.minorRoad, w);
+          return s + costFromFeatures(e.distanceMeters, edgeFeatures(e), w);
         }, 0);
       const e = g.chainFwd[0] >= 0 ? g.chainFwd[0] : g.chainBwd[0];
-      const tramo = costFromSums(g.edgeLen[e], g.edgeSumStraight[e], g.edgeSumRough[e], g.edgeSumGrade[e], g.edgeSumMinor[e], w);
+      const tramo = costFromSums(g.edgeLen[e], g.edgeSumStraight[e], g.edgeSumUnpaved[e], g.edgeSumMinor[e], w);
       expect(Math.abs(tramo - segmentos) / segmentos).toBeLessThan(1e-12);
     }
   });

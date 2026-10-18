@@ -9,6 +9,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { W_MAX } from '../../dijkstra/cost';
 import { PROFILE_NAMES, ProfileName } from '../profiles';
 
 export const TRIP_LENGTHS = ['direct', 'short', 'medium', 'long'] as const;
@@ -26,31 +27,24 @@ export class LatLonDto {
   lon: number;
 }
 
+/**
+ * Pesos del perfil `custom` (F2): de 0 a W_MAX (4). Desde F2 ya no existen
+ * `distanceWeight` (la distancia es la base del costo) ni `elevationWeight`
+ * (sin datos de elevación); enviarlos es un error de validación.
+ */
 export class RouteWeightsDto {
+  // Cuánto se evitan las rectas.
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  @Max(1)
-  distanceWeight: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  @Max(1)
+  @Max(W_MAX)
   curvinessWeight: number;
 
-  // Firmado: >0 prefiere plano, <0 prefiere montañoso (con desnivel).
+  // Firmado: >0 evita lo sin pavimentar, <0 evita el pavimento (prefiere ripio/tierra).
   @Type(() => Number)
   @IsNumber()
-  @Min(-1)
-  @Max(1)
-  elevationWeight: number;
-
-  // Firmado: >0 prefiere pavimento, <0 prefiere rural/ripio.
-  @Type(() => Number)
-  @IsNumber()
-  @Min(-1)
-  @Max(1)
+  @Min(-W_MAX)
+  @Max(W_MAX)
   surfaceWeight: number;
 }
 

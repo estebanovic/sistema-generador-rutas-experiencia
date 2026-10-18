@@ -3,8 +3,7 @@
  * real exportado de Mongo con `scripts/export-fixture.js`.
  *
  * Los fixtures se describen en un formato plano (`PlainGraph`) y se convierten
- * al formato del motor actual (grafo compilado en CSR, desde F0.2) o al del
- * oráculo legado (Maps).
+ * al formato del motor (grafo compilado en CSR, desde F0.2).
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -17,43 +16,17 @@ import {
   SmoothnessType,
   SurfaceType,
 } from '../../src/dijkstra/types';
-import * as legacy from '../../src/dijkstra/legacy/types.legacy';
 
 export interface PlainGraph {
   nodes: GraphNode[];
   edges: (GraphEdge & { osmWayId?: string })[];
 }
 
-// ── Conversión a los formatos de los motores ─────────────────
+// ── Conversión al formato del motor ──────────────────────────
 
-function buildMaps<N, E extends { fromOsmId: string }>(
-  nodes: N[],
-  edges: E[],
-  idOf: (n: N) => string,
-) {
-  const nodeMap = new Map<string, N>();
-  for (const n of nodes) nodeMap.set(idOf(n), n);
-  const adjacency = new Map<string, E[]>();
-  for (const e of edges) {
-    const list = adjacency.get(e.fromOsmId);
-    if (list) list.push(e);
-    else adjacency.set(e.fromOsmId, [e]);
-  }
-  return { nodes: nodeMap, adjacency };
-}
-
-/** Grafo en el formato del motor actual (CSR compilado). */
+/** Grafo en el formato del motor (CSR compilado). */
 export function toGraph(p: PlainGraph): CompiledGraph {
   return compileGraph({ nodes: p.nodes, edges: p.edges, source: 'test', dataVersion: 0, hasElevation: true });
-}
-
-/** Grafo en el formato del oráculo legado (copia congelada anterior a F0). */
-export function toLegacyGraph(p: PlainGraph): legacy.Graph {
-  return buildMaps(
-    p.nodes.map((n) => ({ ...n })),
-    p.edges.map((e) => ({ ...e }) as legacy.GraphEdge),
-    (n) => n.osmId,
-  );
 }
 
 // ── Fixture real ─────────────────────────────────────────────

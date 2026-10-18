@@ -1,178 +1,120 @@
-import { GraphEdge, HighwayType, SmoothnessType, SurfaceType } from './types';
+import { GraphEdge, HighwayType, SurfaceType } from './types';
+
+/**
+ * Función de costo (F2): costo = L · (1 + Σ wᵢ · pᵢ), más una penalización
+ * estructural fija para las vías menores (D7).
+ *
+ * - L es el largo: con todos los pesos en 0 el costo es la distancia y la ruta
+ *   es la más corta (ya no hay `distanceWeight`: la distancia es la base).
+ * - Cada pᵢ es una "incomodidad" normalizada en [0,1] del segmento (1 = lo que
+ *   el perfil quiere evitar) y wᵢ ∈ [0, W_MAX] su peso. Con wᵢ = W_MAX, un
+ *   metro que el perfil evita cuesta hasta 1 + W_MAX metros: una ruta más larga
+ *   gana si ahorra al menos 1 m evitado por cada W_MAX m extra.
+ * - Todos los términos son ≥ 0, así que costo ≥ L (lo exige A*, F3) y Dijkstra
+ *   recibe costos positivos.
+ * - Elevación y smoothness salieron del costo (no hay datos de elevación y
+ *   smoothness casi no está etiquetado; plan, §1.4).
+ */
+
+/** Peso máximo de cada criterio (D4). */
+export const W_MAX = 4;
 
 export interface RouteWeights {
-  distanceWeight: number; // 0-1, importancia de distancia corta
-  curvinessWeight: number; // 0-1, preferencia por curvas
-  elevationWeight: number; // -1..1: >0 prefiere plano, <0 prefiere montañoso
-  surfaceWeight: number; // -1..1: >0 prefiere pavimento, <0 prefiere rural
+  /** 0..W_MAX: cuánto se evitan los tramos rectos (preferencia por curvas). */
+  curvinessWeight: number;
+  /**
+   * -W_MAX..W_MAX, firmado: > 0 evita lo sin pavimentar (prefiere pavimento);
+   * < 0 evita lo pavimentado (prefiere ripio y tierra). Nunca resta: solo
+   * encarece el extremo no deseado.
+   */
+  surfaceWeight: number;
 }
 
-const SURFACE_PENALTY: Record<SurfaceType, number> = {
-  asphalt: 1.0,
-  concrete: 1.1,
-  cobblestone: 1.4,
-  gravel: 1.8,
-  dirt: 2.2,
-  sand: 3.0,
-  unknown: 1.5,
-};
+/**
+ * Densidad de giro (°/km) desde la que un segmento cuenta como curvo del todo
+ * para el costo: rectitud = 1 − min(1, densidad / este valor). Coincide con el
+ * umbral de tramo curvo (D1). Al ajustar los perfiles (F2) rindió más que 150,
+ * 200 o 300 °/km en moto-curvas y scenic.
+ */
+export const STRAIGHTNESS_SATURATION_DEG_PER_KM = 100;
 
-const HIGHWAY_PENALTY: Record<HighwayType, number> = {
-  motorway: 0.8,
-  trunk: 0.9,
-  primary: 1.0,
-  secondary: 1.1,
-  tertiary: 1.2,
-  unclassified: 1.4,
-  residential: 1.5,
-  track: 2.0,
-  path: 3.0,
-  service: 1.6,
-  // Calle compartida (pasaje peatonal con acceso vehicular): se incluye para el
-  // snap en barrios, pero penalizada como una pista (decisión D7).
-  living_street: 2.0,
+/**
+ * Grado de "sin pavimentar" de cada superficie: 0 = pavimento, 1 = ripio,
+ * tierra o arena. El ripio cuenta entero, igual que en el criterio de 4x4
+ * (D1): con 0,8, 4x4 llegaba al 70% del máximo en 12 de 19 pares de referencia
+ * en vez de 18 (ajuste de F2). El adoquín queda intermedio.
+ */
+const UNPAVED: Record<SurfaceType, number> = {
+  asphalt: 0,
+  concrete: 0,
+  cobblestone: 0.3,
+  gravel: 1,
+  dirt: 1,
+  sand: 1,
+  unknown: 0.5,
 };
+const DEFAULT_UNPAVED = 0.5;
 
-const SMOOTHNESS_PENALTY: Record<SmoothnessType, number> = {
-  excellent: 1.0,
-  good: 1.1,
-  intermediate: 1.3,
-  bad: 1.7,
-  very_bad: 2.4,
-  impassable: 6.0,
+/**
+ * Vías menores con penalización fija (D7): calles compartidas y `service` sin
+ * subtipo (los subtipos de estacionamiento y entrada ya se excluyen). No
+ * depende del perfil.
+ */
+const MINOR_ROAD: Partial<Record<HighwayType, number>> = {
+  living_street: 1,
+  service: 1,
 };
-
-const DEFAULT_SURFACE_PENALTY = 1.5;
-const DEFAULT_HIGHWAY_PENALTY = 1.4;
-const DEFAULT_SMOOTHNESS_PENALTY = 1.3;
+/** Recargo por metro de vía menor: cuesta 1,5 veces su largo con los pesos en 0. */
+export const MINOR_ROAD_PENALTY = 0.5;
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
-/** Incomodidades normalizadas de una arista (0 = ideal, 1 = pésimo). Se precalculan al compilar. */
+/** Incomodidades normalizadas de un segmento (0 = ideal, 1 = lo que se evita). Se precalculan al compilar. */
 export interface EdgeFeatures {
-  /** Recto: malo para quien busca curvas. */
+  /** Rectitud: 1 en una recta, 0 desde la densidad de saturación. */
   straightness: number;
-  /** Rugosidad: combina superficie y smoothness. asphalt/good ≈ 0, sand/bad ≈ 1. */
-  roughness: number;
-  /** Pendiente: desnivel por metro. ~15% de gradiente ya satura a 1. */
-  grade: number;
-  /** Jerarquía de vía: motorway ≈ 0 (rápida/aburrida), path ≈ 1 (chica/lenta). */
+  /** Sin pavimentar: 0 asfalto u hormigón, 1 tierra o arena. */
+  unpaved: number;
+  /** 1 si es una vía menor penalizada (D7), 0 si no. */
   minorRoad: number;
 }
 
 export function edgeFeatures(
-  edge: Pick<GraphEdge, 'distanceMeters' | 'curviness' | 'elevationGain' | 'elevationLoss' | 'highwayType' | 'surface' | 'smoothness'>,
+  edge: Pick<GraphEdge, 'curviness' | 'curvatureDegPerKm' | 'highwayType' | 'surface'>,
 ): EdgeFeatures {
-  const surfacePenalty = SURFACE_PENALTY[edge.surface] ?? DEFAULT_SURFACE_PENALTY;
-  const highwayPenalty =
-    HIGHWAY_PENALTY[edge.highwayType] ?? DEFAULT_HIGHWAY_PENALTY;
-  const smoothnessPenalty =
-    SMOOTHNESS_PENALTY[edge.smoothness] ?? DEFAULT_SMOOTHNESS_PENALTY;
+  // Las colecciones legacy no traen °/km: se aproxima desde la sinuosidad normalizada (300 °/km = 1).
+  const deg = edge.curvatureDegPerKm ?? edge.curviness * 300;
   return {
-    straightness: 1 - clamp01(edge.curviness),
-    roughness: clamp01((surfacePenalty * smoothnessPenalty - 1) / 3),
-    grade:
-      edge.distanceMeters > 0
-        ? clamp01(
-            (edge.elevationGain + edge.elevationLoss) /
-              edge.distanceMeters /
-              0.15,
-          )
-        : 0,
-    minorRoad: clamp01((highwayPenalty - 0.8) / (3.0 - 0.8)),
+    straightness: 1 - clamp01(deg / STRAIGHTNESS_SATURATION_DEG_PER_KM),
+    unpaved: UNPAVED[edge.surface] ?? DEFAULT_UNPAVED,
+    minorRoad: MINOR_ROAD[edge.highwayType] ?? 0,
   };
 }
 
 /**
- * Modelo de costo por "experiencia de manejo".
- *
- * costo = distancia × factor
- *
- * El `factor` es un costo por metro: cuanto más bajo, más atractiva es la
- * arista. Cada preferencia se expresa como una "incomodidad" normalizada en
- * [0,1] (1 = lo peor para esa preferencia) multiplicada por su peso y por un
- * coeficiente lo bastante grande como para que una preferencia fuerte DOMINE
- * sobre la distancia. Así un camino curvo más largo puede ganarle a uno recto
- * más corto (antes era imposible: el premio por curvas era demasiado débil).
- *
- * Recibe las features como números sueltos para que el motor CSR la llame en
- * cada relajación sin crear objetos; las operaciones van en el mismo orden que
- * antes, así el costo es idéntico bit a bit.
- */
-export function costFromFeatures(
-  distanceMeters: number,
-  straightness: number,
-  roughness: number,
-  grade: number,
-  minorRoad: number,
-  weights: RouteWeights,
-): number {
-  // surfaceWeight FIRMADO:
-  //   > 0  → preferir pavimento: penaliza lo rugoso.
-  //   < 0  → preferir rural: penaliza lo liso/pavimentado (el ripio/tierra sale
-  //          más barato y el router lo elige donde exista en los datos).
-  // En ambos casos el término es ≥ 0 (Dijkstra exige costos positivos): nunca
-  // "premiamos" con costo negativo, solo encarecemos el extremo no deseado.
-  const sw = weights.surfaceWeight;
-  const surfaceTerm =
-    sw >= 0 ? sw * 2.0 * roughness : -sw * 2.0 * (1 - roughness);
-
-  // elevationWeight FIRMADO (misma idea que surfaceWeight):
-  //   > 0  → preferir plano: penaliza la pendiente.
-  //   < 0  → preferir montañoso: penaliza lo llano (las subidas/bajadas salen
-  //          más baratas y el router busca rutas con cambios de altura).
-  const ew = weights.elevationWeight;
-  const elevationTerm =
-    ew >= 0 ? ew * 2.0 * grade : -ew * 2.0 * (1 - grade);
-
-  // Factor por metro: piso bajo + términos ponderados y amplificados --------
-  const factor =
-    0.15 + // piso: garantiza costo > 0 y algo de presión por distancia
-    weights.distanceWeight * 0.6 + // querer ruta corta sube el piso uniforme
-    weights.curvinessWeight * 2.6 * straightness + // evitar tramos rectos
-    surfaceTerm + // preferir pavimento (>0) o rural (<0)
-    elevationTerm + // preferir plano (>0) o montañoso (<0)
-    0.3 * minorRoad; // leve preferencia estructural por vías principales
-
-  return distanceMeters * Math.max(factor, 0.05);
-}
-
-/** Costo de una arista suelta (mismo cálculo que el motor). */
-export function calculateEdgeCost(
-  edge: GraphEdge,
-  weights: RouteWeights,
-): number {
-  const f = edgeFeatures(edge);
-  return costFromFeatures(edge.distanceMeters, f.straightness, f.roughness, f.grade, f.minorRoad, weights);
-}
-
-/**
  * Costo de un tramo compactado (o de un pedazo, para los nodos fantasma) a
- * partir de su largo y de las sumas Σ largo × feature de sus segmentos.
- *
- * Es exactamente Σ costFromFeatures(segmento) porque el factor es lineal en
- * las features y el piso `Math.max(factor, 0.05)` nunca actúa: todos los
- * términos son ≥ 0 (los pesos se validan ≥ 0 y los firmados se convierten en
- * términos positivos), así que el factor es siempre ≥ 0,15. La única
- * diferencia con la suma segmento a segmento es el redondeo de punto flotante.
+ * partir de su largo y de las sumas Σ largo × feature de sus segmentos. Como
+ * el costo es lineal en las features, es exactamente la suma de los costos de
+ * sus segmentos (salvo el redondeo de punto flotante).
  */
 export function costFromSums(
   len: number,
   sumStraight: number,
-  sumRough: number,
-  sumGrade: number,
+  sumUnpaved: number,
   sumMinor: number,
   weights: RouteWeights,
 ): number {
   const sw = weights.surfaceWeight;
-  const surfaceTerm = sw >= 0 ? sw * 2.0 * sumRough : -sw * 2.0 * (len - sumRough);
-  const ew = weights.elevationWeight;
-  const elevationTerm = ew >= 0 ? ew * 2.0 * sumGrade : -ew * 2.0 * (len - sumGrade);
-  return (
-    len * (0.15 + weights.distanceWeight * 0.6) +
-    weights.curvinessWeight * 2.6 * sumStraight +
-    surfaceTerm +
-    elevationTerm +
-    0.3 * sumMinor
-  );
+  const surfaceTerm = sw >= 0 ? sw * sumUnpaved : -sw * (len - sumUnpaved);
+  return len + weights.curvinessWeight * sumStraight + surfaceTerm + MINOR_ROAD_PENALTY * sumMinor;
+}
+
+/** Costo de un segmento con features conocidas (mismo cálculo que el motor). */
+export function costFromFeatures(distanceMeters: number, f: EdgeFeatures, weights: RouteWeights): number {
+  return costFromSums(distanceMeters, distanceMeters * f.straightness, distanceMeters * f.unpaved, distanceMeters * f.minorRoad, weights);
+}
+
+/** Costo de una arista suelta. */
+export function calculateEdgeCost(edge: GraphEdge, weights: RouteWeights): number {
+  return costFromFeatures(edge.distanceMeters, edgeFeatures(edge), weights);
 }

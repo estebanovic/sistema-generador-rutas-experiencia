@@ -16,7 +16,7 @@ import { oppositeTwins, WayLabels } from './twins';
  * Versión de la lógica derivada (normalización, compactación, features, CFC…).
  * Subirla invalida los snapshots y obliga a recompilar, sin reimportar.
  */
-export const COMPILER_VERSION = 'f0.5-1';
+export const COMPILER_VERSION = 'f2-1';
 
 export interface CompileInput {
   nodes: GraphNode[];
@@ -172,8 +172,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
   const geoLon = new Float64Array(P);
   const geoCumLen = new Float64Array(P);
   const geoCumStraight = new Float64Array(P);
-  const geoCumRough = new Float64Array(P);
-  const geoCumGrade = new Float64Array(P);
+  const geoCumUnpaved = new Float64Array(P);
   const geoCumMinor = new Float64Array(P);
   const segCurv = new Float32Array(P);
   const segCurvDeg = new Float32Array(P);
@@ -214,8 +213,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       const f = edgeFeatures(e);
       geoCumLen[p] = geoCumLen[p - 1] + len;
       geoCumStraight[p] = geoCumStraight[p - 1] + len * f.straightness;
-      geoCumRough[p] = geoCumRough[p - 1] + len * f.roughness;
-      geoCumGrade[p] = geoCumGrade[p - 1] + len * f.grade;
+      geoCumUnpaved[p] = geoCumUnpaved[p - 1] + len * f.unpaved;
       geoCumMinor[p] = geoCumMinor[p - 1] + len * f.minorRoad;
       const forward = s.a === pts[j - 1];
       segCurv[p - 1] = e.curviness;
@@ -250,8 +248,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
   const edgeDir = new Uint8Array(M);
   const edgeLen = new Float64Array(M);
   const edgeSumStraight = new Float64Array(M);
-  const edgeSumRough = new Float64Array(M);
-  const edgeSumGrade = new Float64Array(M);
+  const edgeSumUnpaved = new Float64Array(M);
   const edgeSumMinor = new Float64Array(M);
   const edgeFlags = new Uint8Array(M);
   const chainFwd = new Int32Array(T).fill(-1);
@@ -265,8 +262,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     edgeDir[k] = e.dir;
     edgeLen[k] = geoCumLen[last];
     edgeSumStraight[k] = geoCumStraight[last];
-    edgeSumRough[k] = geoCumRough[last];
-    edgeSumGrade[k] = geoCumGrade[last];
+    edgeSumUnpaved[k] = geoCumUnpaved[last];
     edgeSumMinor[k] = geoCumMinor[last];
     edgeFlags[k] = chainFlags[e.chain];
     if (e.dir === 0) chainFwd[e.chain] = k;
@@ -314,10 +310,10 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     ...(numeric ? {} : { rawLabels: raw.map((n) => n.osmId) }),
     nodeOsmId, nodeLat, nodeLon, nodeInMainScc, nodeDegree,
     outStart, edgeFrom, edgeTo, edgeChain, edgeDir, edgeLen,
-    edgeSumStraight, edgeSumRough, edgeSumGrade, edgeSumMinor, edgeFlags,
+    edgeSumStraight, edgeSumUnpaved, edgeSumMinor, edgeFlags,
     inStart, inEdge,
     chainStart, chainFwd, chainBwd, chainNode0, chainNode1, chainIsBridge, chainFlags,
-    geoOsmId, geoLat, geoLon, geoCumLen, geoCumStraight, geoCumRough, geoCumGrade, geoCumMinor,
+    geoOsmId, geoLat, geoLon, geoCumLen, geoCumStraight, geoCumUnpaved, geoCumMinor,
     segCurv, segCurvDeg, segGain, segLoss, segHighway, segSurface, segSurfaceSource, segWay,
     twinStart: new Int32Array(M + 1),
     twinEdge: new Int32Array(0),

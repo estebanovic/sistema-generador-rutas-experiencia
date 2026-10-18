@@ -43,8 +43,7 @@ export interface CompiledGraph {
   edgeLen: Float64Array; // metros (suma de segmentos)
   // Sumas Σ largo × feature sobre los segmentos del tramo (ver cost.ts).
   edgeSumStraight: Float64Array;
-  edgeSumRough: Float64Array;
-  edgeSumGrade: Float64Array;
+  edgeSumUnpaved: Float64Array;
   edgeSumMinor: Float64Array;
   edgeFlags: Uint8Array; // bits EDGE_FLAG_*
   /** Aristas entrantes de v: inEdge[inStart[v] .. inStart[v+1]-1]. */
@@ -72,8 +71,7 @@ export interface CompiledGraph {
   /** Sumas prefijas desde el inicio del tramo (0 en su primer punto). */
   geoCumLen: Float64Array;
   geoCumStraight: Float64Array;
-  geoCumRough: Float64Array;
-  geoCumGrade: Float64Array;
+  geoCumUnpaved: Float64Array;
   geoCumMinor: Float64Array;
   // Atributos del segmento que empieza en cada punto (el último punto del tramo no se usa).
   /** Sinuosidad normalizada [0,1] del segmento. */

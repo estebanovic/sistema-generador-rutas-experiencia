@@ -65,19 +65,20 @@ Perfiles: `moto-curvas`, `4x4`, `scenic`, `custom`. Con `custom` debés enviar
   "destination": { "lat": -33.35, "lon": -70.55 },
   "profile": "custom",
   "customWeights": {
-    "distanceWeight": 0.3,
-    "curvinessWeight": 0.9,
-    "elevationWeight": 0.2,
-    "surfaceWeight": 0.4
+    "curvinessWeight": 3,
+    "surfaceWeight": -2
   }
 }
 ```
+
+- `curvinessWeight` (0 a 4): cuánto se evitan las rectas.
+- `surfaceWeight` (-4 a 4): mayor que 0 evita lo sin pavimentar; menor que 0 evita el pavimento (prefiere ripio y tierra).
 
 Respuesta:
 
 - `path`: osmIds de los nodos recorridos.
 - `coordinates`: `[lat, lon]`; el primero y el último son el punto ajustado sobre la vía.
-- `totalCost`.
+- `totalCost`: costo de la ruta en metros equivalentes (siempre ≥ la distancia; ver "Función de costo").
 - `stats`: distancia, sinuosidad y desglose por tipo de vía y superficie. El desnivel es `null` porque no hay datos de elevación.
 - `snap`: `{ origin, destination }`, cada uno `{ distanceMeters, lat, lon }`: el punto de la vía donde empieza o termina la ruta y su distancia al punto pedido.
 
@@ -98,6 +99,32 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | Errores de snap nuevos: "fuera de la red conectada" y "sin camino sin pasar por vías privadas". | Compatible (mismos códigos HTTP). |
 | 2026-10-18 | Campo `snap` en la respuesta de rutas; error si el ajuste supera 1 km. | El campo nuevo es compatible; el error de 1 km es un caso nuevo. |
 | 2026-10-18 | `stats.curvinessDegPerKm` (°/km) y `stats.curvyShare` (fracción de metros ≥ 100 °/km); `stats.curviness` pasa a ser la sinuosidad normalizada nueva. | Compatible (campos nuevos; mismo rango [0,1]). |
+| 2026-10-18 | `stats.surfaceSourceBreakdown`: metros por procedencia de la superficie (`declarada`, `tracktype`, `vecindad`, `tipo`). | Compatible (campo nuevo). |
+| 2026-10-18 | `customWeights` solo admite `curvinessWeight` (0 a 4) y `surfaceWeight` (-4 a 4). `distanceWeight` y `elevationWeight` se eliminan: enviarlos responde 400. | Rompe a los clientes que usan el perfil `custom` (rango y campos nuevos). |
+| 2026-10-18 | `totalCost` cambia de escala: ahora son metros equivalentes, ≥ `stats.distanceMeters`. Los perfiles predefinidos tienen pesos nuevos, así que sus rutas cambian. | Compatible en tipo; cambia el significado del número. |
+
+## Función de costo
+
+Cada segmento cuesta su largo `L` más recargos que nunca restan:
+
+```
+costo = L · (1 + curvinessWeight · rectitud + recargo de superficie) + 0,5 · L si es living_street o service
+recargo de superficie = surfaceWeight · sinPavimentar          si surfaceWeight ≥ 0
+                      = |surfaceWeight| · (1 − sinPavimentar)  si surfaceWeight < 0
+```
+
+- `rectitud` = 1 − min(1, densidad de giro / 100 °/km): 1 en una recta, 0 desde 100 °/km.
+- `sinPavimentar`: asfalto y hormigón 0, adoquín 0,3, ripio, tierra y arena 1.
+- Con los pesos en 0 la ruta es la más corta (salvo el recargo fijo de `living_street` y `service`).
+- Con peso 4, una ruta más larga gana si cada 4 m extra ahorran al menos 1 m de lo que el perfil evita.
+
+| Perfil | `curvinessWeight` | `surfaceWeight` | Presupuesto de desvío por defecto |
+|---|---|---|---|
+| moto-curvas | 3 | 0 | ×1,5 |
+| 4x4 | 0 | -4 | ×2,0 |
+| scenic | 4 | 2 | ×1,5 |
+
+El presupuesto de desvío (largo de la ruta / distancia mínima) se usa por ahora para medir; el motor todavía no lo impone.
 
 ## Arquitectura
 

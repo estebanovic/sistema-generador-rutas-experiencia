@@ -4,32 +4,28 @@ export const PROFILE_NAMES = ['4x4', 'moto-curvas', 'scenic', 'custom'] as const
 export type ProfileName = (typeof PROFILE_NAMES)[number];
 
 /**
- * Perfiles de manejo. Recordá que mayor peso = mayor costo = más evitado.
- * - moto-curvas: prioriza curvas (curvinessWeight alto) e ignora distancia.
- * - 4x4: tolera mal terreno (surfaceWeight bajo) y busca desnivel.
- * - scenic: equilibrado, premia curvas y desnivel sin castigar la superficie.
+ * Perfiles de manejo (F2). Mayor peso = el perfil evita más esa incomodidad
+ * (ver cost.ts). Pesos ajustados para maximizar el % del máximo alcanzable de
+ * cada criterio (D1, D2) en los dos conjuntos de pares de la línea base.
+ * - moto-curvas: evita las rectas.
+ * - 4x4: evita el pavimento (prefiere ripio y tierra).
+ * - scenic: evita las rectas y lo sin pavimentar (curvas pavimentadas, D8).
  */
 export const PROFILES: Record<Exclude<ProfileName, 'custom'>, RouteWeights> = {
-  // Busca curvas a toda costa, no le importa la distancia ni el asfalto.
-  'moto-curvas': {
-    distanceWeight: 0.05,
-    curvinessWeight: 1.0,
-    elevationWeight: 0.0,
-    surfaceWeight: 0.0, // indiferente a la superficie
-  },
-  // Prioriza llegar directo y PREFIERE caminos rurales (surfaceWeight < 0).
-  '4x4': {
-    distanceWeight: 0.6,
-    curvinessWeight: 0.15,
-    elevationWeight: 0.0,
-    surfaceWeight: -0.7,
-  },
-  // Equilibrado y "lindo": algo de curvas, evita terreno feo y pendientes
-  // fuertes, sin obsesionarse con la distancia.
-  scenic: {
-    distanceWeight: 0.25,
-    curvinessWeight: 0.6,
-    elevationWeight: 0.4,
-    surfaceWeight: 0.5,
-  },
+  'moto-curvas': { curvinessWeight: 3, surfaceWeight: 0 },
+  '4x4': { curvinessWeight: 0, surfaceWeight: -4 },
+  scenic: { curvinessWeight: 4, surfaceWeight: 2 },
+};
+
+/**
+ * Presupuesto de desvío por defecto de cada perfil (D5): largo máximo de la
+ * ruta / distancia mínima. Lo usa la línea base para el máximo alcanzable y lo
+ * impondrá el motor en F4. 4x4 necesita más margen para llegar a caminos sin
+ * pavimentar; para curvas, más de 1,5 no aporta.
+ */
+export const PROFILE_DETOUR_BUDGET: Record<ProfileName, number> = {
+  'moto-curvas': 1.5,
+  '4x4': 2.0,
+  scenic: 1.5,
+  custom: 1.5,
 };
