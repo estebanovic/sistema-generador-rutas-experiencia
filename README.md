@@ -97,6 +97,7 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | `POST /import` devuelve además `ways` y `deletedWays`. | Compatible (campos nuevos). |
 | 2026-10-18 | Errores de snap nuevos: "fuera de la red conectada" y "sin camino sin pasar por vías privadas". | Compatible (mismos códigos HTTP). |
 | 2026-10-18 | Campo `snap` en la respuesta de rutas; error si el ajuste supera 1 km. | El campo nuevo es compatible; el error de 1 km es un caso nuevo. |
+| 2026-10-18 | `stats.curvinessDegPerKm` (°/km) y `stats.curvyShare` (fracción de metros ≥ 100 °/km); `stats.curviness` pasa a ser la sinuosidad normalizada nueva. | Compatible (campos nuevos; mismo rango [0,1]). |
 
 ## Arquitectura
 
