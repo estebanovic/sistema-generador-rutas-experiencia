@@ -1,0 +1,117 @@
+
+## Techo estructural — 2026-10-18T23:20:42.643Z — snapshot graph-osm-v21-f3-1.bin — 25 orígenes × 3 longitudes, banda ±10% — 30 s
+
+zona (orígenes)        longitud   resultado
+valle (9)                30 km     0 imposibles ·   9 factibles ·   0 indeterminados
+valle (9)                60 km     0 imposibles ·   9 factibles ·   0 indeterminados
+valle (9)               100 km     0 imposibles ·   9 factibles ·   0 indeterminados
+precordillera (4)        30 km     2 imposibles ·   1 factibles ·   1 indeterminados
+precordillera (4)        60 km     2 imposibles ·   2 factibles ·   0 indeterminados
+precordillera (4)       100 km     2 imposibles ·   2 factibles ·   0 indeterminados
+rural (12)               30 km     1 imposibles ·  11 factibles ·   0 indeterminados
+rural (12)               60 km     1 imposibles ·  11 factibles ·   0 indeterminados
+rural (12)              100 km     1 imposibles ·  11 factibles ·   0 indeterminados
+todas                    30 km     3 imposibles ·  21 factibles ·   1 indeterminados
+todas                    60 km     3 imposibles ·  22 factibles ·   0 indeterminados
+todas                   100 km     3 imposibles ·  22 factibles ·   0 indeterminados
+total                              9 imposibles ·  65 factibles ·   1 indeterminados
+
+Con la D14 ampliada (informativa: acceso hasta el núcleo principal)
+valle                    30 km     0 imposibles ·   9 factibles ·   0 indeterminados
+valle                    60 km     0 imposibles ·   9 factibles ·   0 indeterminados
+valle                   100 km     0 imposibles ·   9 factibles ·   0 indeterminados
+precordillera            30 km     2 imposibles ·   1 factibles ·   1 indeterminados
+precordillera            60 km     0 imposibles ·   4 factibles ·   0 indeterminados
+precordillera           100 km     0 imposibles ·   4 factibles ·   0 indeterminados
+rural                    30 km     0 imposibles ·  12 factibles ·   0 indeterminados
+rural                    60 km     0 imposibles ·  12 factibles ·   0 indeterminados
+rural                   100 km     0 imposibles ·  12 factibles ·   0 indeterminados
+total                              2 imposibles ·  72 factibles ·   1 indeterminados
+
+## Detalle
+valle         plazaArmas     30 km  factible      circuito 27.2 km (1 punto de giro) | red disponible 9882.9 km | ciclo mínimo 1.6 km | acceso 0 km
+valle         plazaArmas     60 km  factible      circuito 54.8 km (1 punto de giro) | red disponible 13686.1 km | ciclo mínimo 1.6 km | acceso 0 km
+valle         plazaArmas    100 km  factible      circuito 92.7 km (1 punto de giro) | red disponible 15516.3 km | ciclo mínimo 1.6 km | acceso 0 km
+valle         laDehesa       30 km  factible      circuito 27.3 km (1 punto de giro) | red disponible 3442 km | ciclo mínimo 0.1 km | acceso 0 km
+valle         laDehesa       60 km  factible      circuito 55.5 km (1 punto de giro) | red disponible 12326.1 km | ciclo mínimo 0.1 km | acceso 0 km
+valle         laDehesa      100 km  factible      circuito 99.3 km (1 punto de giro) | red disponible 14635.6 km | ciclo mínimo 0.1 km | acceso 0 km
+valle         maipu          30 km  factible      circuito 29.4 km (1 punto de giro) | red disponible 7845 km | ciclo mínimo 0.7 km | acceso 0 km
+valle         maipu          60 km  factible      circuito 60 km (1 punto de giro) | red disponible 14201.5 km | ciclo mínimo 0.7 km | acceso 0 km
+valle         maipu         100 km  factible      circuito 95.4 km (1 punto de giro) | red disponible 16004.3 km | ciclo mínimo 0.7 km | acceso 0 km
+valle         padreHurtado   30 km  factible      circuito 27.9 km (1 punto de giro) | red disponible 4530.3 km | ciclo mínimo 0.2 km | acceso 0 km
+valle         padreHurtado   60 km  factible      circuito 56.6 km (1 punto de giro) | red disponible 13747.2 km | ciclo mínimo 0.2 km | acceso 0 km
+valle         padreHurtado  100 km  factible      circuito 104.6 km (1 punto de giro) | red disponible 16056.8 km | ciclo mínimo 0.2 km | acceso 0 km
+rural         curacavi       30 km  factible      circuito 31.1 km (1 punto de giro) | red disponible 335.9 km | ciclo mínimo 0.6 km | acceso 0.04 km
+rural         curacavi       60 km  factible      circuito 57.7 km (1 punto de giro) | red disponible 1446.1 km | ciclo mínimo 0.6 km | acceso 0.04 km
+rural         curacavi      100 km  factible      circuito 94.1 km (1 punto de giro) | red disponible 14196.3 km | ciclo mínimo 0.6 km | acceso 0.04 km
+rural         talagante      30 km  factible      circuito 30 km (1 punto de giro) | red disponible 903.7 km | ciclo mínimo 0.6 km | acceso 0 km
+rural         talagante      60 km  factible      circuito 63 km (1 punto de giro) | red disponible 8152.7 km | ciclo mínimo 0.6 km | acceso 0 km
+rural         talagante     100 km  factible      circuito 106.1 km (1 punto de giro) | red disponible 15868.1 km | ciclo mínimo 0.6 km | acceso 0 km
+valle         providencia    30 km  factible      circuito 27.4 km (1 punto de giro) | red disponible 8939.9 km | ciclo mínimo 0.6 km | acceso 0 km
+valle         providencia    60 km  factible      circuito 58.6 km (1 punto de giro) | red disponible 13447 km | ciclo mínimo 0.6 km | acceso 0 km
+valle         providencia   100 km  factible      circuito 100 km (1 punto de giro) | red disponible 15331.2 km | ciclo mínimo 0.6 km | acceso 0 km
+valle         quilicura      30 km  factible      circuito 27.6 km (1 punto de giro) | red disponible 5850.2 km | ciclo mínimo 0.3 km | acceso 0 km
+valle         quilicura      60 km  factible      circuito 57.4 km (1 punto de giro) | red disponible 13285.7 km | ciclo mínimo 0.3 km | acceso 0 km
+valle         quilicura     100 km  factible      circuito 91.3 km (1 punto de giro) | red disponible 15467 km | ciclo mínimo 0.3 km | acceso 0 km
+valle         puenteAlto     30 km  factible      circuito 30.5 km (1 punto de giro) | red disponible 4982.6 km | ciclo mínimo 0.8 km | acceso 0 km
+valle         puenteAlto     60 km  factible      circuito 55.4 km (1 punto de giro) | red disponible 13163.4 km | ciclo mínimo 0.8 km | acceso 0 km
+valle         puenteAlto    100 km  factible      circuito 100 km (1 punto de giro) | red disponible 15137 km | ciclo mínimo 0.8 km | acceso 0 km
+precordillera sanJoseMaipo   30 km  indeterminado más cercano 45.1 km | red disponible 122.6 km | ciclo mínimo 0.8 km | acceso 0 km
+precordillera sanJoseMaipo   60 km  factible      circuito 62.1 km (1 punto de giro) | red disponible 5451.8 km | ciclo mínimo 0.8 km | acceso 0 km
+precordillera sanJoseMaipo  100 km  factible      circuito 91.2 km (1 punto de giro) | red disponible 13951.4 km | ciclo mínimo 0.8 km | acceso 0 km
+precordillera pirque         30 km  factible      circuito 27.1 km (1 punto de giro) | red disponible 4090.9 km | ciclo mínimo 6.5 km | acceso 0 km
+precordillera pirque         60 km  factible      circuito 62.5 km (1 punto de giro) | red disponible 12765.4 km | ciclo mínimo 6.5 km | acceso 0 km
+precordillera pirque        100 km  factible      circuito 97.6 km (1 punto de giro) | red disponible 15119.1 km | ciclo mínimo 6.5 km | acceso 0 km
+rural         buin           30 km  factible      circuito 31.5 km (1 punto de giro) | red disponible 1510.9 km | ciclo mínimo 0.4 km | acceso 0 km
+rural         buin           60 km  factible      circuito 59.4 km (1 punto de giro) | red disponible 9017 km | ciclo mínimo 0.4 km | acceso 0 km
+rural         buin          100 km  factible      circuito 95 km (1 punto de giro) | red disponible 15396.7 km | ciclo mínimo 0.4 km | acceso 0 km
+rural         penaflor       30 km  factible      circuito 29 km (1 punto de giro) | red disponible 1866.4 km | ciclo mínimo 0.3 km | acceso 0 km
+rural         penaflor       60 km  factible      circuito 63.3 km (3 puntos de giro) | red disponible 12204 km | ciclo mínimo 0.3 km | acceso 0 km
+rural         penaflor      100 km  factible      circuito 106.1 km (2 puntos de giro) | red disponible 16079.1 km | ciclo mínimo 0.3 km | acceso 0 km
+rural         colina         30 km  factible      circuito 31.7 km (1 punto de giro) | red disponible 779 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         colina         60 km  factible      circuito 65.2 km (1 punto de giro) | red disponible 7561.2 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         colina        100 km  factible      circuito 90.2 km (1 punto de giro) | red disponible 14005.2 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         lampa          30 km  factible      circuito 32.8 km (1 punto de giro) | red disponible 944.5 km | ciclo mínimo 0.9 km | acceso 0 km
+rural         lampa          60 km  factible      circuito 63.2 km (1 punto de giro) | red disponible 8355 km | ciclo mínimo 0.9 km | acceso 0 km
+rural         lampa         100 km  factible      circuito 93.9 km (1 punto de giro) | red disponible 15478.7 km | ciclo mínimo 0.9 km | acceso 0 km
+valle         lasCondes      30 km  factible      circuito 28.1 km (1 punto de giro) | red disponible 7764.3 km | ciclo mínimo 1.6 km | acceso 0 km
+valle         lasCondes      60 km  factible      circuito 60.3 km (1 punto de giro) | red disponible 13246.1 km | ciclo mínimo 1.6 km | acceso 0 km
+valle         lasCondes     100 km  factible      circuito 102.6 km (1 punto de giro) | red disponible 15289.1 km | ciclo mínimo 1.6 km | acceso 0 km
+rural         caleraTango    30 km  imposible     red disponible 5.5 km < 27.0 km | red disponible 5.5 km | ciclo mínimo — km | acceso 0 km
+rural         caleraTango    60 km  imposible     red disponible 5.5 km < 54.0 km | red disponible 5.5 km | ciclo mínimo — km | acceso 0 km
+rural         caleraTango   100 km  imposible     red disponible 5.5 km < 90.0 km | red disponible 5.5 km | ciclo mínimo — km | acceso 0 km
+precordillera farellones     30 km  imposible     red disponible 3.5 km < 25.7 km | red disponible 3.5 km | ciclo mínimo — km | acceso 0.63 km
+precordillera farellones     60 km  imposible     red disponible 3.5 km < 52.7 km | red disponible 3.5 km | ciclo mínimo — km | acceso 0.63 km
+precordillera farellones    100 km  imposible     red disponible 3.5 km < 88.7 km | red disponible 3.5 km | ciclo mínimo — km | acceso 0.63 km
+valle         laFlorida      30 km  factible      circuito 28.6 km (1 punto de giro) | red disponible 9000.9 km | ciclo mínimo 6.6 km | acceso 0 km
+valle         laFlorida      60 km  factible      circuito 57.9 km (1 punto de giro) | red disponible 13484.6 km | ciclo mínimo 6.6 km | acceso 0 km
+valle         laFlorida     100 km  factible      circuito 100.9 km (1 punto de giro) | red disponible 15343.9 km | ciclo mínimo 6.6 km | acceso 0 km
+precordillera sanAlfonso     30 km  imposible     red disponible 0.3 km < 26.1 km | red disponible 0.3 km | ciclo mínimo — km | acceso 0.46 km
+precordillera sanAlfonso     60 km  imposible     red disponible 0.3 km < 53.1 km | red disponible 0.3 km | ciclo mínimo — km | acceso 0.46 km
+precordillera sanAlfonso    100 km  imposible     red disponible 0.3 km < 89.1 km | red disponible 0.3 km | ciclo mínimo — km | acceso 0.46 km
+rural         noviciado      30 km  factible      circuito 29.5 km (1 punto de giro) | red disponible 353.5 km | ciclo mínimo 5 km | acceso 6.89 km
+rural         noviciado      60 km  factible      circuito 60.9 km (1 punto de giro) | red disponible 7979.2 km | ciclo mínimo 5 km | acceso 6.89 km
+rural         noviciado     100 km  factible      circuito 94.6 km (1 punto de giro) | red disponible 15605 km | ciclo mínimo 5 km | acceso 6.89 km
+rural         casablanca     30 km  factible      circuito 29.3 km (1 punto de giro) | red disponible 252.6 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         casablanca     60 km  factible      circuito 58.9 km (1 punto de giro) | red disponible 509.9 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         casablanca    100 km  factible      circuito 92.9 km (1 punto de giro) | red disponible 1522.7 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         melipilla      30 km  factible      circuito 27.6 km (1 punto de giro) | red disponible 413.1 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         melipilla      60 km  factible      circuito 55.7 km (1 punto de giro) | red disponible 1056.2 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         melipilla     100 km  factible      circuito 107.1 km (1 punto de giro) | red disponible 7827.6 km | ciclo mínimo 0.5 km | acceso 0 km
+rural         paine          30 km  factible      circuito 27.5 km (1 punto de giro) | red disponible 926.5 km | ciclo mínimo 0.4 km | acceso 0 km
+rural         paine          60 km  factible      circuito 63.6 km (1 punto de giro) | red disponible 5445.7 km | ciclo mínimo 0.4 km | acceso 0 km
+rural         paine         100 km  factible      circuito 94.9 km (1 punto de giro) | red disponible 14618 km | ciclo mínimo 0.4 km | acceso 0 km
+rural         islaMaipo      30 km  factible      circuito 30.7 km (1 punto de giro) | red disponible 978 km | ciclo mínimo 1.2 km | acceso 0.07 km
+rural         islaMaipo      60 km  factible      circuito 63 km (1 punto de giro) | red disponible 5079 km | ciclo mínimo 1.2 km | acceso 0.07 km
+rural         islaMaipo     100 km  factible      circuito 92.2 km (1 punto de giro) | red disponible 15035.5 km | ciclo mínimo 1.2 km | acceso 0.07 km
+
+## D14 ampliada (informativa): orígenes cuyo bloque no es el núcleo principal
+rural         caleraTango    30 km  estricta: imposible     → ampliada: factible      circuito 27.1 km (1 punto de giro) | acceso 0.55 km
+rural         caleraTango    60 km  estricta: imposible     → ampliada: factible      circuito 55.5 km (1 punto de giro) | acceso 0.55 km
+rural         caleraTango   100 km  estricta: imposible     → ampliada: factible      circuito 92.6 km (1 punto de giro) | acceso 0.55 km
+precordillera farellones     30 km  estricta: imposible     → ampliada: imposible     el acceso supera la banda | acceso 31.05 km
+precordillera farellones     60 km  estricta: imposible     → ampliada: factible      circuito 63.6 km (1 punto de giro) | acceso 31.05 km
+precordillera farellones    100 km  estricta: imposible     → ampliada: factible      circuito 92.7 km (1 punto de giro) | acceso 31.05 km
+precordillera sanAlfonso     30 km  estricta: imposible     → ampliada: imposible     red disponible 0 km < 10.3 km | acceso 8.35 km
+precordillera sanAlfonso     60 km  estricta: imposible     → ampliada: factible      circuito 61 km (1 punto de giro) | acceso 8.35 km
+precordillera sanAlfonso    100 km  estricta: imposible     → ampliada: factible      circuito 99.5 km (1 punto de giro) | acceso 8.35 km
