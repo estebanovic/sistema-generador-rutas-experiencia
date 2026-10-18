@@ -17,11 +17,15 @@ export interface ImportOptions {
   /** 'vista' (botón del frontend) o 'teselas' (reimportación masiva). */
   source?: 'vista' | 'teselas';
   fetch?: FetchOptions;
+  /** Recompilar el grafo al terminar (por defecto sí; la CLI de teselas recompila una vez al final). */
+  rebuild?: boolean;
 }
 
 @Injectable()
 export class ImportService {
   private readonly logger = new Logger(ImportService.name);
+  /** Los imports se serializan: el reemplazo por way y la recompilación no deben mezclarse. */
+  private queue: Promise<unknown> = Promise.resolve();
 
   constructor(
     private readonly osmService: OsmService,
@@ -34,7 +38,13 @@ export class ImportService {
    * Import con reemplazo por way al almacén canónico. Ya no pide elevación
    * (fuera del alcance de la tesis; el frontend consulta su propio perfil).
    */
-  async import(bbox: BoundingBox, options: ImportOptions = {}): Promise<ImportResult> {
+  import(bbox: BoundingBox, options: ImportOptions = {}): Promise<ImportResult> {
+    const run = this.queue.then(() => this.importNow(bbox, options));
+    this.queue = run.catch(() => undefined);
+    return run;
+  }
+
+  private async importNow(bbox: BoundingBox, options: ImportOptions): Promise<ImportResult> {
     const source = options.source ?? 'vista';
     if (bbox.south >= bbox.north || bbox.west >= bbox.east) {
       throw new BadRequestException(
@@ -58,8 +68,8 @@ export class ImportService {
     // 3. Reemplazo por way en el almacén.
     const res = await this.store.applyImport(bbox, parsed, { source, server: osmData.server, startedAt });
 
-    // 4. Invalidar el grafo en memoria.
-    this.graphService.clearCache();
+    // 4. Recompilar el grafo (se sigue sirviendo el anterior hasta que termina).
+    if (options.rebuild !== false) await this.graphService.rebuild();
 
     const edges = parsed.ways.reduce((s, w) => s + w.nodeIds.length - 1, 0);
     this.logger.log(

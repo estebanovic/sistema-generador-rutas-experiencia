@@ -52,11 +52,6 @@ export interface GraphEdge {
   destinationOnly?: boolean;
 }
 
-export interface Graph {
-  nodes: Map<string, GraphNode>;
-  adjacency: Map<string, GraphEdge[]>; // osmId → aristas salientes
-}
-
 export interface RouteStats {
   distanceMeters: number;
   elevationGainMeters: number;

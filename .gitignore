@@ -5,3 +5,6 @@ dist
 
 # Línea base: solo se versionan los resúmenes (raw.json pesa ~1,2 MB por corrida)
 scripts/baseline/results/**/raw.json
+
+# Snapshots del grafo compilado (se regeneran desde Mongo)
+data/graph-cache/

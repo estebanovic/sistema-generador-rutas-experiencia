@@ -1,10 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Graph, GraphEdge, GraphNode } from '../dijkstra/types';
-import { deriveGraph, DeriveStats } from '../graph-compiler/derive';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Worker } from 'worker_threads';
+import { Connection, Model } from 'mongoose';
+import { CompiledGraph, nodeIndex } from '../dijkstra/compiled-graph';
+import { buildFromLegacy, buildFromStore, readDataVersion } from '../graph-compiler/build';
+import { COMPILER_VERSION } from '../graph-compiler/compile';
+import { DeriveStats } from '../graph-compiler/derive';
+import { pruneSnapshots, readSnapshot, snapshotFileName, writeSnapshot } from '../graph-compiler/snapshot';
 import { Node, NodeDocument } from './schemas/node.schema';
-import { Edge, EdgeDocument } from './schemas/edge.schema';
 import { OsmStoreService } from './osm-store.service';
 
 /**
@@ -16,134 +26,193 @@ import { OsmStoreService } from './osm-store.service';
  */
 export type GraphSource = 'osm' | 'legacy';
 
+/** Cada cuánto se consulta `graph_meta.dataVersion` para detectar imports hechos por otro proceso (CLI). */
+const VERSION_CHECK_MS = 30_000;
+
 @Injectable()
-export class GraphService {
+export class GraphService implements OnModuleInit {
   private readonly logger = new Logger(GraphService.name);
-  private cachedGraph: Graph | null = null;
-  private lastDeriveStats: DeriveStats | null = null;
   readonly source: GraphSource = process.env.GRAPH_SOURCE === 'legacy' ? 'legacy' : 'osm';
+  private readonly cacheDir = path.resolve(process.env.GRAPH_CACHE_DIR ?? path.join(process.cwd(), 'data', 'graph-cache'));
+
+  private graph: CompiledGraph | null = null;
+  private lastDeriveStats: DeriveStats | null = null;
+  private building: Promise<CompiledGraph> | null = null;
+  private rebuildAgain = false;
+  private lastVersionCheck = 0;
 
   constructor(
     @InjectModel(Node.name) private readonly nodeModel: Model<NodeDocument>,
-    @InjectModel(Edge.name) private readonly edgeModel: Model<EdgeDocument>,
+    @InjectConnection() private readonly connection: Connection,
     private readonly store: OsmStoreService,
   ) {}
 
-  /** Carga el grafo completo a memoria (con cache). */
-  async getGraph(): Promise<Graph> {
-    if (this.cachedGraph) return this.cachedGraph;
-    const t0 = Date.now();
-    this.cachedGraph = this.source === 'legacy' ? await this.loadLegacy() : await this.loadFromStore();
-    let edgeCount = 0;
-    for (const list of this.cachedGraph.adjacency.values()) edgeCount += list.length;
-    this.logger.log(
-      `Grafo cargado (${this.source}): ${this.cachedGraph.nodes.size} nodos, ${edgeCount} aristas, ${Date.now() - t0} ms.`,
-    );
-    return this.cachedGraph;
+  /** Precarga al arrancar (desactivable con GRAPH_PRELOAD=false, p. ej. en la CLI). */
+  async onModuleInit(): Promise<void> {
+    if (process.env.GRAPH_PRELOAD === 'false') return;
+    await this.getGraph();
   }
 
-  /** La fuente nueva no tiene elevación (decisión del plan: fuera del alcance). */
+  /** Grafo compilado vigente. La primera vez lo carga del snapshot o lo compila. */
+  async getGraph(): Promise<CompiledGraph> {
+    if (this.graph) {
+      this.maybeCheckVersion();
+      return this.graph;
+    }
+    return this.rebuild();
+  }
+
+  /**
+   * (Re)construye el grafo. Mientras tanto se sigue sirviendo el anterior; al
+   * terminar se reemplaza de una vez. Si llega otro pedido durante la
+   * construcción, se hace una más al final (para incluir el último import).
+   */
+  rebuild(): Promise<CompiledGraph> {
+    if (this.building) {
+      this.rebuildAgain = true;
+      return this.building;
+    }
+    this.building = (async () => {
+      try {
+        let g: CompiledGraph;
+        do {
+          this.rebuildAgain = false;
+          g = await this.load();
+          this.graph = g;
+        } while (this.rebuildAgain);
+        return g;
+      } finally {
+        this.building = null;
+      }
+    })();
+    return this.building;
+  }
+
   hasElevation(): boolean {
-    return this.source === 'legacy';
+    return this.graph?.meta.hasElevation ?? this.source === 'legacy';
   }
 
-  /** Estadísticas de la última derivación (ways excluidos por regla, etc.). */
+  /** Estadísticas de la última derivación compilada en este proceso (si la hubo). */
   deriveStats(): DeriveStats | null {
     return this.lastDeriveStats;
   }
 
-  clearCache(): void {
-    this.cachedGraph = null;
-  }
-
-  private async loadFromStore(): Promise<Graph> {
-    this.logger.log('Derivando grafo desde el almacén por way...');
-    const { ways, coords } = await this.store.loadAll();
-    const derived = deriveGraph(ways, (id) => coords.get(id));
-    this.lastDeriveStats = derived.stats;
-    const nodes = new Map<string, GraphNode>();
-    for (const n of derived.nodes) nodes.set(n.osmId, n);
-    const adjacency = new Map<string, GraphEdge[]>();
-    for (const { osmWayId: _w, ...edge } of derived.edges) {
-      const list = adjacency.get(edge.fromOsmId);
-      if (list) list.push(edge);
-      else adjacency.set(edge.fromOsmId, [edge]);
+  private async load(): Promise<CompiledGraph> {
+    const t0 = Date.now();
+    const db = this.connection.db!;
+    if (this.source === 'legacy') {
+      const g = await buildFromLegacy(db);
+      this.log(g, 'compilado (legacy)', t0);
+      return g;
     }
-    return { nodes, adjacency };
+    const dataVersion = await readDataVersion(db);
+    const file = path.join(this.cacheDir, snapshotFileName({ source: 'osm', dataVersion, compilerVersion: COMPILER_VERSION }));
+    if (fs.existsSync(file)) {
+      try {
+        const g = readSnapshot(file);
+        this.log(g, `cargado del snapshot ${path.basename(file)}`, t0);
+        return g;
+      } catch (err) {
+        this.logger.warn(`Snapshot ilegible, se recompila: ${err instanceof Error ? err.message : err}`);
+      }
+    }
+    const g = await this.compileInWorker().catch(async (err) => {
+      // Sin worker (p. ej. ejecutando desde TypeScript sin compilar): se compila en este hilo.
+      this.logger.warn(`Compilación en worker no disponible (${err instanceof Error ? err.message : err}); se compila en el hilo principal.`);
+      const { graph, derive } = await buildFromStore(db);
+      this.lastDeriveStats = derive;
+      const fileName = snapshotFileName(graph.meta);
+      writeSnapshot(path.join(this.cacheDir, fileName), graph);
+      pruneSnapshots(this.cacheDir, 'osm', fileName);
+      return graph;
+    });
+    this.log(g, 'compilado', t0);
+    return g;
   }
 
-  private async loadLegacy(): Promise<Graph> {
-    this.logger.log('Cargando grafo desde las colecciones anteriores (legacy)...');
-    const [nodeDocs, edgeDocs] = await Promise.all([
-      this.nodeModel.find().lean().exec(),
-      this.edgeModel.find().lean().exec(),
-    ]);
-
-    const nodes = new Map<string, GraphNode>();
-    for (const n of nodeDocs) {
-      nodes.set(n.osmId, {
-        osmId: n.osmId,
-        lat: n.lat,
-        lon: n.lon,
-        elevation: n.elevation ?? 0,
+  private compileInWorker(): Promise<CompiledGraph> {
+    const script = path.join(__dirname, '..', 'graph-compiler', 'compile.worker.js');
+    if (!fs.existsSync(script)) return Promise.reject(new Error('compile.worker.js no existe'));
+    const mongoUri = process.env.MONGO_URI ?? 'mongodb://localhost:27017/generador-rutas';
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(script, {
+        workerData: { mongoUri, cacheDir: this.cacheDir },
+        resourceLimits: { maxOldGenerationSizeMb: 8192 },
       });
-    }
+      worker.once('message', (msg: { ok: boolean; file?: string; derive?: DeriveStats; error?: string }) => {
+        if (!msg.ok) return reject(new Error(msg.error));
+        this.lastDeriveStats = msg.derive ?? null;
+        try {
+          resolve(readSnapshot(msg.file!));
+        } catch (err) {
+          reject(err);
+        }
+      });
+      worker.once('error', reject);
+      worker.once('exit', (code) => {
+        if (code !== 0) reject(new Error(`el worker terminó con código ${code}`));
+      });
+    });
+  }
 
-    const adjacency = new Map<string, GraphEdge[]>();
-    for (const e of edgeDocs) {
-      // Ignoramos aristas colgantes (nodo extremo ausente del grafo).
-      if (!nodes.has(e.fromOsmId) || !nodes.has(e.toOsmId)) continue;
-      const edge: GraphEdge = {
-        fromOsmId: e.fromOsmId,
-        toOsmId: e.toOsmId,
-        distanceMeters: e.distanceMeters,
-        curviness: e.curviness,
-        elevationGain: e.elevationGain,
-        elevationLoss: e.elevationLoss,
-        highwayType: e.highwayType as GraphEdge['highwayType'],
-        surface: e.surface as GraphEdge['surface'],
-        smoothness: e.smoothness as GraphEdge['smoothness'],
-      };
-      const list = adjacency.get(e.fromOsmId);
-      if (list) list.push(edge);
-      else adjacency.set(e.fromOsmId, [edge]);
-    }
-    return { nodes, adjacency };
+  /** Detecta imports hechos por otro proceso y recompila en segundo plano. */
+  private maybeCheckVersion(): void {
+    if (this.source !== 'osm' || this.building || Date.now() - this.lastVersionCheck < VERSION_CHECK_MS) return;
+    this.lastVersionCheck = Date.now();
+    readDataVersion(this.connection.db!)
+      .then((v) => {
+        if (this.graph && v !== this.graph.meta.dataVersion) {
+          this.logger.log(`Datos cambiados (versión ${this.graph.meta.dataVersion} → ${v}); recompilando en segundo plano.`);
+          void this.rebuild();
+        }
+      })
+      .catch(() => undefined);
+  }
+
+  private log(g: CompiledGraph, how: string, t0: number) {
+    const m = g.meta;
+    this.logger.log(
+      `Grafo ${how} (${m.source}, datos v${m.dataVersion}, compilador ${m.compilerVersion}): ${m.nodeCount} nodos, ${m.edgeCount} aristas, CFC mayor ${((100 * m.mainSccSize) / Math.max(1, m.nodeCount)).toFixed(1)}%, ${Date.now() - t0} ms.`,
+    );
   }
 
   /**
-   * Los `k` nodos del grafo más cercanos (ordenados por distancia). El snap a
-   * un solo nodo es frágil en autopistas divididas; con varios candidatos el
-   * router puede elegir el que mejor conecta. En la fuente nueva el almacén
-   * también tiene nodos de vías excluidas (D7), así que se piden de más y se
-   * filtran a los que están en el grafo.
+   * Los `k` nodos más cercanos (por distancia) que están en la componente
+   * fuertemente conexa mayor (D15). El snap a un solo nodo es frágil en
+   * autopistas divididas; con varios candidatos el router elige el que mejor
+   * conecta. El almacén también tiene nodos de vías excluidas e islas, así que
+   * se piden de más y se filtran.
    */
-  async findNearestNodes(lat: number, lon: number, k: number): Promise<string[]> {
-    if (this.source === 'legacy') return this.legacyNearest(lat, lon, k);
-    const graph = await this.getGraph();
-    const ids = await this.store.findNearestNodeIds(lat, lon, k * 8);
-    return ids.filter((id) => graph.nodes.has(id)).slice(0, k);
+  async findNearestNodes(lat: number, lon: number, k: number): Promise<number[]> {
+    const g = await this.getGraph();
+    const pool = k * 40;
+    const ids = this.source === 'legacy' ? await this.legacyNearest(lat, lon, pool) : await this.store.findNearestNodeIds(lat, lon, pool);
+    if (ids.length === 0) {
+      throw new NotFoundException(`No hay vías importadas a menos de 5 km de (${lat}, ${lon}). ¿Importaste esa zona?`);
+    }
+    const out: number[] = [];
+    for (const id of ids) {
+      const i = nodeIndex(g, id);
+      if (i >= 0 && g.nodeInMainScc[i]) out.push(i);
+      if (out.length === k) break;
+    }
+    if (out.length === 0) {
+      throw new NotFoundException(
+        `El punto (${lat}, ${lon}) está fuera de la red conectada: las vías cercanas forman una isla sin conexión con el resto del grafo.`,
+      );
+    }
+    return out;
   }
 
-  /** Nodo del grafo más cercano. */
-  async findNearestNode(lat: number, lon: number): Promise<string> {
-    const [id] = await this.findNearestNodes(lat, lon, 1);
-    if (!id) {
-      throw new NotFoundException(`No hay nodo cercano a (${lat}, ${lon}) en un radio de 5km`);
-    }
-    return id;
+  /** Nodo de la red conectada más cercano. */
+  async findNearestNode(lat: number, lon: number): Promise<number> {
+    const [i] = await this.findNearestNodes(lat, lon, 1);
+    return i;
   }
 
   private async legacyNearest(lat: number, lon: number, k: number): Promise<string[]> {
     const docs = await this.nodeModel
-      .find({
-        location: {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lon, lat] },
-            $maxDistance: 5000,
-          },
-        },
-      })
+      .find({ location: { $near: { $geometry: { type: 'Point', coordinates: [lon, lat] }, $maxDistance: 5000 } } }, { _id: 0, osmId: 1 })
       .limit(k)
       .lean()
       .exec();

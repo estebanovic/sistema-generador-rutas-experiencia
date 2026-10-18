@@ -12,7 +12,10 @@
  * - `--desde N` retoma desde la tesela N si una corrida anterior se cortó.
  */
 import { NestFactory } from '@nestjs/core';
+// La CLI no necesita el grafo en memoria mientras importa; se compila una vez al final.
+process.env.GRAPH_PRELOAD = 'false';
 import { AppModule } from '../app.module';
+import { GraphService } from '../graph/graph.service';
 import { ImportService } from '../import/import.service';
 import { BoundingBox } from '../osm/osm.types';
 
@@ -60,13 +63,15 @@ async function main() {
       current = i;
       const t = list[i];
       const ti = Date.now();
-      const res = await importer.import(t, { source: 'teselas', fetch: { retries: 5, baseDelayMs: 30_000 } });
+      const res = await importer.import(t, { source: 'teselas', fetch: { retries: 5, baseDelayMs: 30_000 }, rebuild: false });
       totalWays += res.ways;
       console.log(
         `[tesela ${i + 1}/${list.length}] ${t.south},${t.west},${t.north},${t.east}: ${res.ways} ways, ${res.nodes} nodos, ${res.deletedWays} borrados (${Math.round((Date.now() - ti) / 1000)} s)`,
       );
       if (i < list.length - 1) await sleep(delayMs);
     }
+    console.log('Compilando el grafo y escribiendo el snapshot...');
+    await app.get(GraphService).rebuild();
   } catch (err) {
     console.error(`Corte en la tesela ${current}. Retomar con --desde ${current}. ${err instanceof Error ? err.message : err}`);
     process.exitCode = 1;

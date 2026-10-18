@@ -48,6 +48,41 @@ const DEFAULT_SMOOTHNESS_PENALTY = 1.3;
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
+/** Incomodidades normalizadas de una arista (0 = ideal, 1 = pésimo). Se precalculan al compilar. */
+export interface EdgeFeatures {
+  /** Recto: malo para quien busca curvas. */
+  straightness: number;
+  /** Rugosidad: combina superficie y smoothness. asphalt/good ≈ 0, sand/bad ≈ 1. */
+  roughness: number;
+  /** Pendiente: desnivel por metro. ~15% de gradiente ya satura a 1. */
+  grade: number;
+  /** Jerarquía de vía: motorway ≈ 0 (rápida/aburrida), path ≈ 1 (chica/lenta). */
+  minorRoad: number;
+}
+
+export function edgeFeatures(
+  edge: Pick<GraphEdge, 'distanceMeters' | 'curviness' | 'elevationGain' | 'elevationLoss' | 'highwayType' | 'surface' | 'smoothness'>,
+): EdgeFeatures {
+  const surfacePenalty = SURFACE_PENALTY[edge.surface] ?? DEFAULT_SURFACE_PENALTY;
+  const highwayPenalty =
+    HIGHWAY_PENALTY[edge.highwayType] ?? DEFAULT_HIGHWAY_PENALTY;
+  const smoothnessPenalty =
+    SMOOTHNESS_PENALTY[edge.smoothness] ?? DEFAULT_SMOOTHNESS_PENALTY;
+  return {
+    straightness: 1 - clamp01(edge.curviness),
+    roughness: clamp01((surfacePenalty * smoothnessPenalty - 1) / 3),
+    grade:
+      edge.distanceMeters > 0
+        ? clamp01(
+            (edge.elevationGain + edge.elevationLoss) /
+              edge.distanceMeters /
+              0.15,
+          )
+        : 0,
+    minorRoad: clamp01((highwayPenalty - 0.8) / (3.0 - 0.8)),
+  };
+}
+
 /**
  * Modelo de costo por "experiencia de manejo".
  *
@@ -59,34 +94,19 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
  * coeficiente lo bastante grande como para que una preferencia fuerte DOMINE
  * sobre la distancia. Así un camino curvo más largo puede ganarle a uno recto
  * más corto (antes era imposible: el premio por curvas era demasiado débil).
+ *
+ * Recibe las features como números sueltos para que el motor CSR la llame en
+ * cada relajación sin crear objetos; las operaciones van en el mismo orden que
+ * antes, así el costo es idéntico bit a bit.
  */
-export function calculateEdgeCost(
-  edge: GraphEdge,
+export function costFromFeatures(
+  distanceMeters: number,
+  straightness: number,
+  roughness: number,
+  grade: number,
+  minorRoad: number,
   weights: RouteWeights,
 ): number {
-  const surfacePenalty = SURFACE_PENALTY[edge.surface] ?? DEFAULT_SURFACE_PENALTY;
-  const highwayPenalty =
-    HIGHWAY_PENALTY[edge.highwayType] ?? DEFAULT_HIGHWAY_PENALTY;
-  const smoothnessPenalty =
-    SMOOTHNESS_PENALTY[edge.smoothness] ?? DEFAULT_SMOOTHNESS_PENALTY;
-
-  // Incomodidades normalizadas (0 = ideal, 1 = pésimo) ---------------------
-  // Recto: malo para quien busca curvas.
-  const straightness = 1 - clamp01(edge.curviness);
-  // Rugosidad: combina superficie y smoothness. asphalt/good ≈ 0, sand/bad ≈ 1.
-  const roughness = clamp01((surfacePenalty * smoothnessPenalty - 1) / 3);
-  // Pendiente: desnivel por metro. ~15% de gradiente ya satura a 1.
-  const grade =
-    edge.distanceMeters > 0
-      ? clamp01(
-          (edge.elevationGain + edge.elevationLoss) /
-            edge.distanceMeters /
-            0.15,
-        )
-      : 0;
-  // Jerarquía de vía: motorway ≈ 0 (rápida/aburrida), path ≈ 1 (chica/lenta).
-  const minorRoad = clamp01((highwayPenalty - 0.8) / (3.0 - 0.8));
-
   // surfaceWeight FIRMADO:
   //   > 0  → preferir pavimento: penaliza lo rugoso.
   //   < 0  → preferir rural: penaliza lo liso/pavimentado (el ripio/tierra sale
@@ -114,5 +134,14 @@ export function calculateEdgeCost(
     elevationTerm + // preferir plano (>0) o montañoso (<0)
     0.3 * minorRoad; // leve preferencia estructural por vías principales
 
-  return edge.distanceMeters * Math.max(factor, 0.05);
+  return distanceMeters * Math.max(factor, 0.05);
+}
+
+/** Costo de una arista suelta (mismo cálculo que el motor). */
+export function calculateEdgeCost(
+  edge: GraphEdge,
+  weights: RouteWeights,
+): number {
+  const f = edgeFeatures(edge);
+  return costFromFeatures(edge.distanceMeters, f.straightness, f.roughness, f.grade, f.minorRoad, weights);
 }

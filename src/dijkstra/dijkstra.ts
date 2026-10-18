@@ -1,83 +1,142 @@
-import { Graph, GraphEdge, RouteResult } from './types';
-import { RouteWeights, calculateEdgeCost } from './cost';
+import { RouteResult } from './types';
+import { RouteWeights, costFromFeatures } from './cost';
+import {
+  CompiledGraph,
+  EDGE_FLAG_DESTINATION_ONLY,
+  HIGHWAY_CODES,
+  SURFACE_CODES,
+  nodeOsmIdString,
+} from './compiled-graph';
 
-interface HeapItem {
-  id: string;
-  cost: number;
+/** Resultado del motor: lo que ve la API más los índices internos del camino. */
+export interface EngineRoute extends RouteResult {
+  /** Índices de nodo del camino (origen → destino). */
+  nodeIdx: number[];
+  /** Índices de las aristas recorridas, exactamente las relajadas (nodeIdx.length - 1). */
+  edgeIdx: number[];
 }
 
+export interface DijkstraOptions {
+  // Nodos a "desincentivar" (multiplican el costo de entrar en ellos). Sirve
+  // para que un tramo evite calles ya usadas y no se devuelva por el mismo lado.
+  avoidNodes?: Set<number>;
+  avoidPenalty?: number;
+}
+
+// ── Heap binario (mismo algoritmo y desempates que el motor anterior) ──
+
 class MinHeap {
-  private heap: HeapItem[] = [];
-
-  push(item: HeapItem): void {
-    this.heap.push(item);
-    this.bubbleUp(this.heap.length - 1);
-  }
-
-  pop(): HeapItem | undefined {
-    if (this.heap.length === 0) return undefined;
-    const top = this.heap[0];
-    const last = this.heap.pop()!;
-    if (this.heap.length > 0) {
-      this.heap[0] = last;
-      this.sinkDown(0);
-    }
-    return top;
-  }
+  private keys: number[] = [];
+  private vals: number[] = [];
 
   get size(): number {
-    return this.heap.length;
+    return this.keys.length;
   }
 
-  private bubbleUp(i: number): void {
+  push(val: number, key: number): void {
+    const K = this.keys;
+    const V = this.vals;
+    K.push(key);
+    V.push(val);
+    let i = K.length - 1;
     while (i > 0) {
       const parent = Math.floor((i - 1) / 2);
-      if (this.heap[parent].cost <= this.heap[i].cost) break;
-      [this.heap[parent], this.heap[i]] = [this.heap[i], this.heap[parent]];
+      if (K[parent] <= K[i]) break;
+      // Intercambio con temporales (sin crear arreglos): mismo orden que antes.
+      const tk = K[parent];
+      K[parent] = K[i];
+      K[i] = tk;
+      const tv = V[parent];
+      V[parent] = V[i];
+      V[i] = tv;
       i = parent;
     }
   }
 
-  private sinkDown(i: number): void {
-    const n = this.heap.length;
-    while (true) {
-      let min = i;
-      const l = 2 * i + 1;
-      const r = 2 * i + 2;
-      if (l < n && this.heap[l].cost < this.heap[min].cost) min = l;
-      if (r < n && this.heap[r].cost < this.heap[min].cost) min = r;
-      if (min === i) break;
-      [this.heap[min], this.heap[i]] = [this.heap[i], this.heap[min]];
-      i = min;
+  /** Devuelve el valor de menor clave (-1 si está vacío). */
+  pop(): number {
+    const K = this.keys;
+    const V = this.vals;
+    if (K.length === 0) return -1;
+    const top = V[0];
+    const lastK = K.pop()!;
+    const lastV = V.pop()!;
+    if (K.length > 0) {
+      K[0] = lastK;
+      V[0] = lastV;
+      const n = K.length;
+      let i = 0;
+      while (true) {
+        let min = i;
+        const l = 2 * i + 1;
+        const r = 2 * i + 2;
+        if (l < n && K[l] < K[min]) min = l;
+        if (r < n && K[r] < K[min]) min = r;
+        if (min === i) break;
+        const tk = K[min];
+        K[min] = K[i];
+        K[i] = tk;
+        const tv = V[min];
+        V[min] = V[i];
+        V[i] = tv;
+        i = min;
+      }
     }
+    return top;
   }
 }
 
-// ── Vías privadas (solo origen/destino) ─────────────────────
+// ── Estado por consulta reutilizable (sellos de época, sin limpiar arrays) ──
 
-/** Aristas privadas entrantes por nodo; se calcula una vez por grafo. null = no hay privadas. */
-const privateIncoming = new WeakMap<Graph, Map<string, GraphEdge[]> | null>();
+interface Workspace {
+  stamp: number;
+  dist: Float64Array;
+  distStamp: Uint32Array;
+  visitedStamp: Uint32Array;
+  prevEdge: Int32Array;
+}
+const workspaces = new WeakMap<CompiledGraph, Workspace>();
 
-function incomingPrivate(graph: Graph): Map<string, GraphEdge[]> | null {
-  if (privateIncoming.has(graph)) return privateIncoming.get(graph)!;
-  let map: Map<string, GraphEdge[]> | null = null;
-  for (const list of graph.adjacency.values()) {
-    for (const e of list) {
-      if (!e.destinationOnly) continue;
-      map ??= new Map();
-      const l = map.get(e.toOsmId);
-      if (l) l.push(e);
-      else map.set(e.toOsmId, [e]);
-    }
+function workspace(g: CompiledGraph): Workspace {
+  let ws = workspaces.get(g);
+  if (!ws) {
+    const N = g.meta.nodeCount;
+    ws = {
+      stamp: 0,
+      dist: new Float64Array(N),
+      distStamp: new Uint32Array(N),
+      visitedStamp: new Uint32Array(N),
+      prevEdge: new Int32Array(N),
+    };
+    workspaces.set(g, ws);
   }
-  privateIncoming.set(graph, map);
-  return map;
+  ws.stamp++;
+  return ws;
+}
+
+// ── Vías privadas (solo origen/destino, decisión D7) ──
+
+function isPrivate(g: CompiledGraph, e: number): boolean {
+  return (g.edgeFlags[e] & EDGE_FLAG_DESTINATION_ONLY) !== 0;
 }
 
 /** Nodo dentro de un área privada: todas sus aristas salientes son privadas. */
-function insidePrivate(graph: Graph, id: string): boolean {
-  const out = graph.adjacency.get(id) ?? [];
-  return out.length > 0 && out.every((e) => e.destinationOnly);
+function insidePrivate(g: CompiledGraph, u: number): boolean {
+  const a = g.outStart[u];
+  const b = g.outStart[u + 1];
+  if (a === b) return false;
+  for (let e = a; e < b; e++) if (!isPrivate(g, e)) return false;
+  return true;
+}
+
+const hasPrivateCache = new WeakMap<CompiledGraph, boolean>();
+function hasPrivate(g: CompiledGraph): boolean {
+  let v = hasPrivateCache.get(g);
+  if (v === undefined) {
+    v = g.edgeFlags.some((f) => (f & EDGE_FLAG_DESTINATION_ONLY) !== 0);
+    hasPrivateCache.set(g, v);
+  }
+  return v;
 }
 
 /**
@@ -91,30 +150,31 @@ function insidePrivate(graph: Graph, id: string): boolean {
  * dos áreas privadas que comparten un portón no se encadenan: una vía privada
  * nunca se usa como atajo de paso.
  */
-function privateAllowance(graph: Graph, starts: string[], ends: Set<string>) {
-  const incoming = incomingPrivate(graph);
-  if (!incoming) return null;
-  const fromOrigin = new Set<string>();
-  const queue = starts.filter((s) => insidePrivate(graph, s));
+function privateAllowance(g: CompiledGraph, starts: number[], ends: Set<number>) {
+  if (!hasPrivate(g)) return null;
+  const fromOrigin = new Set<number>();
+  const queue = starts.filter((s) => insidePrivate(g, s));
   for (const s of queue) fromOrigin.add(s);
   while (queue.length) {
     const u = queue.pop()!;
-    for (const e of graph.adjacency.get(u) ?? []) {
-      const v = e.toOsmId;
-      if (e.destinationOnly && !fromOrigin.has(v) && insidePrivate(graph, v)) {
+    for (let e = g.outStart[u]; e < g.outStart[u + 1]; e++) {
+      const v = g.edgeTo[e];
+      if (isPrivate(g, e) && !fromOrigin.has(v) && insidePrivate(g, v)) {
         fromOrigin.add(v);
         queue.push(v);
       }
     }
   }
-  const toDest = new Set<string>();
-  const back = [...ends].filter((t) => insidePrivate(graph, t));
+  const toDest = new Set<number>();
+  const back = [...ends].filter((t) => insidePrivate(g, t));
   for (const t of back) toDest.add(t);
   while (back.length) {
     const v = back.pop()!;
-    for (const e of incoming.get(v) ?? []) {
-      const u = e.fromOsmId;
-      if (!toDest.has(u) && insidePrivate(graph, u)) {
+    for (let p = g.inStart[v]; p < g.inStart[v + 1]; p++) {
+      const e = g.inEdge[p];
+      if (!isPrivate(g, e)) continue;
+      const u = g.edgeFrom[e];
+      if (!toDest.has(u) && insidePrivate(g, u)) {
         toDest.add(u);
         back.push(u);
       }
@@ -123,21 +183,16 @@ function privateAllowance(graph: Graph, starts: string[], ends: Set<string>) {
   return { fromOrigin, toDest };
 }
 
-export interface DijkstraOptions {
-  // Nodos a "desincentivar" (multiplican el costo de entrar en ellos). Sirve
-  // para que un tramo evite calles ya usadas y no se devuelva por el mismo lado.
-  avoidNodes?: Set<string>;
-  avoidPenalty?: number;
-}
+// ── Dijkstra ──
 
 export function dijkstra(
-  graph: Graph,
-  startId: string,
-  endId: string,
+  g: CompiledGraph,
+  start: number,
+  end: number,
   weights: RouteWeights,
   options?: DijkstraOptions,
-): RouteResult | null {
-  return dijkstraCore(graph, [startId], [endId], weights, options);
+): EngineRoute | null {
+  return dijkstraCore(g, [start], [end], weights, options);
 }
 
 /**
@@ -148,141 +203,135 @@ export function dijkstra(
  * cercanos que mejor conecta.
  */
 export function dijkstraMultiSource(
-  graph: Graph,
-  startIds: string[],
-  endIds: string[],
+  g: CompiledGraph,
+  starts: number[],
+  ends: number[],
   weights: RouteWeights,
   options?: DijkstraOptions,
-): RouteResult | null {
-  return dijkstraCore(graph, startIds, endIds, weights, options);
+): EngineRoute | null {
+  return dijkstraCore(g, starts, ends, weights, options);
 }
 
 function dijkstraCore(
-  graph: Graph,
-  startIds: string[],
-  endIds: string[],
+  g: CompiledGraph,
+  startIdx: number[],
+  endIdx: number[],
   weights: RouteWeights,
   options?: DijkstraOptions,
-): RouteResult | null {
-  const starts = startIds.filter((id) => graph.nodes.has(id));
-  const startSet = new Set(starts);
-  const endSet = new Set(endIds.filter((id) => graph.nodes.has(id)));
+): EngineRoute | null {
+  const N = g.meta.nodeCount;
+  const valid = (i: number) => Number.isInteger(i) && i >= 0 && i < N;
+  const starts = startIdx.filter(valid);
+  const endSet = new Set(endIdx.filter(valid));
   if (starts.length === 0 || endSet.size === 0) return null;
 
   const avoidNodes = options?.avoidNodes;
   const avoidPenalty = options?.avoidPenalty ?? 6;
-  const priv = privateAllowance(graph, starts, endSet);
+  const priv = privateAllowance(g, starts, endSet);
 
-  const dist = new Map<string, number>();
-  const prev = new Map<string, string>();
-  const visited = new Set<string>();
+  const ws = workspace(g);
+  const { stamp, dist, distStamp, visitedStamp, prevEdge } = ws;
   const heap = new MinHeap();
+  const { outStart, edgeTo, edgeLen, edgeStraight, edgeRough, edgeGrade, edgeMinor, edgeFlags } = g;
+  const fromOrigin = priv?.fromOrigin;
+  const toDest = priv?.toDest;
 
   for (const s of starts) {
-    dist.set(s, 0);
-    heap.push({ id: s, cost: 0 });
+    dist[s] = 0;
+    distStamp[s] = stamp;
+    prevEdge[s] = -1;
+    heap.push(s, 0);
   }
 
   // Dijkstra asienta los nodos en orden de costo creciente, así que el primer
   // destino candidato que se extrae es el de menor costo (la mejor combinación).
-  let reachedEnd: string | undefined;
+  let reachedEnd = -1;
   while (heap.size > 0) {
-    const current = heap.pop();
-    if (!current) break;
-    const { id } = current;
-    if (visited.has(id)) continue;
-    visited.add(id);
-    if (endSet.has(id)) {
-      reachedEnd = id;
+    const u = heap.pop();
+    if (visitedStamp[u] === stamp) continue;
+    visitedStamp[u] = stamp;
+    if (endSet.has(u)) {
+      reachedEnd = u;
       break;
     }
 
-    const distId = dist.get(id) ?? Infinity;
-    for (const edge of graph.adjacency.get(id) ?? []) {
-      if (visited.has(edge.toOsmId)) continue;
+    const distU = distStamp[u] === stamp ? dist[u] : Infinity;
+    for (let e = outStart[u]; e < outStart[u + 1]; e++) {
+      const v = edgeTo[e];
+      if (visitedStamp[v] === stamp) continue;
       if (
-        edge.destinationOnly &&
-        !(priv && (priv.fromOrigin.has(id) || priv.toDest.has(edge.toOsmId)))
+        (edgeFlags[e] & EDGE_FLAG_DESTINATION_ONLY) !== 0 &&
+        !(fromOrigin && (fromOrigin.has(u) || toDest!.has(v)))
       ) {
         continue; // vía privada fuera del tramo inicial/final: no se usa de paso
       }
-      let edgeCost = calculateEdgeCost(edge, weights);
-      if (avoidNodes && avoidNodes.has(edge.toOsmId)) edgeCost *= avoidPenalty;
-      const cost = distId + edgeCost;
-      if (cost < (dist.get(edge.toOsmId) ?? Infinity)) {
-        dist.set(edge.toOsmId, cost);
-        prev.set(edge.toOsmId, id);
-        heap.push({ id: edge.toOsmId, cost });
+      let edgeCost = costFromFeatures(edgeLen[e], edgeStraight[e], edgeRough[e], edgeGrade[e], edgeMinor[e], weights);
+      if (avoidNodes && avoidNodes.has(v)) edgeCost *= avoidPenalty;
+      const cost = distU + edgeCost;
+      if (cost < (distStamp[v] === stamp ? dist[v] : Infinity)) {
+        dist[v] = cost;
+        distStamp[v] = stamp;
+        prevEdge[v] = e;
+        heap.push(v, cost);
       }
     }
   }
 
-  if (reachedEnd === undefined) return null;
+  if (reachedEnd < 0) return null;
 
-  // Reconstruir path desde el destino alcanzado hasta su nodo de inicio.
-  const path: string[] = [];
-  let cur: string | undefined = reachedEnd;
-  while (cur !== undefined) {
-    path.unshift(cur);
-    if (startSet.has(cur)) break;
-    cur = prev.get(cur);
+  // Reconstruir el camino por las aristas efectivamente relajadas.
+  const edges: number[] = [];
+  let cur = reachedEnd;
+  while (prevEdge[cur] >= 0) {
+    const e = prevEdge[cur];
+    edges.push(e);
+    cur = g.edgeFrom[e];
   }
-  if (!startSet.has(path[0])) return null;
-
-  return buildRouteResult(graph, path, dist.get(reachedEnd) ?? 0);
+  edges.reverse();
+  const nodes = [cur, ...edges.map((e) => edgeTo[e])];
+  return buildRouteResult(g, nodes, edges, dist[reachedEnd]);
 }
 
-/** Construye el RouteResult (coordenadas + stats) a partir de un path de osmIds. */
-function buildRouteResult(
-  graph: Graph,
-  path: string[],
+/** Construye el resultado (coordenadas + estadísticas) a partir de las aristas recorridas. */
+export function buildRouteResult(
+  g: CompiledGraph,
+  nodes: number[],
+  edges: number[],
   totalCost: number,
-): RouteResult {
+): EngineRoute {
   let distanceMeters = 0;
   let elevationGain = 0;
   let elevationLoss = 0;
-  let curvinessSum = 0;
-  let edgeCount = 0;
+  let curvinessMeters = 0;
   const highwayBreakdown: Record<string, number> = {};
   const surfaceBreakdown: Record<string, number> = {};
 
-  for (let i = 0; i < path.length - 1; i++) {
-    const edges = graph.adjacency.get(path[i]) ?? [];
-    // Si hay aristas paralelas, elegimos la más barata hacia el siguiente nodo.
-    let chosen: GraphEdge | undefined;
-    for (const e of edges) {
-      if (e.toOsmId !== path[i + 1]) continue;
-      if (!chosen || e.distanceMeters < chosen.distanceMeters) chosen = e;
-    }
-    if (chosen) {
-      distanceMeters += chosen.distanceMeters;
-      elevationGain += chosen.elevationGain;
-      elevationLoss += chosen.elevationLoss;
-      curvinessSum += chosen.curviness;
-      edgeCount++;
-      highwayBreakdown[chosen.highwayType] =
-        (highwayBreakdown[chosen.highwayType] ?? 0) + chosen.distanceMeters;
-      surfaceBreakdown[chosen.surface] =
-        (surfaceBreakdown[chosen.surface] ?? 0) + chosen.distanceMeters;
-    }
+  for (const e of edges) {
+    const len = g.edgeLen[e];
+    distanceMeters += len;
+    elevationGain += g.edgeGain[e];
+    elevationLoss += g.edgeLoss[e];
+    curvinessMeters += g.edgeCurv[e] * len;
+    const hw = HIGHWAY_CODES[g.edgeHighway[e]];
+    const sf = SURFACE_CODES[g.edgeSurface[e]];
+    highwayBreakdown[hw] = (highwayBreakdown[hw] ?? 0) + len;
+    surfaceBreakdown[sf] = (surfaceBreakdown[sf] ?? 0) + len;
   }
 
-  const coordinates: [number, number][] = path.map((id) => {
-    const n = graph.nodes.get(id)!;
-    return [n.lat, n.lon];
-  });
-
   return {
-    path,
-    coordinates,
+    path: nodes.map((i) => nodeOsmIdString(g, i)),
+    coordinates: nodes.map((i) => [g.nodeLat[i], g.nodeLon[i]] as [number, number]),
     totalCost,
     stats: {
       distanceMeters,
       elevationGainMeters: elevationGain,
       elevationLossMeters: elevationLoss,
-      curviness: edgeCount > 0 ? curvinessSum / edgeCount : 0,
+      // Ponderada por largo (antes era un promedio simple por arista).
+      curviness: distanceMeters > 0 ? curvinessMeters / distanceMeters : 0,
       highwayBreakdown,
       surfaceBreakdown,
     },
+    nodeIdx: nodes,
+    edgeIdx: edges,
   };
 }

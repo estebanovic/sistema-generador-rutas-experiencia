@@ -3,13 +3,14 @@
  * real exportado de Mongo con `scripts/export-fixture.js`.
  *
  * Los fixtures se describen en un formato plano (`PlainGraph`) y se convierten
- * al formato del motor actual o al del oráculo legado. Cuando el formato del
- * motor cambie (F0.2), solo hay que adaptar `toGraph`.
+ * al formato del motor actual (grafo compilado en CSR, desde F0.2) o al del
+ * oráculo legado (Maps).
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { CompiledGraph } from '../../src/dijkstra/compiled-graph';
+import { compileGraph } from '../../src/graph-compiler/compile';
 import {
-  Graph,
   GraphEdge,
   GraphNode,
   HighwayType,
@@ -41,9 +42,9 @@ function buildMaps<N, E extends { fromOsmId: string }>(
   return { nodes: nodeMap, adjacency };
 }
 
-/** Grafo en el formato del motor actual. */
-export function toGraph(p: PlainGraph): Graph {
-  return buildMaps(p.nodes, p.edges, (n) => n.osmId);
+/** Grafo en el formato del motor actual (CSR compilado). */
+export function toGraph(p: PlainGraph): CompiledGraph {
+  return compileGraph({ nodes: p.nodes, edges: p.edges, source: 'test', dataVersion: 0, hasElevation: true });
 }
 
 /** Grafo en el formato del oráculo legado (copia congelada anterior a F0). */

@@ -45,7 +45,7 @@ describe('fixtures', () => {
     });
 
     it('diamante y grilla tienen la forma esperada', () => {
-      expect(toGraph(diamante()).nodes.size).toBe(4);
+      expect(toGraph(diamante()).meta.nodeCount).toBe(4);
       const gr = grilla(3);
       expect(gr.nodes).toHaveLength(9);
       expect(gr.edges).toHaveLength(2 * 12);

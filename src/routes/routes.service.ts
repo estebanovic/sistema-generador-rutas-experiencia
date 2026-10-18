@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { dijkstra, dijkstraMultiSource } from '../dijkstra/dijkstra';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { EngineRoute, dijkstra, dijkstraMultiSource } from '../dijkstra/dijkstra';
 import { RouteWeights } from '../dijkstra/cost';
-import { Graph, RouteResult, RouteStats } from '../dijkstra/types';
+import { CompiledGraph } from '../dijkstra/compiled-graph';
+import { RouteResult, RouteStats } from '../dijkstra/types';
 import { bearing } from '../graph-compiler/geo';
 import { GraphService } from '../graph/graph.service';
 import { CalculateRouteDto, TripLength } from './dto/calculate-route.dto';
@@ -33,7 +34,8 @@ export class RoutesService {
   constructor(private readonly graphService: GraphService) {}
 
   async calculate(dto: CalculateRouteDto): Promise<RouteResponse> {
-    const result = await this.calculateRoute(dto);
+    // nodeIdx/edgeIdx son internos del motor: no salen en la API.
+    const { nodeIdx: _n, edgeIdx: _e, ...result } = await this.calculateRoute(dto);
     if (this.graphService.hasElevation()) return result;
     return {
       ...result,
@@ -41,29 +43,26 @@ export class RoutesService {
     };
   }
 
-  private async calculateRoute(dto: CalculateRouteDto): Promise<RouteResult> {
+  private async calculateRoute(dto: CalculateRouteDto): Promise<EngineRoute> {
     const weights = this.resolveWeights(dto);
     const tripLength: TripLength = dto.tripLength ?? 'direct';
 
     const graph = await this.graphService.getGraph();
-    if (graph.nodes.size === 0) {
+    if (graph.meta.nodeCount === 0) {
       throw new BadRequestException(
         'El grafo está vacío. Importá una zona con POST /import primero.',
       );
     }
 
     // Varios nodos candidatos por punto: el snap a uno solo cae mal en
-    // autopistas divididas y produce rodeos absurdos.
+    // autopistas divididas y produce rodeos absurdos. Solo nodos de la
+    // componente fuertemente conexa mayor (D15); si no hay, findNearestNodes
+    // responde 'fuera de la red conectada' o 'no hay vías importadas'.
     const K = 6;
     const [startCandidates, endCandidates] = await Promise.all([
       this.graphService.findNearestNodes(dto.origin.lat, dto.origin.lon, K),
       this.graphService.findNearestNodes(dto.destination.lat, dto.destination.lon, K),
     ]);
-    if (startCandidates.length === 0 || endCandidates.length === 0) {
-      throw new NotFoundException(
-        'No hay nodos cercanos al origen o destino (¿importaste esa zona?)',
-      );
-    }
 
     // La ruta directa elige la mejor combinación origen/destino entre candidatos.
     const direct = dijkstraMultiSource(
@@ -72,7 +71,15 @@ export class RoutesService {
       endCandidates,
       weights,
     );
-    if (!direct || direct.path.length < 2) {
+    if (!direct) {
+      // Con ambos extremos en la CFC mayor solo pasa si las vías privadas (D7)
+      // impiden el paso: p. ej. un destino al que solo se llega cruzando otra
+      // propiedad privada.
+      throw new BadRequestException(
+        'No hay camino entre el origen y el destino sin pasar por vías privadas.',
+      );
+    }
+    if (direct.path.length < 2) {
       throw new BadRequestException(
         'Origen y destino quedaron sobre el mismo punto del grafo (ruta de 0 km). ' +
           'Elegí puntos más separados y dentro de la zona que importaste.',
@@ -81,8 +88,8 @@ export class RoutesService {
     if (tripLength === 'direct') return direct;
 
     // Para la vuelta usamos los nodos elegidos por la ruta directa.
-    const startId = direct.path[0];
-    const endId = direct.path[direct.path.length - 1];
+    const startId = direct.nodeIdx[0];
+    const endId = direct.nodeIdx[direct.nodeIdx.length - 1];
     const detour = await this.routeWithDetour(
       graph,
       startId,
@@ -100,22 +107,22 @@ export class RoutesService {
    * Prueba ambos lados y escalas decrecientes hasta encontrar caminos reales.
    */
   private async routeWithDetour(
-    graph: Graph,
-    startId: string,
-    endId: string,
+    graph: CompiledGraph,
+    startId: number,
+    endId: number,
     weights: RouteWeights,
     tripLength: TripLength,
     directRouteDist: number,
-  ): Promise<RouteResult | null> {
-    const start = graph.nodes.get(startId)!;
-    const end = graph.nodes.get(endId)!;
+  ): Promise<EngineRoute | null> {
+    const start = { lat: graph.nodeLat[startId], lon: graph.nodeLon[startId] };
+    const end = { lat: graph.nodeLat[endId], lon: graph.nodeLon[endId] };
     // El desvío escala con el largo de la ruta directa (no la línea recta).
     const baseOffset = TRIP_OFFSET[tripLength] * directRouteDist;
     if (baseOffset <= 0) return null;
 
     const lineBearing = bearing(start.lat, start.lon, end.lat, end.lon);
 
-    let best: RouteResult | null = null;
+    let best: EngineRoute | null = null;
     // Escalas decrecientes: si no hay caminos tan lejos, prueba más cerca.
     for (const scale of [1, 0.6, 0.35]) {
       for (const side of [1, -1]) {
@@ -124,8 +131,8 @@ export class RoutesService {
         // desviados al mismo lado → forman un arco, no un pincho lateral.
         const w1 = offsetAlong(start, end, 0.35, lineBearing + 90 * side, off);
         const w2 = offsetAlong(start, end, 0.65, lineBearing + 90 * side, off);
-        let id1: string;
-        let id2: string;
+        let id1: number;
+        let id2: number;
         try {
           id1 = await this.graphService.findNearestNode(w1.lat, w1.lon);
           id2 = await this.graphService.findNearestNode(w2.lat, w2.lon);
@@ -150,19 +157,19 @@ export class RoutesService {
    * sea un circuito y no un ida-y-vuelta por la misma calle.
    */
   private routeThrough(
-    graph: Graph,
-    ids: string[],
+    graph: CompiledGraph,
+    ids: number[],
     weights: RouteWeights,
-  ): RouteResult | null {
-    const avoid = new Set<string>();
-    let merged: RouteResult | null = null;
+  ): EngineRoute | null {
+    const avoid = new Set<number>();
+    let merged: EngineRoute | null = null;
     for (let i = 0; i < ids.length - 1; i++) {
       const from = ids[i];
       const to = ids[i + 1];
       if (from === to) continue; // waypoints que colapsaron al mismo nodo
       const leg = dijkstra(graph, from, to, weights, { avoidNodes: avoid });
       if (!leg) return null;
-      for (const n of leg.path) avoid.add(n);
+      for (const n of leg.nodeIdx) avoid.add(n);
       merged = merged ? mergeRoutes(merged, leg) : leg;
     }
     return merged;
@@ -223,9 +230,11 @@ function destinationPoint(
   return { lat: toDeg(φ2), lon: ((toDeg(λ2) + 540) % 360) - 180 };
 }
 
-/** Une dos tramos de ruta (a luego b) en un solo RouteResult. */
-function mergeRoutes(a: RouteResult, b: RouteResult): RouteResult {
+/** Une dos tramos de ruta (a luego b) en uno solo. */
+function mergeRoutes(a: EngineRoute, b: EngineRoute): EngineRoute {
   const path = a.path.concat(b.path.slice(1));
+  const nodeIdx = a.nodeIdx.concat(b.nodeIdx.slice(1));
+  const edgeIdx = a.edgeIdx.concat(b.edgeIdx);
   const coordinates = a.coordinates.concat(b.coordinates.slice(1));
 
   const sumBreakdown = (
@@ -248,6 +257,8 @@ function mergeRoutes(a: RouteResult, b: RouteResult): RouteResult {
   return {
     path,
     coordinates,
+    nodeIdx,
+    edgeIdx,
     totalCost: a.totalCost + b.totalCost,
     stats: {
       distanceMeters: totalDist,
