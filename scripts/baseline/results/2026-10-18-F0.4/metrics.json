@@ -1,0 +1,1256 @@
+[
+ {
+  "pair": "plazaArmas→farellones",
+  "moto-curvas": {
+   "km": 53.67,
+   "ms": 50,
+   "criterion": 0.703,
+   "detour": 1.118,
+   "pctCurvyNew": 0.703,
+   "pctUnpaved": 0.002,
+   "pctCurvyPaved": 0.702,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 47.82,
+   "ms": 56,
+   "criterion": 0.005,
+   "detour": 1.001,
+   "pctCurvyNew": 0.56,
+   "pctUnpaved": 0.005,
+   "pctCurvyPaved": 0.555,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 51.8,
+   "ms": 37,
+   "criterion": 0.655,
+   "detour": 1.079,
+   "pctCurvyNew": 0.656,
+   "pctUnpaved": 0.002,
+   "pctCurvyPaved": 0.655,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.643,
+   "moto-curvas/scenic": 0.895,
+   "4x4/scenic": 0.645
+  }
+ },
+ {
+  "pair": "laDehesa→farellones",
+  "moto-curvas": {
+   "km": 34.83,
+   "ms": 8,
+   "criterion": 0.819,
+   "detour": 1.013,
+   "pctCurvyNew": 0.819,
+   "pctUnpaved": 0.003,
+   "pctCurvyPaved": 0.816,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 34.2,
+   "ms": 24,
+   "criterion": 0.007,
+   "detour": 1.001,
+   "pctCurvyNew": 0.796,
+   "pctUnpaved": 0.007,
+   "pctCurvyPaved": 0.789,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 34.74,
+   "ms": 10,
+   "criterion": 0.814,
+   "detour": 1.01,
+   "pctCurvyNew": 0.816,
+   "pctUnpaved": 0.003,
+   "pctCurvyPaved": 0.814,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.96,
+   "moto-curvas/scenic": 0.998,
+   "4x4/scenic": 0.962
+  }
+ },
+ {
+  "pair": "maipu→curacavi",
+  "moto-curvas": {
+   "km": 58.89,
+   "ms": 41,
+   "criterion": 0.378,
+   "detour": 1.314,
+   "pctCurvyNew": 0.378,
+   "pctUnpaved": 0.116,
+   "pctCurvyPaved": 0.331,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 44.45,
+   "ms": 40,
+   "criterion": 0.015,
+   "detour": 1.001,
+   "pctCurvyNew": 0.025,
+   "pctUnpaved": 0.015,
+   "pctCurvyPaved": 0.018,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 44.79,
+   "ms": 38,
+   "criterion": 0.054,
+   "detour": 1.009,
+   "pctCurvyNew": 0.054,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.054,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0,
+   "moto-curvas/scenic": 0,
+   "4x4/scenic": 0.654
+  }
+ },
+ {
+  "pair": "padreHurtado→curacavi",
+  "moto-curvas": {
+   "km": 50.66,
+   "ms": 35,
+   "criterion": 0.433,
+   "detour": 1.08,
+   "pctCurvyNew": 0.433,
+   "pctUnpaved": 0.072,
+   "pctCurvyPaved": 0.381,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 47.15,
+   "ms": 36,
+   "criterion": 0.014,
+   "detour": 1.005,
+   "pctCurvyNew": 0.313,
+   "pctUnpaved": 0.014,
+   "pctCurvyPaved": 0.302,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 46.89,
+   "ms": 34,
+   "criterion": 0.316,
+   "detour": 1,
+   "pctCurvyNew": 0.316,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.316,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.599,
+   "moto-curvas/scenic": 0.59,
+   "4x4/scenic": 0.829
+  }
+ },
+ {
+  "pair": "curacavi→mariaPinto",
+  "moto-curvas": {
+   "km": 23.95,
+   "ms": 2,
+   "criterion": 0.335,
+   "detour": 1.056,
+   "pctCurvyNew": 0.335,
+   "pctUnpaved": 0.187,
+   "pctCurvyPaved": 0.187,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 22.65,
+   "ms": 2,
+   "criterion": 0.125,
+   "detour": 1.003,
+   "pctCurvyNew": 0.276,
+   "pctUnpaved": 0.125,
+   "pctCurvyPaved": 0.19,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 22.67,
+   "ms": 2,
+   "criterion": 0.185,
+   "detour": 1,
+   "pctCurvyNew": 0.272,
+   "pctUnpaved": 0.125,
+   "pctCurvyPaved": 0.185,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.875,
+   "moto-curvas/scenic": 0.835,
+   "4x4/scenic": 0.957
+  }
+ },
+ {
+  "pair": "plazaArmas→curacavi",
+  "moto-curvas": {
+   "km": 52.23,
+   "ms": 38,
+   "criterion": 0.193,
+   "detour": 1.079,
+   "pctCurvyNew": 0.193,
+   "pctUnpaved": 0.083,
+   "pctCurvyPaved": 0.138,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 48.46,
+   "ms": 38,
+   "criterion": 0.013,
+   "detour": 1.001,
+   "pctCurvyNew": 0.029,
+   "pctUnpaved": 0.013,
+   "pctCurvyPaved": 0.023,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 49.22,
+   "ms": 36,
+   "criterion": 0.072,
+   "detour": 1.017,
+   "pctCurvyNew": 0.072,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.072,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.643,
+   "moto-curvas/scenic": 0.757,
+   "4x4/scenic": 0.699
+  }
+ },
+ {
+  "pair": "talagante→curacavi",
+  "moto-curvas": {
+   "km": 63.08,
+   "ms": 30,
+   "criterion": 0.367,
+   "detour": 1.07,
+   "pctCurvyNew": 0.367,
+   "pctUnpaved": 0.071,
+   "pctCurvyPaved": 0.312,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 59.2,
+   "ms": 42,
+   "criterion": 0.011,
+   "detour": 1.004,
+   "pctCurvyNew": 0.257,
+   "pctUnpaved": 0.011,
+   "pctCurvyPaved": 0.248,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 58.94,
+   "ms": 39,
+   "criterion": 0.259,
+   "detour": 1,
+   "pctCurvyNew": 0.259,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.259,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.67,
+   "moto-curvas/scenic": 0.663,
+   "4x4/scenic": 0.864
+  }
+ },
+ {
+  "pair": "providencia→sanCristobal",
+  "moto-curvas": {
+   "km": 5.37,
+   "ms": 3,
+   "criterion": 0.614,
+   "detour": 1,
+   "pctCurvyNew": 0.614,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.614,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 5.37,
+   "ms": 3,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.614,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.614,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 5.37,
+   "ms": 2,
+   "criterion": 0.614,
+   "detour": 1,
+   "pctCurvyNew": 0.614,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.614,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 1,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "quilicura→colina",
+  "moto-curvas": {
+   "km": 21.16,
+   "ms": 17,
+   "criterion": 0.072,
+   "detour": 1.027,
+   "pctCurvyNew": 0.072,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.072,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 20.61,
+   "ms": 15,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.054,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.054,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 20.75,
+   "ms": 15,
+   "criterion": 0.053,
+   "detour": 1.007,
+   "pctCurvyNew": 0.053,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.053,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.737,
+   "moto-curvas/scenic": 0.978,
+   "4x4/scenic": 0.759
+  }
+ },
+ {
+  "pair": "puenteAlto→sanJoseMaipo",
+  "moto-curvas": {
+   "km": 41.85,
+   "ms": 20,
+   "criterion": 0.682,
+   "detour": 1.488,
+   "pctCurvyNew": 0.682,
+   "pctUnpaved": 0.711,
+   "pctCurvyPaved": 0.08,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 28.54,
+   "ms": 25,
+   "criterion": 0.159,
+   "detour": 1.03,
+   "pctCurvyNew": 0.203,
+   "pctUnpaved": 0.159,
+   "pctCurvyPaved": 0.111,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 27.91,
+   "ms": 22,
+   "criterion": 0.174,
+   "detour": 1.007,
+   "pctCurvyNew": 0.174,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.174,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0,
+   "moto-curvas/scenic": 0,
+   "4x4/scenic": 0.751
+  }
+ },
+ {
+  "pair": "sanJoseMaipo→sanAlfonso",
+  "moto-curvas": {
+   "km": 12.61,
+   "ms": 2,
+   "criterion": 0.166,
+   "detour": 1,
+   "pctCurvyNew": 0.166,
+   "pctUnpaved": 0.017,
+   "pctCurvyPaved": 0.15,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 12.61,
+   "ms": 2,
+   "criterion": 0.017,
+   "detour": 1,
+   "pctCurvyNew": 0.166,
+   "pctUnpaved": 0.017,
+   "pctCurvyPaved": 0.15,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 12.61,
+   "ms": 2,
+   "criterion": 0.15,
+   "detour": 1,
+   "pctCurvyNew": 0.166,
+   "pctUnpaved": 0.017,
+   "pctCurvyPaved": 0.15,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 1,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "pirque→buin",
+  "moto-curvas": {
+   "km": 22.26,
+   "ms": 13,
+   "criterion": 0.262,
+   "detour": 1.009,
+   "pctCurvyNew": 0.262,
+   "pctUnpaved": 0.336,
+   "pctCurvyPaved": 0.088,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 22.19,
+   "ms": 13,
+   "criterion": 0.364,
+   "detour": 1.006,
+   "pctCurvyNew": 0.254,
+   "pctUnpaved": 0.364,
+   "pctCurvyPaved": 0.079,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 22.1,
+   "ms": 13,
+   "criterion": 0.078,
+   "detour": 1.001,
+   "pctCurvyNew": 0.254,
+   "pctUnpaved": 0.338,
+   "pctCurvyPaved": 0.078,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.795,
+   "moto-curvas/scenic": 0.813,
+   "4x4/scenic": 0.906
+  }
+ },
+ {
+  "pair": "buin→islaMaipo",
+  "moto-curvas": {
+   "km": 20.49,
+   "ms": 6,
+   "criterion": 0.028,
+   "detour": 1.004,
+   "pctCurvyNew": 0.028,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.028,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 20.58,
+   "ms": 4,
+   "criterion": 0.1,
+   "detour": 1,
+   "pctCurvyNew": 0.058,
+   "pctUnpaved": 0.1,
+   "pctCurvyPaved": 0.058,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 20.49,
+   "ms": 4,
+   "criterion": 0.028,
+   "detour": 1.004,
+   "pctCurvyNew": 0.028,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.028,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.592,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 0.592
+  }
+ },
+ {
+  "pair": "penaflor→elMonte",
+  "moto-curvas": {
+   "km": 20.37,
+   "ms": 5,
+   "criterion": 0.15,
+   "detour": 1.033,
+   "pctCurvyNew": 0.15,
+   "pctUnpaved": 0.017,
+   "pctCurvyPaved": 0.15,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 19.74,
+   "ms": 5,
+   "criterion": 0,
+   "detour": 1.001,
+   "pctCurvyNew": 0.06,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.06,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 20.16,
+   "ms": 4,
+   "criterion": 0.113,
+   "detour": 1.023,
+   "pctCurvyNew": 0.113,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.113,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.633,
+   "moto-curvas/scenic": 0.927,
+   "4x4/scenic": 0.707
+  }
+ },
+ {
+  "pair": "colina→lampa",
+  "moto-curvas": {
+   "km": 25.78,
+   "ms": 6,
+   "criterion": 0.129,
+   "detour": 1.013,
+   "pctCurvyNew": 0.129,
+   "pctUnpaved": 0.013,
+   "pctCurvyPaved": 0.12,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 25.66,
+   "ms": 4,
+   "criterion": 0.074,
+   "detour": 1.008,
+   "pctCurvyNew": 0.081,
+   "pctUnpaved": 0.074,
+   "pctCurvyPaved": 0.069,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 25.76,
+   "ms": 4,
+   "criterion": 0.117,
+   "detour": 1.012,
+   "pctCurvyNew": 0.126,
+   "pctUnpaved": 0.013,
+   "pctCurvyPaved": 0.117,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.751,
+   "moto-curvas/scenic": 0.998,
+   "4x4/scenic": 0.753
+  }
+ },
+ {
+  "pair": "lampa→aeropuerto",
+  "moto-curvas": {
+   "km": 16.07,
+   "ms": 2,
+   "criterion": 0.135,
+   "detour": 1.022,
+   "pctCurvyNew": 0.135,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.135,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 15.72,
+   "ms": 2,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.106,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.106,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 15.8,
+   "ms": 2,
+   "criterion": 0.118,
+   "detour": 1.005,
+   "pctCurvyNew": 0.118,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.118,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.986,
+   "moto-curvas/scenic": 0.988,
+   "4x4/scenic": 0.991
+  }
+ },
+ {
+  "pair": "providencia→maipu",
+  "moto-curvas": {
+   "km": 18.23,
+   "ms": 26,
+   "criterion": 0.027,
+   "detour": 1.017,
+   "pctCurvyNew": 0.027,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.027,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 17.93,
+   "ms": 22,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 18.1,
+   "ms": 20,
+   "criterion": 0.017,
+   "detour": 1.009,
+   "pctCurvyNew": 0.017,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.017,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.97,
+   "moto-curvas/scenic": 0.988,
+   "4x4/scenic": 0.982
+  }
+ },
+ {
+  "pair": "lasCondes→puenteAlto",
+  "moto-curvas": {
+   "km": 24.42,
+   "ms": 27,
+   "criterion": 0.038,
+   "detour": 1.027,
+   "pctCurvyNew": 0.038,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.038,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 23.79,
+   "ms": 27,
+   "criterion": 0,
+   "detour": 1.001,
+   "pctCurvyNew": 0.004,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.004,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 23.76,
+   "ms": 28,
+   "criterion": 0.014,
+   "detour": 1.005,
+   "pctCurvyNew": 0.014,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.014,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.876,
+   "moto-curvas/scenic": 0.888,
+   "4x4/scenic": 0.875
+  }
+ },
+ {
+  "pair": "plazaArmas→providencia",
+  "moto-curvas": {
+   "km": 4.1,
+   "ms": 3,
+   "criterion": 0.032,
+   "detour": 1,
+   "pctCurvyNew": 0.032,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.032,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 4.1,
+   "ms": 2,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.032,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.032,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 4.1,
+   "ms": 2,
+   "criterion": 0.032,
+   "detour": 1,
+   "pctCurvyNew": 0.032,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.032,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 1,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "caleraTango→talagante",
+  "moto-curvas": {
+   "km": 17.08,
+   "ms": 7,
+   "criterion": 0.009,
+   "detour": 1.008,
+   "pctCurvyNew": 0.009,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.009,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 16.94,
+   "ms": 5,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 16.94,
+   "ms": 5,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.987,
+   "moto-curvas/scenic": 0.987,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "colina→lasCondes",
+  "moto-curvas": {
+   "km": 33.53,
+   "ms": 11,
+   "criterion": 0.122,
+   "detour": 1.027,
+   "pctCurvyNew": 0.122,
+   "pctUnpaved": 0.033,
+   "pctCurvyPaved": 0.122,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 32.67,
+   "ms": 9,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.024,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.024,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 33.71,
+   "ms": 9,
+   "criterion": 0.09,
+   "detour": 1.032,
+   "pctCurvyNew": 0.09,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.09,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.145,
+   "moto-curvas/scenic": 0.529,
+   "4x4/scenic": 0.335
+  }
+ },
+ {
+  "pair": "farellones→valleNevado",
+  "moto-curvas": {
+   "km": 13.27,
+   "ms": 2,
+   "criterion": 0.893,
+   "detour": 1,
+   "pctCurvyNew": 0.893,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.893,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 13.27,
+   "ms": 1,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.893,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.893,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 13.27,
+   "ms": 2,
+   "criterion": 0.893,
+   "detour": 1,
+   "pctCurvyNew": 0.893,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.893,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 1,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "maipu→padreHurtado",
+  "moto-curvas": {
+   "km": 9.12,
+   "ms": 8,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 9.12,
+   "ms": 5,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 9.12,
+   "ms": 5,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 1,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "puenteAlto→pirque",
+  "moto-curvas": {
+   "km": 3.03,
+   "ms": 2,
+   "criterion": 0.49,
+   "detour": 1,
+   "pctCurvyNew": 0.49,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.49,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 3.03,
+   "ms": 2,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.49,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.49,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 3.03,
+   "ms": 1,
+   "criterion": 0.49,
+   "detour": 1,
+   "pctCurvyNew": 0.49,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.49,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 1,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 1
+  }
+ },
+ {
+  "pair": "laFlorida→pirque",
+  "moto-curvas": {
+   "km": 13.85,
+   "ms": 15,
+   "criterion": 0.148,
+   "detour": 1.037,
+   "pctCurvyNew": 0.148,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.148,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 13.36,
+   "ms": 14,
+   "criterion": 0,
+   "detour": 1,
+   "pctCurvyNew": 0.111,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.111,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 13.37,
+   "ms": 13,
+   "criterion": 0.111,
+   "detour": 1.001,
+   "pctCurvyNew": 0.111,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.111,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.975,
+   "moto-curvas/scenic": 0.919,
+   "4x4/scenic": 0.906
+  }
+ },
+ {
+  "pair": "laDehesa→colina",
+  "moto-curvas": {
+   "km": 37.19,
+   "ms": 25,
+   "criterion": 0.277,
+   "detour": 1.025,
+   "pctCurvyNew": 0.277,
+   "pctUnpaved": 0.03,
+   "pctCurvyPaved": 0.277,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 36.3,
+   "ms": 31,
+   "criterion": 0.031,
+   "detour": 1,
+   "pctCurvyNew": 0.197,
+   "pctUnpaved": 0.031,
+   "pctCurvyPaved": 0.197,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 37.56,
+   "ms": 25,
+   "criterion": 0.275,
+   "detour": 1.035,
+   "pctCurvyNew": 0.275,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.275,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.811,
+   "moto-curvas/scenic": 0.823,
+   "4x4/scenic": 0.649
+  }
+ },
+ {
+  "pair": "lasCondes→farellones",
+  "moto-curvas": {
+   "km": 42.56,
+   "ms": 20,
+   "criterion": 0.699,
+   "detour": 1.042,
+   "pctCurvyNew": 0.699,
+   "pctUnpaved": 0.002,
+   "pctCurvyPaved": 0.697,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 40.68,
+   "ms": 31,
+   "criterion": 0.006,
+   "detour": 1.001,
+   "pctCurvyNew": 0.655,
+   "pctUnpaved": 0.006,
+   "pctCurvyPaved": 0.65,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 41.08,
+   "ms": 28,
+   "criterion": 0.67,
+   "detour": 1.006,
+   "pctCurvyNew": 0.672,
+   "pctUnpaved": 0.003,
+   "pctCurvyPaved": 0.67,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.83,
+   "moto-curvas/scenic": 0.85,
+   "4x4/scenic": 0.973
+  }
+ },
+ {
+  "pair": "pirque→sanJoseMaipo",
+  "moto-curvas": {
+   "km": 39.04,
+   "ms": 16,
+   "criterion": 0.692,
+   "detour": 1.282,
+   "pctCurvyNew": 0.692,
+   "pctUnpaved": 0.762,
+   "pctCurvyPaved": 0.047,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 38.16,
+   "ms": 21,
+   "criterion": 0.756,
+   "detour": 1.253,
+   "pctCurvyNew": 0.668,
+   "pctUnpaved": 0.756,
+   "pctCurvyPaved": 0.048,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 30.72,
+   "ms": 17,
+   "criterion": 0.28,
+   "detour": 1.021,
+   "pctCurvyNew": 0.28,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.28,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.913,
+   "moto-curvas/scenic": 0.123,
+   "4x4/scenic": 0.123
+  }
+ },
+ {
+  "pair": "maipu→lampa",
+  "moto-curvas": {
+   "km": 33.03,
+   "ms": 31,
+   "criterion": 0.15,
+   "detour": 1.035,
+   "pctCurvyNew": 0.15,
+   "pctUnpaved": 0.021,
+   "pctCurvyPaved": 0.135,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 31.94,
+   "ms": 34,
+   "criterion": 0,
+   "detour": 1.001,
+   "pctCurvyNew": 0.045,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.045,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 32.44,
+   "ms": 33,
+   "criterion": 0.13,
+   "detour": 1.016,
+   "pctCurvyNew": 0.13,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.13,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.676,
+   "moto-curvas/scenic": 0.933,
+   "4x4/scenic": 0.691
+  }
+ },
+ {
+  "pair": "colina→aeropuerto",
+  "moto-curvas": {
+   "km": 27.7,
+   "ms": 7,
+   "criterion": 0.049,
+   "detour": 1.002,
+   "pctCurvyNew": 0.049,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.049,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 27.68,
+   "ms": 6,
+   "criterion": 0,
+   "detour": 1.001,
+   "pctCurvyNew": 0.044,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.044,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 27.65,
+   "ms": 6,
+   "criterion": 0.048,
+   "detour": 1,
+   "pctCurvyNew": 0.048,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.048,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.931,
+   "moto-curvas/scenic": 0.946,
+   "4x4/scenic": 0.985
+  }
+ },
+ {
+  "pair": "puenteAlto→buin",
+  "moto-curvas": {
+   "km": 25.39,
+   "ms": 17,
+   "criterion": 0.289,
+   "detour": 1.019,
+   "pctCurvyNew": 0.289,
+   "pctUnpaved": 0.295,
+   "pctCurvyPaved": 0.136,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 25.65,
+   "ms": 17,
+   "criterion": 0.421,
+   "detour": 1.029,
+   "pctCurvyNew": 0.278,
+   "pctUnpaved": 0.421,
+   "pctCurvyPaved": 0.043,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 25.22,
+   "ms": 18,
+   "criterion": 0.128,
+   "detour": 1.012,
+   "pctCurvyNew": 0.282,
+   "pctUnpaved": 0.297,
+   "pctCurvyPaved": 0.128,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.363,
+   "moto-curvas/scenic": 0.836,
+   "4x4/scenic": 0.459
+  }
+ },
+ {
+  "pair": "talagante→penaflor",
+  "moto-curvas": {
+   "km": 9.75,
+   "ms": 3,
+   "criterion": 0.121,
+   "detour": 1.027,
+   "pctCurvyNew": 0.121,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.121,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 9.5,
+   "ms": 2,
+   "criterion": 0,
+   "detour": 1.001,
+   "pctCurvyNew": 0.053,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.053,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 9.67,
+   "ms": 2,
+   "criterion": 0.106,
+   "detour": 1.019,
+   "pctCurvyNew": 0.106,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.106,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.56,
+   "moto-curvas/scenic": 0.992,
+   "4x4/scenic": 0.568
+  }
+ },
+ {
+  "pair": "buin→caleraTango",
+  "moto-curvas": {
+   "km": 18.82,
+   "ms": 5,
+   "criterion": 0.031,
+   "detour": 1.003,
+   "pctCurvyNew": 0.031,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.031,
+   "repeatedMeters": 0
+  },
+  "4x4": {
+   "km": 18.94,
+   "ms": 3,
+   "criterion": 0.032,
+   "detour": 1.002,
+   "pctCurvyNew": 0.023,
+   "pctUnpaved": 0.032,
+   "pctCurvyPaved": 0.023,
+   "repeatedMeters": 0
+  },
+  "scenic": {
+   "km": 18.82,
+   "ms": 3,
+   "criterion": 0.031,
+   "detour": 1.003,
+   "pctCurvyNew": 0.031,
+   "pctUnpaved": 0,
+   "pctCurvyPaved": 0.031,
+   "repeatedMeters": 0
+  },
+  "overlap": {
+   "moto-curvas/4x4": 0.742,
+   "moto-curvas/scenic": 1,
+   "4x4/scenic": 0.742
+  }
+ }
+]

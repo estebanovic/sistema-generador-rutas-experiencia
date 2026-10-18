@@ -7,6 +7,7 @@ import {
 import { edgeFeatures } from '../dijkstra/cost';
 import { GraphEdge, GraphNode } from '../dijkstra/types';
 import { bridges } from './bridges';
+import { CURVATURE_SATURATION_DEG_PER_KM } from './curviness';
 import { stronglyConnectedComponents } from './scc';
 import { oppositeTwins, WayLabels } from './twins';
 
@@ -14,7 +15,7 @@ import { oppositeTwins, WayLabels } from './twins';
  * Versión de la lógica derivada (normalización, compactación, features, CFC…).
  * Subirla invalida los snapshots y obliga a recompilar, sin reimportar.
  */
-export const COMPILER_VERSION = 'f0.3-1';
+export const COMPILER_VERSION = 'f0.4-1';
 
 export interface CompileInput {
   nodes: GraphNode[];
@@ -174,6 +175,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
   const geoCumGrade = new Float64Array(P);
   const geoCumMinor = new Float64Array(P);
   const segCurv = new Float32Array(P);
+  const segCurvDeg = new Float32Array(P);
   const segGain = new Float32Array(P);
   const segLoss = new Float32Array(P);
   const segHighway = new Uint8Array(P);
@@ -214,6 +216,8 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       geoCumMinor[p] = geoCumMinor[p - 1] + len * f.minorRoad;
       const forward = s.a === pts[j - 1];
       segCurv[p - 1] = e.curviness;
+      // Las colecciones legacy no traen °/km: se aproxima desde la sinuosidad normalizada.
+      segCurvDeg[p - 1] = e.curvatureDegPerKm ?? e.curviness * CURVATURE_SATURATION_DEG_PER_KM;
       segGain[p - 1] = forward ? s.gainAB : s.lossAB;
       segLoss[p - 1] = forward ? s.lossAB : s.gainAB;
       const h = HIGHWAY_CODES.indexOf(e.highwayType);
@@ -310,7 +314,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     inStart, inEdge,
     chainStart, chainFwd, chainBwd, chainNode0, chainNode1, chainIsBridge, chainFlags,
     geoOsmId, geoLat, geoLon, geoCumLen, geoCumStraight, geoCumRough, geoCumGrade, geoCumMinor,
-    segCurv, segGain, segLoss, segHighway, segSurface, segWay,
+    segCurv, segCurvDeg, segGain, segLoss, segHighway, segSurface, segWay,
     twinStart: new Int32Array(M + 1),
     twinEdge: new Int32Array(0),
     twinFrac: new Float32Array(0),

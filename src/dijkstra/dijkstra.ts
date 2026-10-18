@@ -1,4 +1,5 @@
 import { RouteResult } from './types';
+import { CURVY_THRESHOLD_DEG_PER_KM } from '../graph-compiler/curviness';
 import { RouteWeights, costFromSums } from './cost';
 import {
   CompiledGraph,
@@ -508,6 +509,8 @@ export function buildRouteResult(
   let elevationGain = 0;
   let elevationLoss = 0;
   let curvinessMeters = 0;
+  let degMeters = 0;
+  let curvyMeters = 0;
   const highwayBreakdown: Record<string, number> = {};
   const surfaceBreakdown: Record<string, number> = {};
 
@@ -564,6 +567,8 @@ export function buildRouteResult(
       elevationGain += frac * (forward ? g.segGain[j] : g.segLoss[j]);
       elevationLoss += frac * (forward ? g.segLoss[j] : g.segGain[j]);
       curvinessMeters += g.segCurv[j] * len;
+      degMeters += g.segCurvDeg[j] * len;
+      if (g.segCurvDeg[j] >= CURVY_THRESHOLD_DEG_PER_KM) curvyMeters += len;
       const hw = HIGHWAY_CODES[g.segHighway[j]];
       const sf = SURFACE_CODES[g.segSurface[j]];
       highwayBreakdown[hw] = (highwayBreakdown[hw] ?? 0) + len;
@@ -581,6 +586,8 @@ export function buildRouteResult(
       elevationLossMeters: elevationLoss,
       // Ponderada por largo.
       curviness: distanceMeters > 0 ? curvinessMeters / distanceMeters : 0,
+      curvinessDegPerKm: distanceMeters > 0 ? degMeters / distanceMeters : 0,
+      curvyShare: distanceMeters > 0 ? curvyMeters / distanceMeters : 0,
       highwayBreakdown,
       surfaceBreakdown,
     },

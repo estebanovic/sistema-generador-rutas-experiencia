@@ -82,7 +82,11 @@ async function loadRaw(uri = process.env.MONGO_URI || 'mongodb://localhost:27017
   for (let i = 0; i < N; i++) off[i + 1] += off[i];
   const pos = off.slice(0, N); const outE = new Int32Array(M);
   for (let k = 0; k < M; k++) outE[pos[eFrom[k]]++] = k;
-  return { N, M, idx, lat, lon, eFrom, eTo, eLen, eCurv, eHw, eSurf, eWay, ePriv, off, outE, source, loadMs: Date.now() - t0 };
+  const g = { N, M, idx, lat, lon, eFrom, eTo, eLen, eCurv, eHw, eSurf, eWay, ePriv, off, outE, source, loadMs: Date.now() - t0 };
+  // Desde F0.4 el compilador entrega la sinuosidad nueva; la columna "métrica vieja"
+  // se recalcula aquí con la fórmula congelada, para que siga siendo comparable.
+  if (source === 'osm') g.eCurv = oldCurviness(g);
+  return g;
 }
 
 function forEachEdgeBetween(g, u, v, cb) {
@@ -205,6 +209,24 @@ function shortestLen(g, s, t) {
     }
   }
   return Infinity;
+}
+
+/** Sinuosidad anterior a F0.4 (giro de cada vértice / largo de un segmento, mapeado 10→0, 130→1 °/km), por way. */
+function oldCurviness(g) {
+  const out = new Float32Array(g.M);
+  const bearing = (la1, lo1, la2, lo2) => { const p1 = la1 * D2R, p2 = la2 * D2R, dl = (lo2 - lo1) * D2R; const y = Math.sin(dl) * Math.cos(p2); const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl); return ((Math.atan2(y, x) / D2R) + 360) % 360; };
+  const adiff = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; };
+  for (const p of wayPolylines(g).polys) {
+    const ns = p.nodes; const n = ns.length; if (n < 3) continue;
+    const b = []; for (let i = 0; i < n - 1; i++) b.push(bearing(g.lat[ns[i]], g.lon[ns[i]], g.lat[ns[i + 1]], g.lon[ns[i + 1]]));
+    for (let i = 0; i < n - 1; i++) {
+      const t = i < n - 2 ? adiff(b[i], b[i + 1]) : adiff(b[i - 1], b[i]);
+      const km = hav(g.lat[ns[i]], g.lon[ns[i]], g.lat[ns[i + 1]], g.lon[ns[i + 1]]) / 1000;
+      const v = Math.min(1, Math.max(0, ((km > 0 ? t / km : 0) - 10) / 120));
+      forEachEdgeBetween(g, ns[i], ns[i + 1], (k) => { out[k] = v; });
+    }
+  }
+  return out;
 }
 
 module.exports = { HW, SURF, SURF_CAT, hav, loadRaw, wayPolylines, curvature, edgeDensity, forEachEdgeBetween, shortestLen };

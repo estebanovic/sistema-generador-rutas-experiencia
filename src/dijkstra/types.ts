@@ -39,7 +39,10 @@ export interface GraphEdge {
   fromOsmId: string;
   toOsmId: string;
   distanceMeters: number;
-  curviness: number; // 0-1, qué tan curva es la calle
+  /** Sinuosidad normalizada [0,1] que usa el costo (desde F0.4: clamp(°/km / 300)). */
+  curviness: number;
+  /** Densidad de giro en °/km (F0.4); ausente en las colecciones legacy. */
+  curvatureDegPerKm?: number;
   elevationGain: number;
   elevationLoss: number;
   highwayType: HighwayType;
@@ -56,7 +59,12 @@ export interface RouteStats {
   distanceMeters: number;
   elevationGainMeters: number;
   elevationLossMeters: number;
+  /** Sinuosidad normalizada [0,1] media, ponderada por largo. */
   curviness: number;
+  /** Densidad de giro media (°/km), ponderada por largo. */
+  curvinessDegPerKm: number;
+  /** Fracción de los metros con densidad ≥ 100 °/km (tramo curvo). */
+  curvyShare: number;
   // Metros recorridos por cada tipo de vía / superficie (para gráficos).
   highwayBreakdown: Record<string, number>;
   surfaceBreakdown: Record<string, number>;

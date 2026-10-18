@@ -271,10 +271,8 @@ function mergeRoutes(a: EngineRoute, b: EngineRoute): EngineRoute {
   const distA = a.stats.distanceMeters;
   const distB = b.stats.distanceMeters;
   const totalDist = distA + distB;
-  const curviness =
-    totalDist > 0
-      ? (a.stats.curviness * distA + b.stats.curviness * distB) / totalDist
-      : 0;
+  const weighted = (x: number, y: number) => (totalDist > 0 ? (x * distA + y * distB) / totalDist : 0);
+  const curviness = weighted(a.stats.curviness, b.stats.curviness);
 
   return {
     path,
@@ -292,6 +290,8 @@ function mergeRoutes(a: EngineRoute, b: EngineRoute): EngineRoute {
       elevationLossMeters:
         a.stats.elevationLossMeters + b.stats.elevationLossMeters,
       curviness,
+      curvinessDegPerKm: weighted(a.stats.curvinessDegPerKm, b.stats.curvinessDegPerKm),
+      curvyShare: weighted(a.stats.curvyShare, b.stats.curvyShare),
       highwayBreakdown: sumBreakdown(
         a.stats.highwayBreakdown,
         b.stats.highwayBreakdown,

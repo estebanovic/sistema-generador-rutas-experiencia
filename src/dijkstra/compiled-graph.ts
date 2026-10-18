@@ -76,7 +76,10 @@ export interface CompiledGraph {
   geoCumGrade: Float64Array;
   geoCumMinor: Float64Array;
   // Atributos del segmento que empieza en cada punto (el último punto del tramo no se usa).
+  /** Sinuosidad normalizada [0,1] del segmento. */
   segCurv: Float32Array;
+  /** Densidad de giro del segmento (°/km). */
+  segCurvDeg: Float32Array;
   /** Desnivel positivo/negativo en el sentido de la geometría. */
   segGain: Float32Array;
   segLoss: Float32Array;

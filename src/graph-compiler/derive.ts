@@ -1,5 +1,5 @@
 import { GraphEdge, GraphNode } from '../dijkstra/types';
-import { computeSegmentCurviness } from './curviness';
+import { normalizedCurviness, turnDensity } from './curviness';
 import { haversine } from './geo';
 import {
   ALL_EXCLUSION_RULES,
@@ -84,9 +84,10 @@ export function deriveGraph(
     const oneway = parseOneway(way.tags);
     const destinationOnly = isDestinationOnly(way.tags);
     if (destinationOnly) stats.destinationOnly.ways++;
-    const segCurviness = computeSegmentCurviness(coords);
+    // Sinuosidad por way (F0.4): densidad de giro por segmento, en °/km.
+    const segDensity = turnDensity(coords);
 
-    const push = (a: (typeof coords)[number], b: (typeof coords)[number], distance: number, curviness: number) => {
+    const push = (a: (typeof coords)[number], b: (typeof coords)[number], distance: number, density: number) => {
       const key = `${a.osmId}|${b.osmId}|${way.osmWayId}`;
       if (seen.has(key)) return;
       seen.add(key);
@@ -94,7 +95,8 @@ export function deriveGraph(
         fromOsmId: a.osmId,
         toOsmId: b.osmId,
         distanceMeters: distance,
-        curviness,
+        curviness: normalizedCurviness(density),
+        curvatureDegPerKm: density,
         elevationGain: 0,
         elevationLoss: 0,
         highwayType,
@@ -113,8 +115,8 @@ export function deriveGraph(
       if (destinationOnly) stats.destinationOnly.km += distance / 1000;
       if (!used.has(a.osmId)) used.set(a.osmId, { osmId: a.osmId, lat: a.lat, lon: a.lon, elevation: 0 });
       if (!used.has(b.osmId)) used.set(b.osmId, { osmId: b.osmId, lat: b.lat, lon: b.lon, elevation: 0 });
-      if (oneway !== 'backward') push(a, b, distance, segCurviness[i]);
-      if (oneway !== 'forward') push(b, a, distance, segCurviness[i]);
+      if (oneway !== 'backward') push(a, b, distance, segDensity[i]);
+      if (oneway !== 'forward') push(b, a, distance, segDensity[i]);
     }
   }
 
