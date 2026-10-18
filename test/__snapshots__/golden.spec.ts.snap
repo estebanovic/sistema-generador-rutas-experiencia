@@ -2,7 +2,7 @@
 
 exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`] = `
 {
-  "compilador": "f0.6-1",
+  "compilador": "f3-1",
   "datos": 21,
   "rutas": {
     "casablanca→lasDichas 4x4": {
@@ -281,7 +281,7 @@ exports[`rutas doradas (grafo real, pares de la línea base) conjunto oferta 1`]
 
 exports[`rutas doradas (grafo real, pares de la línea base) conjunto referencia 1`] = `
 {
-  "compilador": "f0.6-1",
+  "compilador": "f3-1",
   "datos": 21,
   "rutas": {
     "buin→caleraTango 4x4": {

@@ -6,8 +6,9 @@
  *
  *   npx jest test/golden -u
  *
- * La consulta es la misma que hace la API (snap multi-candidato + Dijkstra con
- * el perfil). Necesita el snapshot del grafo para el COMPILER_VERSION actual en
+ * La consulta es la misma que hace la API (snap multi-candidato + A* con el
+ * perfil, desde F3). Cada ruta se compara además con Dijkstra (oráculo): el
+ * costo tiene que ser el mismo. Necesita el snapshot del grafo para el COMPILER_VERSION actual en
  * data/graph-cache (o GRAPH_CACHE_DIR), que escribe el servidor al arrancar; si
  * no está, el test se salta con un aviso. La versión de datos (dataVersion)
  * queda en el snapshot de Jest: otra importación cambia las rutas.
@@ -15,6 +16,8 @@
 import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { astarMultiSource } from '../src/dijkstra/astar';
+import { CompiledGraph } from '../src/dijkstra/compiled-graph';
 import { dijkstraMultiSource } from '../src/dijkstra/dijkstra';
 import { assertSinRepeticion } from '../src/dijkstra/no-repeat';
 import { snapCandidates } from '../src/dijkstra/snap';
@@ -47,7 +50,16 @@ if (!file) {
 }
 
 (file ? describe : describe.skip)('rutas doradas (grafo real, pares de la línea base)', () => {
-  const g = readSnapshot(file!);
+  // En beforeAll: describe.skip igual ejecuta este cuerpo para registrar los tests.
+  let g: CompiledGraph;
+  beforeAll(() => {
+    g = readSnapshot(file!);
+  });
+
+  it('el compilador verifica L ≥ cuerda en todos los segmentos (A* admisible sin escalar)', () => {
+    expect(g.meta.segmentsShorterThanChord).toBe(0);
+    expect(g.meta.minLenOverChord).toBeGreaterThanOrEqual(1 - 1e-9);
+  });
 
   it.each(Object.keys(pairs.SETS))('conjunto %s', (set) => {
     const { P, PAIRS } = pairs.SETS[set];
@@ -56,12 +68,15 @@ if (!file) {
       const sc = snapCandidates(g, P[a][0], P[a][1]);
       const ec = snapCandidates(g, P[b][0], P[b][1]);
       for (const perfil of pairs.PROFILES) {
-        const r = dijkstraMultiSource(g, sc, ec, PROFILES[perfil]);
+        const r = astarMultiSource(g, sc, ec, PROFILES[perfil]);
+        const oraculo = dijkstraMultiSource(g, sc, ec, PROFILES[perfil]);
         const clave = `${a}→${b} ${perfil}`;
+        expect(r === null).toBe(oraculo === null);
         if (!r) {
           rutas[clave] = null;
           continue;
         }
+        expect(Math.abs(r.totalCost - oraculo!.totalCost) / oraculo!.totalCost).toBeLessThan(1e-9);
         assertSinRepeticion(r);
         rutas[clave] = {
           metros: Math.round(r.stats.distanceMeters * 10) / 10,

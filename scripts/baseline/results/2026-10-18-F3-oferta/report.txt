@@ -1,0 +1,30 @@
+## línea base — 2026-10-18T22:23:50.275Z — API http://localhost:3000 — datos: osm
+primera llamada 0.0 s | rutas OK 45/45
+moto-curvas [D2, presupuesto ×1.5]: máximo medio=50% | pares con oferta (máx ≥ 10%)=15/15 | % del máximo media=95% mediana=98% | rutas ≥ 70% del máximo=15/15 | rutas sobre el presupuesto=0
+moto-curvas: n=15 tiempo p50=4 ms p95=16 ms | criterio media=48% mediana=40% rutas≥70%=3/15 | desvío media=1.07 máx=1.25 | rutas con tramos repetidos=0 | (curvas métrica vieja=51%)
+4x4 [D2, presupuesto ×2]: máximo medio=28% | pares con oferta (máx ≥ 10%)=13/15 | % del máximo media=82% mediana=90% | rutas ≥ 70% del máximo=9/13 | rutas sobre el presupuesto=0
+4x4: n=15 tiempo p50=4 ms p95=36 ms | criterio media=23% mediana=23% rutas≥70%=0/15 | desvío media=1.06 máx=1.14 | rutas con tramos repetidos=0 | (curvas métrica vieja=46%)
+scenic [D2, presupuesto ×1.5]: máximo medio=42% | pares con oferta (máx ≥ 10%)=15/15 | % del máximo media=97% mediana=100% | rutas ≥ 70% del máximo=15/15 | rutas sobre el presupuesto=0
+scenic: n=15 tiempo p50=3 ms p95=17 ms | criterio media=41% mediana=36% rutas≥70%=3/15 | desvío media=1.06 máx=1.25 | rutas con tramos repetidos=0 | (curvas métrica vieja=49%)
+solapamiento (informativo) moto-curvas/4x4: media=74% mediana=83%
+solapamiento (informativo) moto-curvas/scenic: media=88% mediana=97%
+solapamiento (informativo) 4x4/scenic: media=66% mediana=75%
+pares con las 3 rutas idénticas: 1/15
+superficie declarada en metros recorridos: 95.7%
+
+## por par (km | ms | criterio / máximo | desvío; ! = sobre el presupuesto)
+sanJoseMaipo→elYeso: moto-curvas 46.89km 5ms 40%/41% ×1.07 | 4x4 45.17km 3ms 57%/57% ×1.03 | scenic 45.55km 4ms 34%/34% ×1.04 | solap {"moto-curvas/4x4":0.468,"moto-curvas/scenic":0.94,"4x4/scenic":0.436}
+sanJoseMaipo→lagunillas: moto-curvas 13.37km 3ms 85%/85% ×1.00 | 4x4 13.37km 2ms 4%/4% ×1.00 | scenic 13.37km 2ms 82%/82% ×1.00 | solap {"moto-curvas/4x4":1,"moto-curvas/scenic":1,"4x4/scenic":1}
+sanAlfonso→banosMorales: moto-curvas 29.25km 3ms 51%/51% ×1.02 | 4x4 29.38km 4ms 11%/28% ×1.03 | scenic 29.05km 3ms 49%/50% ×1.01 | solap {"moto-curvas/4x4":0.917,"moto-curvas/scenic":0.958,"4x4/scenic":0.877}
+puenteAlto→elAlfalfal: moto-curvas 47.85km 16ms 52%/53% ×1.05 | 4x4 48.34km 36ms 20%/20% ×1.06 | scenic 46.23km 17ms 45%/47% ×1.01 | solap {"moto-curvas/4x4":0.852,"moto-curvas/scenic":0.869,"4x4/scenic":0.752}
+puenteAlto→elCanelo: moto-curvas 16.53km 6ms 34%/36% ×1.15 | 4x4 16.09km 5ms 36%/36% ×1.12 | scenic 17.63km 5ms 42%/42% ×1.21 | solap {"moto-curvas/4x4":0.701,"moto-curvas/scenic":0,"4x4/scenic":0}
+pirque→rioClarillo: moto-curvas 17.72km 4ms 27%/36% ×1.02 | 4x4 18.01km 4ms 37%/37% ×1.02 | scenic 18.37km 5ms 12%/15% ×1.06 | solap {"moto-curvas/4x4":0.764,"moto-curvas/scenic":0.968,"4x4/scenic":0.72}
+laDehesa→laParva: moto-curvas 39.64km 5ms 80%/81% ×1.01 | 4x4 42.69km 29ms 13%/13% ×1.09 | scenic 39.83km 5ms 80%/80% ×1.01 | solap {"moto-curvas/4x4":0.908,"moto-curvas/scenic":0.987,"4x4/scenic":0.895}
+laDehesa→yerbaLoca: moto-curvas 24.75km 3ms 77%/78% ×1.01 | 4x4 27.81km 10ms 19%/19% ×1.14 | scenic 24.94km 3ms 77%/77% ×1.02 | solap {"moto-curvas/4x4":0.872,"moto-curvas/scenic":0.98,"4x4/scenic":0.852}
+noviciado→curacavi: moto-curvas 48.23km 15ms 23%/24% ×1.07 | 4x4 47.51km 21ms 23%/29% ×1.05 | scenic 48.26km 16ms 13%/13% ×1.07 | solap {"moto-curvas/4x4":0.865,"moto-curvas/scenic":0.957,"4x4/scenic":0.823}
+curacavi→casablanca: moto-curvas 35.77km 4ms 41%/42% ×1.25 | 4x4 29.7km 2ms 13%/24% ×1.04 | scenic 35.77km 3ms 40%/40% ×1.25 | solap {"moto-curvas/4x4":0.383,"moto-curvas/scenic":0.991,"4x4/scenic":0.374}
+curacavi→cuestaZapata: moto-curvas 23.77km 2ms 61%/61% ×1.18 | 4x4 20.7km 2ms 31%/44% ×1.03 | scenic 23.48km 3ms 34%/35% ×1.16 | solap {"moto-curvas/4x4":0.269,"moto-curvas/scenic":0.956,"4x4/scenic":0.255}
+casablanca→lasDichas: moto-curvas 16.26km 2ms 36%/36% ×1.00 | 4x4 16.9km 2ms 5%/5% ×1.04 | scenic 16.26km 2ms 36%/36% ×1.00 | solap {"moto-curvas/4x4":0.969,"moto-curvas/scenic":1,"4x4/scenic":0.969}
+melipilla→sanPedro: moto-curvas 53.32km 4ms 39%/43% ×1.14 | 4x4 50.66km 4ms 33%/37% ×1.08 | scenic 48.4km 3ms 25%/25% ×1.03 | solap {"moto-curvas/4x4":0.65,"moto-curvas/scenic":0.514,"4x4/scenic":0.446}
+paine→aculeo: moto-curvas 29.82km 4ms 29%/32% ×1.02 | 4x4 31.25km 4ms 25%/36% ×1.07 | scenic 29.82km 3ms 19%/21% ×1.02 | solap {"moto-curvas/4x4":0.705,"moto-curvas/scenic":1,"4x4/scenic":0.705}
+islaMaipo→aculeo: moto-curvas 31.77km 3ms 40%/44% ×1.03 | 4x4 32.22km 4ms 24%/38% ×1.05 | scenic 31.77km 3ms 29%/32% ×1.03 | solap {"moto-curvas/4x4":0.826,"moto-curvas/scenic":1,"4x4/scenic":0.826}

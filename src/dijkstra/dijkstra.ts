@@ -313,6 +313,9 @@ export function dijkstra(
  * forzar el único tramo más cercano (que en autopistas divididas cae en la
  * calzada equivocada y obliga a rodeos absurdos), elige la combinación que
  * mejor conecta.
+ *
+ * Es Dijkstra puro: desde F3 la API usa A* (`astar.ts`) y este queda como
+ * oráculo (mismo costo exacto).
  */
 export function dijkstraMultiSource(
   g: CompiledGraph,
@@ -320,6 +323,29 @@ export function dijkstraMultiSource(
   dests: Endpoint[],
   weights: RouteWeights,
   options?: DijkstraOptions,
+): EngineRoute | null {
+  return searchMultiSource(g, origins, dests, weights, options, null);
+}
+
+/**
+ * Cota inferior del costo restante desde un nodo de unión hasta el mejor
+ * destino. Debe ser admisible y consistente (h(u) ≤ costo(u→v) + h(v)) para
+ * que cerrar cada nodo una sola vez siga dando el óptimo.
+ */
+export type Heuristic = (node: number) => number;
+
+/**
+ * Búsqueda compartida por Dijkstra (`heuristic` = null) y A* (F3): con una
+ * heurística, la clave del heap es costo + h y se detiene igual, cuando la
+ * menor clave pendiente no puede mejorar la mejor solución.
+ */
+export function searchMultiSource(
+  g: CompiledGraph,
+  origins: Endpoint[],
+  dests: Endpoint[],
+  weights: RouteWeights,
+  options: DijkstraOptions | undefined,
+  heuristic: Heuristic | null,
 ): EngineRoute | null {
   const N = g.meta.nodeCount;
   const validNode = (n: number) => Number.isInteger(n) && n >= 0 && n < N;
@@ -415,7 +441,7 @@ export function dijkstraMultiSource(
     dist[n] = c;
     distStamp[n] = stamp;
     prevEdge[n] = -1;
-    heap.push(n, c);
+    heap.push(n, heuristic ? c + heuristic(n) : c);
   }
 
   let bestNode = -1;
@@ -450,7 +476,7 @@ export function dijkstraMultiSource(
         dist[v] = cost;
         distStamp[v] = stamp;
         prevEdge[v] = e;
-        heap.push(v, cost);
+        heap.push(v, heuristic ? cost + heuristic(v) : cost);
       }
     }
   }

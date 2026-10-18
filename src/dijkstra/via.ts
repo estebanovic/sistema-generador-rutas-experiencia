@@ -1,7 +1,11 @@
 import { RouteWeights } from './cost';
 import { CompiledGraph } from './compiled-graph';
-import { Endpoint, EngineRoute, dijkstraMultiSource } from './dijkstra';
+import { astarMultiSource } from './astar';
+import { DijkstraOptions, Endpoint, EngineRoute } from './dijkstra';
 import { TramoOverlay } from './overlay';
+
+/** Motor de una pierna: A* (por defecto) o Dijkstra (oráculo en los tests). */
+export type LegEngine = (g: CompiledGraph, origins: Endpoint[], dests: Endpoint[], weights: RouteWeights, options?: DijkstraOptions) => EngineRoute | null;
 
 /**
  * Ruta que pasa por una secuencia de puntos (origen, waypoints…, destino),
@@ -22,12 +26,13 @@ export function routeVia(
   points: Endpoint[][],
   weights: RouteWeights,
   overlay: TramoOverlay = new TramoOverlay(g),
+  engine: LegEngine = astarMultiSource,
 ): EngineRoute | null {
   if (points.length < 2) throw new Error('routeVia necesita al menos un origen y un destino');
   const legs: EngineRoute[] = [];
   let from = points[0];
   for (let i = 1; i < points.length; i++) {
-    const leg = dijkstraMultiSource(g, from, points[i], weights, {
+    const leg = engine(g, from, points[i], weights, {
       blocked: overlay,
       privateAccess: { origin: i === 1, dest: i === points.length - 1 },
     });

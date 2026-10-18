@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Endpoint, EngineRoute, dijkstraMultiSource } from '../dijkstra/dijkstra';
+import { astarMultiSource } from '../dijkstra/astar';
+import { Endpoint, EngineRoute } from '../dijkstra/dijkstra';
 import { RouteWeights } from '../dijkstra/cost';
 import { RouteResult } from '../dijkstra/types';
 import { SNAP_K, SnapCandidate } from '../dijkstra/snap';
@@ -61,8 +62,9 @@ export class RoutesService {
       this.graphService.snap(dto.destination.lat, dto.destination.lon, SNAP_K),
     ]);
 
-    // Elige la mejor combinación origen/destino entre candidatos.
-    const route = dijkstraMultiSource(graph, startCandidates, endCandidates, weights);
+    // Elige la mejor combinación origen/destino entre candidatos (A*, F3; mismo
+    // costo que Dijkstra, que queda como oráculo en los tests).
+    const route = astarMultiSource(graph, startCandidates, endCandidates, weights);
     if (!route) {
       // Con ambos extremos en la CFC mayor solo pasa si las vías privadas (D7)
       // impiden el paso: p. ej. un destino al que solo se llega cruzando otra

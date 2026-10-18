@@ -2,14 +2,14 @@
 
 Calcula rutas para auto/moto optimizando la **experiencia de manejo** (curvas,
 superficie, tipo de vía) en lugar del tiempo. Construido sobre un grafo de
-calles de OpenStreetMap con un Dijkstra ponderado propio.
+calles de OpenStreetMap con un motor de caminos mínimos propio (A* sobre un costo ponderado).
 
 ## Stack
 
 - **NestJS 11 + Mongoose** — almacén canónico por way (`osm_ways`, `osm_nodes`)
 - **Overpass API** — descarga de calles de OpenStreetMap
 - **Compilador propio** — grafo compactado en arrays tipados (CSR) con snapshot binario
-- **Dijkstra propio** con nodos fantasma y costo configurable por perfil
+- **A\* propio** (Dijkstra como oráculo en los tests) con nodos fantasma y costo configurable por perfil
 
 ## Requisitos
 
@@ -43,7 +43,7 @@ npm run build && npm run bench   # tiempo del motor y nodos asentados, en proces
 
 - **Rutas doradas** (`test/golden.spec.ts`): las 144 rutas de la línea base (los dos conjuntos de pares × 3 perfiles), calculadas sobre el grafo real como lo hace la API y congeladas en `test/__snapshots__/`. Un cambio que altere una ruta hace fallar el test hasta que se actualice el snapshot con `-u`. Necesitan el snapshot del grafo en `data/graph-cache/` (lo escribe el servidor al arrancar); si no está, se saltan con un aviso.
 - **Verificador de no repetición:** todos los tests que calculan rutas pasan por `assertSinRepeticion`.
-- **Bench** (`scripts/bench.js`): las mismas consultas, más una con los pesos en 0, repetidas `--reps` veces (5 por defecto). Informa p50/p95/máx en ms y los nodos asentados por perfil; `--out archivo.json` guarda el resultado.
+- **Bench** (`scripts/bench.js`): las mismas consultas, más una con los pesos en 0, repetidas `--reps` veces (5 por defecto), con A\* y con Dijkstra. Informa media, p50, p95 y máximo en ms, los nodos asentados, cuántas veces menos asienta A\* y la diferencia de costo entre ambos (debe ser 0). `--random N` agrega N pares al azar de 2–60 km; `--out archivo.json` guarda el resultado.
 - **Línea base** (`scripts/baseline/`): métricas de calidad contra la API corriendo; ver su README.
 
 ## Endpoints
@@ -146,7 +146,7 @@ El presupuesto de desvío (largo de la ruta / distancia mínima) se usa por ahor
 
 ```
 src/
-  dijkstra/        motor puro (sin Nest): grafo compilado, costo, Dijkstra con nodos fantasma, snap, verificador de no repetición
+  dijkstra/        motor puro (sin Nest): grafo compilado, costo, búsqueda con nodos fantasma (A* y Dijkstra), snap, routeVia con bloqueo de tramos, verificador de no repetición
   graph-compiler/  compilador puro: normalización de tags, derivación, compactación, CFC, puentes, gemelas, snapshot
   graph/           almacén por way (Mongo) + GraphService (carga el snapshot, recompila en un worker)
   osm/             OsmService (Overpass) + OsmParser (ways crudos)

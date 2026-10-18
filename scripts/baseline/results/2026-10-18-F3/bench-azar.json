@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-18T22:22:56.278Z",
+  "snapshot": "graph-osm-v21-f3-1.bin",
+  "node": "v22.20.0",
+  "reps": 1,
+  "random": 1000,
+  "queries": 4192,
+  "loadMs": 47,
+  "spatialIndexMs": 440,
+  "groups": {
+    "línea base": {
+      "pesos-en-0": {
+        "astar": {
+          "mean": 2.44,
+          "p50": 1.23,
+          "p95": 7.02,
+          "max": 17.36,
+          "settledMean": 8607,
+          "settledP95": 25917,
+          "fail": 0
+        },
+        "dijkstra": {
+          "mean": 12.16,
+          "p50": 6.8,
+          "p95": 31.22,
+          "max": 33.99,
+          "settledMean": 67106,
+          "settledP95": 175800,
+          "fail": 0
+        },
+        "settledRatioTotal": 7.8,
+        "settledRatioMedian": 7.32,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      },
+      "moto-curvas": {
+        "astar": {
+          "mean": 6.44,
+          "p50": 2.51,
+          "p95": 23.68,
+          "max": 37.72,
+          "settledMean": 29519,
+          "settledP95": 110772,
+          "fail": 0
+        },
+        "dijkstra": {
+          "mean": 8.97,
+          "p50": 4.84,
+          "p95": 28.47,
+          "max": 31.19,
+          "settledMean": 50954,
+          "settledP95": 158954,
+          "fail": 0
+        },
+        "settledRatioTotal": 1.73,
+        "settledRatioMedian": 1.81,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      },
+      "4x4": {
+        "astar": {
+          "mean": 9.46,
+          "p50": 3.04,
+          "p95": 34.02,
+          "max": 38.96,
+          "settledMean": 46303,
+          "settledP95": 166124,
+          "fail": 0
+        },
+        "dijkstra": {
+          "mean": 10.57,
+          "p50": 4.52,
+          "p95": 33.71,
+          "max": 35.44,
+          "settledMean": 61492,
+          "settledP95": 177862,
+          "fail": 0
+        },
+        "settledRatioTotal": 1.33,
+        "settledRatioMedian": 1.43,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      },
+      "scenic": {
+        "astar": {
+          "mean": 7,
+          "p50": 2.39,
+          "p95": 26.52,
+          "max": 35.8,
+          "settledMean": 33516,
+          "settledP95": 122104,
+          "fail": 0
+        },
+        "dijkstra": {
+          "mean": 9,
+          "p50": 4.75,
+          "p95": 30.4,
+          "max": 34.74,
+          "settledMean": 51294,
+          "settledP95": 158601,
+          "fail": 0
+        },
+        "settledRatioTotal": 1.53,
+        "settledRatioMedian": 1.57,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      }
+    },
+    "al azar": {
+      "pesos-en-0": {
+        "astar": {
+          "mean": 5.42,
+          "p50": 3.81,
+          "p95": 17.02,
+          "max": 33.62,
+          "settledMean": 22509,
+          "settledP95": 69720,
+          "fail": 1
+        },
+        "dijkstra": {
+          "mean": 17.18,
+          "p50": 17.46,
+          "p95": 31.93,
+          "max": 36.31,
+          "settledMean": 96588,
+          "settledP95": 176627,
+          "fail": 1
+        },
+        "settledRatioTotal": 4.29,
+        "settledRatioMedian": 5.37,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      },
+      "moto-curvas": {
+        "astar": {
+          "mean": 15.67,
+          "p50": 13.4,
+          "p95": 35.93,
+          "max": 43.47,
+          "settledMean": 74870,
+          "settledP95": 166452,
+          "fail": 1
+        },
+        "dijkstra": {
+          "mean": 16.56,
+          "p50": 16.39,
+          "p95": 32.52,
+          "max": 39.57,
+          "settledMean": 95324,
+          "settledP95": 176650,
+          "fail": 1
+        },
+        "settledRatioTotal": 1.27,
+        "settledRatioMedian": 1.35,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      },
+      "4x4": {
+        "astar": {
+          "mean": 16.6,
+          "p50": 13.87,
+          "p95": 37.37,
+          "max": 44.35,
+          "settledMean": 81431,
+          "settledP95": 169376,
+          "fail": 1
+        },
+        "dijkstra": {
+          "mean": 16.47,
+          "p50": 16.12,
+          "p95": 32.42,
+          "max": 39.55,
+          "settledMean": 96054,
+          "settledP95": 176225,
+          "fail": 1
+        },
+        "settledRatioTotal": 1.18,
+        "settledRatioMedian": 1.23,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      },
+      "scenic": {
+        "astar": {
+          "mean": 16.26,
+          "p50": 13.43,
+          "p95": 37.74,
+          "max": 42.76,
+          "settledMean": 79076,
+          "settledP95": 167980,
+          "fail": 1
+        },
+        "dijkstra": {
+          "mean": 16.49,
+          "p50": 15.96,
+          "p95": 33.08,
+          "max": 41.67,
+          "settledMean": 95276,
+          "settledP95": 176850,
+          "fail": 1
+        },
+        "settledRatioTotal": 1.2,
+        "settledRatioMedian": 1.26,
+        "maxRelCostDiff": 0,
+        "costMismatches": 0
+      }
+    }
+  }
+}

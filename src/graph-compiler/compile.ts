@@ -8,6 +8,7 @@ import { edgeFeatures } from '../dijkstra/cost';
 import { GraphEdge, GraphNode } from '../dijkstra/types';
 import { bridges } from './bridges';
 import { CURVATURE_SATURATION_DEG_PER_KM } from './curviness';
+import { chord } from './geo';
 import { SURFACE_SOURCES, SurfaceSource } from './surface';
 import { stronglyConnectedComponents } from './scc';
 import { oppositeTwins, WayLabels } from './twins';
@@ -16,7 +17,7 @@ import { oppositeTwins, WayLabels } from './twins';
  * Versión de la lógica derivada (normalización, compactación, features, CFC…).
  * Subirla invalida los snapshots y obliga a recompilar, sin reimportar.
  */
-export const COMPILER_VERSION = 'f0.6-1';
+export const COMPILER_VERSION = 'f3-1';
 
 export interface CompileInput {
   nodes: GraphNode[];
@@ -184,6 +185,9 @@ export function compileGraph(input: CompileInput): CompiledGraph {
   const chainCanFwd = new Uint8Array(T);
   const chainCanBwd = new Uint8Array(T);
 
+  // Invariante L ≥ cuerda por segmento (A*, F3; poda elíptica, F4).
+  let minLenOverChord = Infinity;
+  let segmentsShorterThanChord = 0;
   let p = 0;
   for (let t = 0; t < T; t++) {
     chainStart[t] = p;
@@ -205,6 +209,11 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       const s = segs[sg[j - 1]];
       const e = s.edge;
       const len = e.distanceMeters;
+      const c = chord(raw[pts[j - 1]].lat, raw[pts[j - 1]].lon, raw[v].lat, raw[v].lon);
+      if (c > 0) {
+        minLenOverChord = Math.min(minLenOverChord, len / c);
+        if (len < c * (1 - 1e-9)) segmentsShorterThanChord++;
+      }
       const f = edgeFeatures(e);
       geoCumLen[p] = geoCumLen[p - 1] + len;
       geoCumStraight[p] = geoCumStraight[p - 1] + len * f.straightness;
@@ -297,6 +306,8 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       sccCount: scc.count,
       mainSccSize: scc.largestSize,
       enclaveChains,
+      minLenOverChord: Number.isFinite(minLenOverChord) ? minLenOverChord : 1,
+      segmentsShorterThanChord,
     },
     ...(numeric ? {} : { rawLabels: raw.map((n) => n.osmId) }),
     nodeOsmId, nodeLat, nodeLon, nodeInMainScc, nodeDegree,

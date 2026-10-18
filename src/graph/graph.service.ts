@@ -168,6 +168,12 @@ export class GraphService implements OnModuleInit {
     this.logger.log(
       `Grafo ${how} (${m.source}, datos v${m.dataVersion}, compilador ${m.compilerVersion}): ${m.nodeCount} nodos, ${m.edgeCount} aristas, CFC mayor ${((100 * m.mainSccSize) / Math.max(1, m.nodeCount)).toFixed(1)}%, ${Date.now() - t0} ms.`,
     );
+    // Invariante de A* (F3): con datos de OSM ningún segmento es más corto que la cuerda.
+    if (m.segmentsShorterThanChord > 0) {
+      this.logger.warn(
+        `${m.segmentsShorterThanChord} segmentos más cortos que la cuerda entre sus extremos (mín. L/cuerda ${m.minLenOverChord.toFixed(4)}): A* sigue siendo exacto, pero con la heurística escalada y menos poda.`,
+      );
+    }
   }
 
   /**

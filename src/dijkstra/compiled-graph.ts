@@ -106,6 +106,15 @@ export interface CompiledMeta {
   mainSccSize: number;
   /** Tramos públicos marcados como privados por estar encerrados en un área privada (D16). */
   enclaveChains: number;
+  /**
+   * Invariante de A* (F3) y de la poda elíptica (F4): mínimo de largo / cuerda
+   * entre los segmentos. Con L calculado desde las coordenadas (haversine) es
+   * ≥ 1; si fuera menor, la heurística se escala por este factor para seguir
+   * siendo admisible (p. ej. en fixtures con largos explícitos).
+   */
+  minLenOverChord: number;
+  /** Segmentos más cortos que la cuerda entre sus extremos (0 con datos de OSM). */
+  segmentsShorterThanChord: number;
 }
 
 export const EDGE_FLAG_DESTINATION_ONLY = 1;

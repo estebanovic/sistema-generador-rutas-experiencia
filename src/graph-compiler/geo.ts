@@ -18,6 +18,31 @@ export function haversine(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/**
+ * Cuerda (línea recta por dentro de la esfera) en metros entre dos
+ * coordenadas: 2R·sen(θ/2) ≤ R·θ (la haversine), así que es una cota inferior
+ * del largo, la que usa A* (F3). Se calcula con el mismo término `a` que la
+ * haversine (2R·√a), que es estable en segmentos de centímetros; la diferencia
+ * de vectores unitarios pierde precisión por cancelación a esa escala.
+ */
+export function chord(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.sqrt(Math.min(1, a));
+}
+
+/** Vector unitario (x, y, z) de una coordenada sobre la esfera. */
+export function unitVector(lat: number, lon: number): [number, number, number] {
+  const φ = toRad(lat);
+  const λ = toRad(lon);
+  return [Math.cos(φ) * Math.cos(λ), Math.cos(φ) * Math.sin(λ), Math.sin(φ)];
+}
+
+export const EARTH_RADIUS_M = R;
+
 /** Rumbo inicial (grados, 0-360) del trayecto de (lat1,lon1) a (lat2,lon2). */
 export function bearing(
   lat1: number,
