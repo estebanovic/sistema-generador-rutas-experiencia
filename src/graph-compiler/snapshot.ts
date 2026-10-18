@@ -4,13 +4,13 @@ import { CompiledGraph, CompiledMeta } from '../dijkstra/compiled-graph';
 
 /**
  * Snapshot binario del grafo compilado. Formato:
- *   8 bytes  "GRPHSNP1"
+ *   8 bytes  "GRPHSNP2" (versión del formato; la 1 era el grafo sin compactar)
  *   4 bytes  largo del encabezado JSON (uint32 LE)
  *   N bytes  encabezado JSON (meta, etiquetas y descriptores de arrays), relleno a múltiplo de 8
  *   arrays   uno tras otro, cada uno alineado a 8 bytes
  * Al leer, los arrays son vistas sobre el mismo buffer (sin copias).
  */
-const MAGIC = 'GRPHSNP1';
+const MAGIC = 'GRPHSNP2';
 
 type TypedArrayCtor =
   | Float64ArrayConstructor
@@ -23,28 +23,49 @@ const ARRAYS: [keyof CompiledGraph, TypedArrayCtor][] = [
   ['nodeLat', Float64Array],
   ['nodeLon', Float64Array],
   ['nodeInMainScc', Uint8Array],
+  ['nodeDegree', Int32Array],
   ['outStart', Int32Array],
   ['edgeFrom', Int32Array],
   ['edgeTo', Int32Array],
+  ['edgeChain', Int32Array],
+  ['edgeDir', Uint8Array],
   ['edgeLen', Float64Array],
-  ['edgeStraight', Float64Array],
-  ['edgeRough', Float64Array],
-  ['edgeGrade', Float64Array],
-  ['edgeMinor', Float64Array],
-  ['edgeCurv', Float32Array],
-  ['edgeGain', Float32Array],
-  ['edgeLoss', Float32Array],
-  ['edgeHighway', Uint8Array],
-  ['edgeSurface', Uint8Array],
+  ['edgeSumStraight', Float64Array],
+  ['edgeSumRough', Float64Array],
+  ['edgeSumGrade', Float64Array],
+  ['edgeSumMinor', Float64Array],
   ['edgeFlags', Uint8Array],
-  ['edgeWay', Float64Array],
   ['inStart', Int32Array],
   ['inEdge', Int32Array],
+  ['chainStart', Int32Array],
+  ['chainFwd', Int32Array],
+  ['chainBwd', Int32Array],
+  ['chainNode0', Int32Array],
+  ['chainNode1', Int32Array],
+  ['chainIsBridge', Uint8Array],
+  ['chainFlags', Uint8Array],
+  ['geoOsmId', Float64Array],
+  ['geoLat', Float64Array],
+  ['geoLon', Float64Array],
+  ['geoCumLen', Float64Array],
+  ['geoCumStraight', Float64Array],
+  ['geoCumRough', Float64Array],
+  ['geoCumGrade', Float64Array],
+  ['geoCumMinor', Float64Array],
+  ['segCurv', Float32Array],
+  ['segGain', Float32Array],
+  ['segLoss', Float32Array],
+  ['segHighway', Uint8Array],
+  ['segSurface', Uint8Array],
+  ['segWay', Float64Array],
+  ['twinStart', Int32Array],
+  ['twinEdge', Int32Array],
+  ['twinFrac', Float32Array],
 ];
 
 interface Header {
   meta: CompiledMeta;
-  nodeLabels?: string[];
+  rawLabels?: string[];
   arrays: { name: string; type: string; length: number; offset: number }[];
 }
 
@@ -63,7 +84,7 @@ export function writeSnapshot(file: string, g: CompiledGraph): void {
     descriptors.push({ name, type: arr.constructor.name, length: arr.length, offset });
     offset = align8(offset + arr.byteLength);
   }
-  const header: Header = { meta: g.meta, nodeLabels: g.nodeLabels, arrays: descriptors };
+  const header: Header = { meta: g.meta, rawLabels: g.rawLabels, arrays: descriptors };
   const headerBuf = Buffer.from(JSON.stringify(header), 'utf8');
   const dataStart = align8(12 + headerBuf.length);
   const total = dataStart + offset;
@@ -93,7 +114,7 @@ export function readSnapshot(file: string): CompiledGraph {
   const dataStart = buf.byteOffset + align8(12 + headerLen);
 
   const g: Partial<CompiledGraph> = { meta: header.meta };
-  if (header.nodeLabels) g.nodeLabels = header.nodeLabels;
+  if (header.rawLabels) g.rawLabels = header.rawLabels;
   for (const [name, Ctor] of ARRAYS) {
     const d = header.arrays.find((a) => a.name === name);
     if (!d || d.type !== Ctor.name) throw new Error(`Snapshot incompatible: falta ${name} o cambió su tipo`);

@@ -138,19 +138,6 @@ export class OsmStoreService {
     return { ways, coords };
   }
 
-  /** IDs de los nodos más cercanos (orden por distancia), dentro de 5 km. */
-  async findNearestNodeIds(lat: number, lon: number, limit: number): Promise<string[]> {
-    const docs = await this.nodeModel
-      .find(
-        { location: { $near: { $geometry: { type: 'Point', coordinates: [lon, lat] }, $maxDistance: 5000 } } },
-        { _id: 0, osmId: 1 },
-      )
-      .limit(limit)
-      .lean()
-      .exec();
-    return docs.map((d) => d.osmId);
-  }
-
   async dataVersion(): Promise<number> {
     const doc = await this.metaModel.findById('graph').lean().exec();
     return doc?.dataVersion ?? 0;

@@ -106,6 +106,10 @@ export interface EdgeSpec {
   oneway?: boolean;
   elevationGain?: number;
   elevationLoss?: number;
+  /** Vía privada (solo origen/destino). */
+  destinationOnly?: boolean;
+  /** Way de OSM; por defecto uno distinto por spec (`w<índice>`). */
+  way?: string;
 }
 
 /**
@@ -122,20 +126,22 @@ export function synthetic(
     lon,
     elevation: 0,
   }));
-  const edges: GraphEdge[] = [];
-  for (const s of specs) {
+  const edges: (GraphEdge & { osmWayId?: string })[] = [];
+  specs.forEach((s, i) => {
     const base = {
+      osmWayId: s.way ?? `w${i}`,
       distanceMeters: s.length,
       curviness: s.curviness ?? 0,
       highwayType: s.highwayType ?? 'secondary',
       surface: s.surface ?? 'asphalt',
       smoothness: s.smoothness ?? 'good',
+      ...(s.destinationOnly ? { destinationOnly: true } : {}),
     };
     edges.push({ ...base, fromOsmId: s.from, toOsmId: s.to, elevationGain: s.elevationGain ?? 0, elevationLoss: s.elevationLoss ?? 0 });
     if (!s.oneway) {
       edges.push({ ...base, fromOsmId: s.to, toOsmId: s.from, elevationGain: s.elevationLoss ?? 0, elevationLoss: s.elevationGain ?? 0 });
     }
-  }
+  });
   return { nodes, edges };
 }
 

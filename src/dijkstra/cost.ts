@@ -145,3 +145,34 @@ export function calculateEdgeCost(
   const f = edgeFeatures(edge);
   return costFromFeatures(edge.distanceMeters, f.straightness, f.roughness, f.grade, f.minorRoad, weights);
 }
+
+/**
+ * Costo de un tramo compactado (o de un pedazo, para los nodos fantasma) a
+ * partir de su largo y de las sumas Σ largo × feature de sus segmentos.
+ *
+ * Es exactamente Σ costFromFeatures(segmento) porque el factor es lineal en
+ * las features y el piso `Math.max(factor, 0.05)` nunca actúa: todos los
+ * términos son ≥ 0 (los pesos se validan ≥ 0 y los firmados se convierten en
+ * términos positivos), así que el factor es siempre ≥ 0,15. La única
+ * diferencia con la suma segmento a segmento es el redondeo de punto flotante.
+ */
+export function costFromSums(
+  len: number,
+  sumStraight: number,
+  sumRough: number,
+  sumGrade: number,
+  sumMinor: number,
+  weights: RouteWeights,
+): number {
+  const sw = weights.surfaceWeight;
+  const surfaceTerm = sw >= 0 ? sw * 2.0 * sumRough : -sw * 2.0 * (len - sumRough);
+  const ew = weights.elevationWeight;
+  const elevationTerm = ew >= 0 ? ew * 2.0 * sumGrade : -ew * 2.0 * (len - sumGrade);
+  return (
+    len * (0.15 + weights.distanceWeight * 0.6) +
+    weights.curvinessWeight * 2.6 * sumStraight +
+    surfaceTerm +
+    elevationTerm +
+    0.3 * sumMinor
+  );
+}

@@ -4,6 +4,7 @@ import { GraphEdge, GraphNode } from '../dijkstra/types';
 import { compileGraph } from './compile';
 import { deriveGraph, DeriveStats } from './derive';
 import { RawWay } from './raw';
+import { WayLabels } from './twins';
 
 /**
  * Construcción completa del grafo desde Mongo (lectura directa con el driver,
@@ -26,7 +27,9 @@ export async function buildFromStore(db: Db): Promise<{ graph: CompiledGraph; de
   for (const n of nodeDocs) coords.set(n.osmId as string, { lat: n.lat as number, lon: n.lon as number });
   const ways: RawWay[] = wayDocs.map((w) => ({ osmWayId: w.osmWayId as string, nodeIds: w.nodeIds as string[], tags: (w.tags as Record<string, string>) ?? {} }));
   const derived = deriveGraph(ways, (id) => coords.get(id));
-  const graph = compileGraph({ nodes: derived.nodes, edges: derived.edges, source: 'osm', dataVersion, hasElevation: false });
+  const wayLabels = new Map<string, WayLabels>();
+  for (const w of ways) if (w.tags.name || w.tags.ref) wayLabels.set(w.osmWayId, { name: w.tags.name, ref: w.tags.ref });
+  const graph = compileGraph({ nodes: derived.nodes, edges: derived.edges, source: 'osm', dataVersion, hasElevation: false, wayLabels });
   return { graph, derive: derived.stats };
 }
 

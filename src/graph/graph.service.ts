@@ -4,18 +4,17 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { InjectConnection } from '@nestjs/mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Worker } from 'worker_threads';
-import { Connection, Model } from 'mongoose';
-import { CompiledGraph, nodeIndex } from '../dijkstra/compiled-graph';
+import { Connection } from 'mongoose';
+import { CompiledGraph } from '../dijkstra/compiled-graph';
+import { SnapCandidate, chainInMainScc, spatialIndex } from '../dijkstra/snap';
 import { buildFromLegacy, buildFromStore, readDataVersion } from '../graph-compiler/build';
 import { COMPILER_VERSION } from '../graph-compiler/compile';
 import { DeriveStats } from '../graph-compiler/derive';
 import { pruneSnapshots, readSnapshot, snapshotFileName, writeSnapshot } from '../graph-compiler/snapshot';
-import { Node, NodeDocument } from './schemas/node.schema';
-import { OsmStoreService } from './osm-store.service';
 
 /**
  * Fuente del grafo:
@@ -25,6 +24,8 @@ import { OsmStoreService } from './osm-store.service';
  *   el punto de control C0 para poder comparar y volver atrás.
  */
 export type GraphSource = 'osm' | 'legacy';
+
+const SNAP_RADIUS_M = 5000;
 
 /** Cada cuánto se consulta `graph_meta.dataVersion` para detectar imports hechos por otro proceso (CLI). */
 const VERSION_CHECK_MS = 30_000;
@@ -41,11 +42,7 @@ export class GraphService implements OnModuleInit {
   private rebuildAgain = false;
   private lastVersionCheck = 0;
 
-  constructor(
-    @InjectModel(Node.name) private readonly nodeModel: Model<NodeDocument>,
-    @InjectConnection() private readonly connection: Connection,
-    private readonly store: OsmStoreService,
-  ) {}
+  constructor(@InjectConnection() private readonly connection: Connection) {}
 
   /** Precarga al arrancar (desactivable con GRAPH_PRELOAD=false, p. ej. en la CLI). */
   async onModuleInit(): Promise<void> {
@@ -177,45 +174,21 @@ export class GraphService implements OnModuleInit {
   }
 
   /**
-   * Los `k` nodos más cercanos (por distancia) que están en la componente
-   * fuertemente conexa mayor (D15). El snap a un solo nodo es frágil en
-   * autopistas divididas; con varios candidatos el router elige el que mejor
-   * conecta. El almacén también tiene nodos de vías excluidas e islas, así que
-   * se piden de más y se filtran.
+   * Snap con nodos fantasma (F0.3): proyecta el punto sobre los `k` tramos más
+   * cercanos de la componente fuertemente conexa mayor (D15), con un índice
+   * espacial en memoria (sin consultar Mongo). Con varios candidatos el router
+   * elige el que mejor conecta (p. ej. la calzada correcta de una autopista).
    */
-  async findNearestNodes(lat: number, lon: number, k: number): Promise<number[]> {
+  async snap(lat: number, lon: number, k: number): Promise<SnapCandidate[]> {
     const g = await this.getGraph();
-    const pool = k * 40;
-    const ids = this.source === 'legacy' ? await this.legacyNearest(lat, lon, pool) : await this.store.findNearestNodeIds(lat, lon, pool);
-    if (ids.length === 0) {
-      throw new NotFoundException(`No hay vías importadas a menos de 5 km de (${lat}, ${lon}). ¿Importaste esa zona?`);
-    }
-    const out: number[] = [];
-    for (const id of ids) {
-      const i = nodeIndex(g, id);
-      if (i >= 0 && g.nodeInMainScc[i]) out.push(i);
-      if (out.length === k) break;
-    }
-    if (out.length === 0) {
+    const idx = spatialIndex(g);
+    const found = idx.nearest(lat, lon, k, SNAP_RADIUS_M, (c) => chainInMainScc(g, c));
+    if (found.length > 0) return found;
+    if (idx.nearest(lat, lon, 1, SNAP_RADIUS_M).length > 0) {
       throw new NotFoundException(
         `El punto (${lat}, ${lon}) está fuera de la red conectada: las vías cercanas forman una isla sin conexión con el resto del grafo.`,
       );
     }
-    return out;
-  }
-
-  /** Nodo de la red conectada más cercano. */
-  async findNearestNode(lat: number, lon: number): Promise<number> {
-    const [i] = await this.findNearestNodes(lat, lon, 1);
-    return i;
-  }
-
-  private async legacyNearest(lat: number, lon: number, k: number): Promise<string[]> {
-    const docs = await this.nodeModel
-      .find({ location: { $near: { $geometry: { type: 'Point', coordinates: [lon, lat] }, $maxDistance: 5000 } } }, { _id: 0, osmId: 1 })
-      .limit(k)
-      .lean()
-      .exec();
-    return docs.map((d) => d.osmId);
+    throw new NotFoundException(`No hay vías importadas a menos de 5 km de (${lat}, ${lon}). ¿Importaste esa zona?`);
   }
 }
