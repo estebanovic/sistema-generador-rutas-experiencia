@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-18T05:56:47.586Z",
+  "api": "http://localhost:3000",
+  "coldMs": 17105,
+  "routesOk": 99,
+  "routesTotal": 99,
+  "params": {
+    "curvyThresholdDegPerKm": 100,
+    "curvature": {
+      "W": 100,
+      "theta": 5,
+      "step": 10,
+      "R": 150
+    }
+  },
+  "profiles": {
+    "moto-curvas": {
+      "n": 33,
+      "msP50": 401,
+      "msP95": 1923,
+      "criterionMean": 0.322,
+      "criterionMedian": 0.315,
+      "routesAtLeast70": 2,
+      "detourMean": 1.094,
+      "detourMax": 1.51,
+      "curvyOldMetricMean": 0.408,
+      "routesWithRepeatedSegments": 0
+    },
+    "4x4": {
+      "n": 33,
+      "msP50": 526,
+      "msP95": 1909,
+      "criterionMean": 0.099,
+      "criterionMedian": 0.006,
+      "routesAtLeast70": 1,
+      "detourMean": 1.011,
+      "detourMax": 1.251,
+      "curvyOldMetricMean": 0.311,
+      "routesWithRepeatedSegments": 0
+    },
+    "scenic": {
+      "n": 33,
+      "msP50": 425,
+      "msP95": 1820,
+      "criterionMean": 0.234,
+      "criterionMedian": 0.122,
+      "routesAtLeast70": 2,
+      "detourMean": 1.032,
+      "detourMax": 1.223,
+      "curvyOldMetricMean": 0.347,
+      "routesWithRepeatedSegments": 0
+    }
+  },
+  "overlap": {
+    "moto-curvas/4x4": {
+      "mean": 0.691,
+      "median": 0.768
+    },
+    "moto-curvas/scenic": {
+      "mean": 0.792,
+      "median": 0.927
+    },
+    "4x4/scenic": {
+      "mean": 0.751,
+      "median": 0.846
+    }
+  },
+  "pairsAllIdentical": "2/33",
+  "surfaceDeclaredOnRouteMeters": 0.941,
+  "errors": []
+}

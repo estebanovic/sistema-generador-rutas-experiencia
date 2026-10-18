@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+*.log
+
+# Línea base: solo se versionan los resúmenes (raw.json pesa ~1,2 MB por corrida)
+scripts/baseline/results/**/raw.json
