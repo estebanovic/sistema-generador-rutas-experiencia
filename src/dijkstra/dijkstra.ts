@@ -37,6 +37,18 @@ export interface TramoUse {
   dir: 1 | -1;
 }
 
+/**
+ * Σ largo × feature de la ruta, exactas desde las sumas prefijas (incluidos los
+ * pedazos de los extremos). Con ellas se calcula el costo del perfil y el largo
+ * de una ruta sin importar con qué costo se buscó (LARAC, F4).
+ */
+export interface RouteSums {
+  len: number;
+  straight: number;
+  unpaved: number;
+  minor: number;
+}
+
 /** Resultado del motor: lo que ve la API más los datos internos del camino. */
 export interface EngineRoute extends RouteResult {
   /** Nodos de unión recorridos (vacío si la ruta no sale del tramo de origen). */
@@ -45,6 +57,7 @@ export interface EngineRoute extends RouteResult {
   edgeIdx: number[];
   /** Tramos usados, con los pedazos parciales de los extremos. */
   tramos: TramoUse[];
+  sums: RouteSums;
   /** Origen y destino elegidos entre los candidatos. */
   origin?: Endpoint;
   dest?: Endpoint;
@@ -64,7 +77,17 @@ export interface DijkstraOptions {
   privateAccess?: { origin?: boolean; dest?: boolean };
   /** Si se pasa, el motor suma aquí los nodos asentados (para el bench y para comparar con A*, F3). */
   stats?: SearchStats;
+  /**
+   * LARAC (F4): minimiza costo + λ·largo, con λ ≥ 0 (por defecto 0). El
+   * `totalCost` devuelto es el de la búsqueda; el del perfil sale de `sums`.
+   */
+  lambda?: number;
+  /** Minimiza solo el largo: la ruta más corta pura, base del presupuesto de desvío (F4). */
+  lengthOnly?: boolean;
 }
+
+/** Nodos que la búsqueda puede usar (poda elíptica de F4); los demás se descartan. */
+export type NodeFilter = (node: number) => boolean;
 
 export interface SearchStats {
   settled: number;
@@ -323,8 +346,9 @@ export function dijkstraMultiSource(
   dests: Endpoint[],
   weights: RouteWeights,
   options?: DijkstraOptions,
+  filter: NodeFilter | null = null,
 ): EngineRoute | null {
-  return searchMultiSource(g, origins, dests, weights, options, null);
+  return searchMultiSource(g, origins, dests, weights, options, null, filter);
 }
 
 /**
@@ -346,8 +370,15 @@ export function searchMultiSource(
   weights: RouteWeights,
   options: DijkstraOptions | undefined,
   heuristic: Heuristic | null,
+  filter: NodeFilter | null = null,
 ): EngineRoute | null {
   const N = g.meta.nodeCount;
+  // Costo de la búsqueda: ca·costo del perfil + cb·largo. Con (1, 0) es el costo
+  // del perfil, bit a bit igual que antes de F4; con (1, λ), el de LARAC; con (0, 1), el largo.
+  const lengthOnly = options?.lengthOnly === true;
+  const ca = lengthOnly ? 0 : 1;
+  const cb = lengthOnly ? 1 : (options?.lambda ?? 0);
+  const pieceCost = (s: Sums) => ca * costOf(s, weights) + cb * s.len;
   const validNode = (n: number) => Number.isInteger(n) && n >= 0 && n < N;
   const blocked = options?.blocked;
   const originAccess = options?.privateAccess?.origin ?? true;
@@ -373,8 +404,8 @@ export function searchMultiSource(
     if (!originAccess && isPrivateChain(p.chain)) return;
     const at = sumsAt(g, p);
     const total = sumsAt(g, endPos(g, p.chain));
-    if (g.chainFwd[p.chain] >= 0 && free(p.chain, at.len, total.len)) seed(g.chainNode1[p.chain], costOf(minus(total, at), weights), { origin: i, mode: 'fwd' });
-    if (g.chainBwd[p.chain] >= 0 && free(p.chain, 0, at.len)) seed(g.chainNode0[p.chain], costOf(at, weights), { origin: i, mode: 'bwd' });
+    if (g.chainFwd[p.chain] >= 0 && free(p.chain, at.len, total.len)) seed(g.chainNode1[p.chain], pieceCost(minus(total, at)), { origin: i, mode: 'fwd' });
+    if (g.chainBwd[p.chain] >= 0 && free(p.chain, 0, at.len)) seed(g.chainNode0[p.chain], pieceCost(at), { origin: i, mode: 'bwd' });
   });
 
   // Destinos: nodo de unión → costo extra para llegar desde él a algún destino.
@@ -390,8 +421,8 @@ export function searchMultiSource(
     if (!destAccess && isPrivateChain(q.chain)) return;
     const at = sumsAt(g, q);
     const total = sumsAt(g, endPos(g, q.chain));
-    if (g.chainFwd[q.chain] >= 0 && free(q.chain, 0, at.len)) addTarget(g.chainNode0[q.chain], { dest: i, mode: 'fwd', cost: costOf(at, weights) });
-    if (g.chainBwd[q.chain] >= 0 && free(q.chain, at.len, total.len)) addTarget(g.chainNode1[q.chain], { dest: i, mode: 'bwd', cost: costOf(minus(total, at), weights) });
+    if (g.chainFwd[q.chain] >= 0 && free(q.chain, 0, at.len)) addTarget(g.chainNode0[q.chain], { dest: i, mode: 'fwd', cost: pieceCost(at) });
+    if (g.chainBwd[q.chain] >= 0 && free(q.chain, at.len, total.len)) addTarget(g.chainNode1[q.chain], { dest: i, mode: 'bwd', cost: pieceCost(minus(total, at)) });
   });
 
   // Recorrido directo dentro de un mismo tramo (origen y destino en el mismo tramo).
@@ -406,8 +437,8 @@ export function searchMultiSource(
       const b = sumsAt(g, d);
       if (!free(o.chain, Math.min(a.len, b.len), Math.max(a.len, b.len))) return;
       let c = Infinity;
-      if (b.len >= a.len && g.chainFwd[o.chain] >= 0) c = costOf(minus(b, a), weights);
-      else if (b.len < a.len && g.chainBwd[o.chain] >= 0) c = costOf(minus(a, b), weights);
+      if (b.len >= a.len && g.chainFwd[o.chain] >= 0) c = pieceCost(minus(b, a));
+      else if (b.len < a.len && g.chainBwd[o.chain] >= 0) c = pieceCost(minus(a, b));
       if (c < best) {
         best = c;
         bestDirect = { o: i, d: j };
@@ -438,6 +469,7 @@ export function searchMultiSource(
   const { outStart, edgeTo, edgeLen, edgeSumStraight, edgeSumUnpaved, edgeSumMinor, edgeFlags, edgeChain } = g;
 
   for (const [n, c] of seedCost) {
+    if (filter && !filter(n)) continue;
     dist[n] = c;
     distStamp[n] = stamp;
     prevEdge[n] = -1;
@@ -471,7 +503,8 @@ export function searchMultiSource(
         continue; // vía privada fuera del tramo inicial/final: no se usa de paso
       }
       if (blocked && blocked.isUsed(edgeChain[e])) continue; // tramo ya recorrido por otra pierna
-      const cost = distU + costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights);
+      if (filter && !filter(v)) continue; // fuera de la elipse del presupuesto (F4)
+      const cost = distU + ca * costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights) + cb * edgeLen[e];
       if (cost < (distStamp[v] === stamp ? dist[v] : Infinity)) {
         dist[v] = cost;
         distStamp[v] = stamp;
@@ -553,6 +586,7 @@ export function buildRouteResult(
   const coordinates: [number, number][] = [];
   const tramos: TramoUse[] = [];
   let distanceMeters = 0;
+  const sums: RouteSums = { len: 0, straight: 0, unpaved: 0, minor: 0 };
   let curvinessMeters = 0;
   let degMeters = 0;
   let curvyMeters = 0;
@@ -578,6 +612,10 @@ export function buildRouteResult(
     // Recorremos siempre de lo/hi en orden de geometría y, si el pedazo va al revés, invertimos.
     const lo = forward ? from : to;
     const hi = forward ? to : from;
+    sums.len += interp(g.geoCumLen, hi) - interp(g.geoCumLen, lo);
+    sums.straight += interp(g.geoCumStraight, hi) - interp(g.geoCumStraight, lo);
+    sums.unpaved += interp(g.geoCumUnpaved, hi) - interp(g.geoCumUnpaved, lo);
+    sums.minor += interp(g.geoCumMinor, hi) - interp(g.geoCumMinor, lo);
     const ids: number[] = [];
     const coords: [number, number][] = [];
     const L0 = locate(g, lo);
@@ -638,5 +676,6 @@ export function buildRouteResult(
     nodeIdx: nodes,
     edgeIdx: edges,
     tramos,
+    sums,
   };
 }

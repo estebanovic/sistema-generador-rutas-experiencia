@@ -1,11 +1,18 @@
 import { RouteWeights } from './cost';
 import { CompiledGraph } from './compiled-graph';
 import { astarMultiSource } from './astar';
-import { DijkstraOptions, Endpoint, EngineRoute } from './dijkstra';
+import { DijkstraOptions, Endpoint, EngineRoute, NodeFilter } from './dijkstra';
 import { TramoOverlay } from './overlay';
 
 /** Motor de una pierna: A* (por defecto) o Dijkstra (oráculo en los tests). */
-export type LegEngine = (g: CompiledGraph, origins: Endpoint[], dests: Endpoint[], weights: RouteWeights, options?: DijkstraOptions) => EngineRoute | null;
+export type LegEngine = (
+  g: CompiledGraph,
+  origins: Endpoint[],
+  dests: Endpoint[],
+  weights: RouteWeights,
+  options?: DijkstraOptions,
+  filter?: NodeFilter | null,
+) => EngineRoute | null;
 
 /**
  * Ruta que pasa por una secuencia de puntos (origen, waypoints…, destino),
@@ -70,6 +77,12 @@ export function concatRoutes(legs: EngineRoute[]): EngineRoute {
       nodeIdx,
       edgeIdx: a.edgeIdx.concat(b.edgeIdx),
       tramos: a.tramos.concat(b.tramos),
+      sums: {
+        len: a.sums.len + b.sums.len,
+        straight: a.sums.straight + b.sums.straight,
+        unpaved: a.sums.unpaved + b.sums.unpaved,
+        minor: a.sums.minor + b.sums.minor,
+      },
       origin: a.origin,
       dest: b.dest,
       totalCost: a.totalCost + b.totalCost,

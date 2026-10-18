@@ -7,9 +7,12 @@
 //   los pesos en 0), como la API: snap multi-candidato + búsqueda;
 // - con --random N, además N pares al azar de nodos de la red conectada a
 //   2–60 km (semilla fija), con los mismos pesos.
-// Cada consulta corre con A* (el motor de la API desde F3) y con Dijkstra (el
-// oráculo). Informa p50/p95/máx del tiempo, los nodos asentados, cuántas veces
-// menos nodos asienta A* y la mayor diferencia de costo entre ambos (debe ser 0).
+// Cada consulta corre con A* y con Dijkstra (el oráculo), sin presupuesto, y con
+// LARAC (la consulta completa de la API desde F4: presupuesto de desvío del
+// perfil; ×1,5 con los pesos en 0). Informa p50/p95/máx del tiempo, los nodos
+// asentados, cuántas veces menos nodos asienta A*, la mayor diferencia de costo
+// entre A* y Dijkstra (debe ser 0) y, para LARAC, las búsquedas por consulta y
+// cuántas veces ata el presupuesto.
 const fs = require('fs');
 const path = require('path');
 const DIST = path.join(__dirname, '..', 'dist');
@@ -19,10 +22,19 @@ const { haversine } = require(path.join(DIST, 'graph-compiler', 'geo'));
 const { snapCandidates, spatialIndex } = require(path.join(DIST, 'dijkstra', 'snap'));
 const { dijkstraMultiSource } = require(path.join(DIST, 'dijkstra', 'dijkstra'));
 const { astarMultiSource } = require(path.join(DIST, 'dijkstra', 'astar'));
+const { constrainedRoute } = require(path.join(DIST, 'dijkstra', 'constrained'));
+const profilesModule = require(path.join(DIST, 'routes', 'profiles'));
 // Los tres perfiles más los pesos en 0 (ruta más corta), que F3 usa como referencia para A*.
-const PROFILES = { 'pesos-en-0': { curvinessWeight: 0, surfaceWeight: 0 }, ...require(path.join(DIST, 'routes', 'profiles')).PROFILES };
+const PROFILES = { 'pesos-en-0': { curvinessWeight: 0, surfaceWeight: 0 }, ...profilesModule.PROFILES };
+const BUDGET = (p) => profilesModule.PROFILE_DETOUR_BUDGET[p] ?? 1.5;
 const { SETS } = require('./baseline/pairs');
-const ENGINES = { astar: astarMultiSource, dijkstra: dijkstraMultiSource };
+// Cada motor recibe (candidatos de origen, de destino, perfil, stats) y devuelve { cost, searches?, binding? }.
+const plain = (fn) => (sc, ec, p, stats) => { const r = fn(g, sc, ec, PROFILES[p], { stats }); return r && { cost: r.totalCost, searches: 1 }; };
+const ENGINES = {
+  astar: plain(astarMultiSource),
+  dijkstra: plain(dijkstraMultiSource),
+  larac: (sc, ec, p, stats) => { const r = constrainedRoute(g, sc, ec, PROFILES[p], BUDGET(p), { stats }); return r && { cost: r.route.totalCost, searches: r.detour.searches, binding: r.detour.binding }; },
+};
 
 const args = process.argv.slice(2);
 const opt = (name, def) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : def; };
@@ -77,8 +89,8 @@ const run = (engine, q) => {
   const s = performance.now();
   const sc = q.o ? snapCandidates(g, q.o[0], q.o[1]) : q.sc;
   const ec = q.d ? snapCandidates(g, q.d[0], q.d[1]) : q.ec;
-  const r = sc.length && ec.length ? ENGINES[engine](g, sc, ec, PROFILES[q.profile], { stats }) : null;
-  return { ms: performance.now() - s, settled: stats.settled, cost: r ? r.totalCost : null };
+  const r = sc.length && ec.length ? ENGINES[engine](sc, ec, q.profile, stats) : null;
+  return { ms: performance.now() - s, settled: stats.settled, cost: r ? r.cost : null, searches: r ? r.searches : 0, binding: !!(r && r.binding) };
 };
 
 for (const q of queries) for (const e of Object.keys(ENGINES)) run(e, q); // calentamiento (JIT)
@@ -88,7 +100,7 @@ for (const e of Object.keys(ENGINES)) {
     const first = run(e, q);
     const ms = [first.ms];
     for (let rep = 1; rep < REPS; rep++) ms.push(run(e, q).ms);
-    res[i][e] = { ms, settled: first.settled, cost: first.cost };
+    res[i][e] = { ms, settled: first.settled, cost: first.cost, searches: first.searches, binding: first.binding };
   });
 }
 
@@ -100,7 +112,7 @@ const out = {
   date: new Date().toISOString(), snapshot: file.f, node: process.version, reps: REPS, random: RANDOM, queries: queries.length,
   loadMs: Math.round(tLoad), spatialIndexMs: Math.round(tIndex), groups: {},
 };
-console.log(`snapshot ${file.f}: carga ${out.loadMs} ms, índice espacial ${out.spatialIndexMs} ms; ${queries.length} consultas × ${REPS} repeticiones × 2 motores`);
+console.log(`snapshot ${file.f}: carga ${out.loadMs} ms, índice espacial ${out.spatialIndexMs} ms; ${queries.length} consultas × ${REPS} repeticiones × ${Object.keys(ENGINES).length} motores`);
 for (const group of [...new Set(queries.map((q) => q.group))]) {
   out.groups[group] = {};
   console.log(`\n## ${group}`);
@@ -112,6 +124,12 @@ for (const group of [...new Set(queries.map((q) => q.group))]) {
       const ms = idx.flatMap((i) => res[i][e].ms);
       const st = idx.map((i) => res[i][e].settled);
       row[e] = { mean: r2(mean(ms)), p50: r2(quant(ms, 0.5)), p95: r2(quant(ms, 0.95)), max: r2(Math.max(...ms)), settledMean: Math.round(mean(st)), settledP95: quant(st, 0.95), fail: idx.filter((i) => res[i][e].cost === null).length };
+      if (e === 'larac') {
+        const se = idx.map((i) => res[i][e].searches);
+        row[e].searchesMean = r2(mean(se));
+        row[e].searchesMax = Math.max(...se);
+        row[e].binding = idx.filter((i) => res[i][e].binding).length;
+      }
     }
     const sumD = idx.reduce((s, i) => s + res[i].dijkstra.settled, 0);
     const sumA = idx.reduce((s, i) => s + res[i].astar.settled, 0);
@@ -133,7 +151,12 @@ for (const group of [...new Set(queries.map((q) => q.group))]) {
     out.groups[group][profile] = row;
     for (const e of Object.keys(ENGINES)) {
       const o = row[e];
-      const extra = e === 'astar' ? `   ${String(row.settledRatioTotal).padStart(6)} ; ${String(row.settledRatioMedian).padEnd(22)}   ${dmax.toExponential(1).padStart(9)}` : ''.padEnd(48);
+      const extra =
+        e === 'astar'
+          ? `   ${String(row.settledRatioTotal).padStart(6)} ; ${String(row.settledRatioMedian).padEnd(22)}   ${dmax.toExponential(1).padStart(9)}`
+          : e === 'larac'
+            ? `   búsquedas media ${o.searchesMean} máx ${o.searchesMax}; ata en ${o.binding}/${idx.length}`.padEnd(48)
+            : ''.padEnd(48);
       console.log(`${(e === 'astar' ? profile : '').padEnd(13)} ${e.padEnd(9)} ${String(o.mean).padStart(8)} ${String(o.p50).padStart(7)} ${String(o.p95).padStart(8)} ${String(o.max).padStart(8)}   ${String(o.settledMean).padStart(9)} / ${String(o.settledP95).padEnd(12)}${extra}   ${o.fail}`);
     }
   }

@@ -6,9 +6,9 @@
  *
  *   npx jest test/golden -u
  *
- * La consulta es la misma que hace la API (snap multi-candidato + A* con el
- * perfil, desde F3). Cada ruta se compara además con Dijkstra (oráculo): el
- * costo tiene que ser el mismo. Necesita el snapshot del grafo para el COMPILER_VERSION actual en
+ * La consulta es la misma que hace la API: snap multi-candidato + LARAC sobre
+ * A* con el perfil y su presupuesto de desvío (F4). Cada ruta se compara
+ * además con LARAC sobre Dijkstra (oráculo): el costo tiene que ser el mismo. Necesita el snapshot del grafo para el COMPILER_VERSION actual en
  * data/graph-cache (o GRAPH_CACHE_DIR), que escribe el servidor al arrancar; si
  * no está, el test se salta con un aviso. La versión de datos (dataVersion)
  * queda en el snapshot de Jest: otra importación cambia las rutas.
@@ -16,14 +16,13 @@
 import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { astarMultiSource } from '../src/dijkstra/astar';
 import { CompiledGraph } from '../src/dijkstra/compiled-graph';
-import { dijkstraMultiSource } from '../src/dijkstra/dijkstra';
+import { constrainedRoute } from '../src/dijkstra/constrained';
 import { assertSinRepeticion } from '../src/dijkstra/no-repeat';
 import { snapCandidates } from '../src/dijkstra/snap';
 import { COMPILER_VERSION } from '../src/graph-compiler/compile';
 import { readSnapshot } from '../src/graph-compiler/snapshot';
-import { PROFILES } from '../src/routes/profiles';
+import { PROFILES, PROFILE_DETOUR_BUDGET } from '../src/routes/profiles';
 
 // Mismos pares que la línea base (scripts/baseline/pairs.js, fijos entre fases).
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -68,21 +67,24 @@ if (!file) {
       const sc = snapCandidates(g, P[a][0], P[a][1]);
       const ec = snapCandidates(g, P[b][0], P[b][1]);
       for (const perfil of pairs.PROFILES) {
-        const r = astarMultiSource(g, sc, ec, PROFILES[perfil]);
-        const oraculo = dijkstraMultiSource(g, sc, ec, PROFILES[perfil]);
+        const res = constrainedRoute(g, sc, ec, PROFILES[perfil], PROFILE_DETOUR_BUDGET[perfil]);
+        const oraculo = constrainedRoute(g, sc, ec, PROFILES[perfil], PROFILE_DETOUR_BUDGET[perfil], { engine: 'dijkstra' });
         const clave = `${a}→${b} ${perfil}`;
-        expect(r === null).toBe(oraculo === null);
-        if (!r) {
+        expect(res === null).toBe(oraculo === null);
+        if (!res) {
           rutas[clave] = null;
           continue;
         }
-        expect(Math.abs(r.totalCost - oraculo!.totalCost) / oraculo!.totalCost).toBeLessThan(1e-9);
+        const r = res.route;
+        expect(Math.abs(r.totalCost - oraculo!.route.totalCost) / oraculo!.route.totalCost).toBeLessThan(1e-9);
+        expect(res.detour.detourRatio).toBeLessThanOrEqual(PROFILE_DETOUR_BUDGET[perfil] + 1e-9);
         assertSinRepeticion(r);
         rutas[clave] = {
           metros: Math.round(r.stats.distanceMeters * 10) / 10,
           costo: Math.round(r.totalCost * 10) / 10,
           nodos: r.path.length,
           camino: createHash('sha1').update(r.path.join(',')).digest('hex').slice(0, 12),
+          lambda: Math.round(res.detour.lambda * 1e4) / 1e4,
         };
       }
     }

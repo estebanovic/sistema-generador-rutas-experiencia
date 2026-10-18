@@ -1,6 +1,6 @@
 import { RouteWeights } from './cost';
 import { CompiledGraph } from './compiled-graph';
-import { DijkstraOptions, Endpoint, EngineRoute, Heuristic, searchMultiSource } from './dijkstra';
+import { DijkstraOptions, Endpoint, EngineRoute, Heuristic, NodeFilter, searchMultiSource } from './dijkstra';
 import { EARTH_RADIUS_M, unitVector } from '../graph-compiler/geo';
 
 /**
@@ -61,10 +61,10 @@ function geometry(g: CompiledGraph): Geometry {
   return geo;
 }
 
-/** Puntos reales (lat, lon) que acotan cada destino. */
-function targetPoints(g: CompiledGraph, dests: Endpoint[]): [number, number][] {
+/** Puntos reales (lat, lon) que acotan cada extremo: el nodo, o los dos extremos del segmento del fantasma. */
+function endpointPoints(g: CompiledGraph, eps: Endpoint[]): [number, number][] {
   const pts: [number, number][] = [];
-  for (const d of dests) {
+  for (const d of eps) {
     if ('node' in d) pts.push([g.nodeLat[d.node], g.nodeLon[d.node]]);
     else {
       pts.push([g.geoLat[d.point], g.geoLon[d.point]]);
@@ -74,12 +74,16 @@ function targetPoints(g: CompiledGraph, dests: Endpoint[]): [number, number][] {
   return pts;
 }
 
-/** Heurística de A* para estos destinos. */
-export function chordHeuristic(g: CompiledGraph, dests: Endpoint[]): Heuristic {
+/**
+ * Cota inferior del largo desde un nodo hasta el más cercano de estos
+ * extremos (en cualquier sentido): s · máx(0, cuerda(v, c) − r), con c el
+ * centro (en R³, no necesariamente sobre la esfera) y r el radio de sus puntos
+ * reales. `null` si no hay extremos.
+ */
+function lengthBound(g: CompiledGraph, eps: Endpoint[]): ((v: number) => number) | null {
   const { node, scale } = geometry(g);
-  const q = targetPoints(g, dests).map(([la, lo]) => unitVector(la, lo));
-  if (q.length === 0) return () => 0;
-  // Centro (en R³, no necesariamente sobre la esfera) y radio de los puntos de destino.
+  const q = endpointPoints(g, eps).map(([la, lo]) => unitVector(la, lo));
+  if (q.length === 0) return null;
   let cx = 0;
   let cy = 0;
   let cz = 0;
@@ -99,6 +103,30 @@ export function chordHeuristic(g: CompiledGraph, dests: Endpoint[]): Heuristic {
   };
 }
 
+/**
+ * Heurística de A* para estos destinos. `factor` es el costo mínimo por metro
+ * de la búsqueda: 1 para el costo del perfil (costo ≥ L) y para el largo puro,
+ * 1 + λ para LARAC (costo + λ·L ≥ (1 + λ)·L, F4).
+ */
+export function chordHeuristic(g: CompiledGraph, dests: Endpoint[], factor = 1): Heuristic {
+  const bound = lengthBound(g, dests);
+  if (!bound) return () => 0;
+  return factor === 1 ? bound : (v: number) => factor * bound(v);
+}
+
+/**
+ * Poda elíptica exacta (F4): un nodo v solo puede estar en una ruta de largo
+ * ≤ maxLen si cota(origen → v) + cota(v → destino) ≤ maxLen. Las cotas son las
+ * de la heurística (cuerda escalada por el invariante L ≥ s·cuerda del
+ * compilador), así que nunca se descarta un nodo de una ruta factible.
+ */
+export function ellipseFilter(g: CompiledGraph, origins: Endpoint[], dests: Endpoint[], maxLen: number): NodeFilter {
+  const fromO = lengthBound(g, origins);
+  const toD = lengthBound(g, dests);
+  if (!fromO || !toD) return () => true;
+  return (v: number) => fromO(v) + toD(v) <= maxLen;
+}
+
 /** A* multi-candidato: misma firma y mismo resultado (costo) que `dijkstraMultiSource`. */
 export function astarMultiSource(
   g: CompiledGraph,
@@ -106,8 +134,10 @@ export function astarMultiSource(
   dests: Endpoint[],
   weights: RouteWeights,
   options?: DijkstraOptions,
+  filter: NodeFilter | null = null,
 ): EngineRoute | null {
-  return searchMultiSource(g, origins, dests, weights, options, chordHeuristic(g, dests));
+  const factor = options?.lengthOnly ? 1 : 1 + (options?.lambda ?? 0);
+  return searchMultiSource(g, origins, dests, weights, options, chordHeuristic(g, dests, factor), filter);
 }
 
 export function astar(

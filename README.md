@@ -87,6 +87,8 @@ Perfiles: `moto-curvas`, `4x4`, `scenic`, `custom`. Con `custom` debés enviar
 - `curvinessWeight` (0 a 4): cuánto se evitan las rectas.
 - `surfaceWeight` (-4 a 4): mayor que 0 evita lo sin pavimentar; menor que 0 evita el pavimento (prefiere ripio y tierra).
 
+Opcional en cualquier perfil: `maxDetourRatio` (1,0 a 3,0), el presupuesto de desvío. La ruta no puede medir más que ese múltiplo de la ruta más corta entre los mismos puntos. Por defecto se usa el del perfil (ver "Función de costo"). Solo hay límite superior.
+
 Respuesta:
 
 - `path`: osmIds de los nodos recorridos.
@@ -94,6 +96,12 @@ Respuesta:
 - `totalCost`: costo de la ruta en metros equivalentes (siempre ≥ la distancia; ver "Función de costo").
 - `stats`: distancia, sinuosidad (`curviness`, `curvinessDegPerKm`, `curvyShare`) y desglose por tipo de vía, superficie y procedencia de la superficie.
 - `snap`: `{ origin, destination }`, cada uno `{ distanceMeters, lat, lon }`: el punto de la vía donde empieza o termina la ruta y su distancia al punto pedido.
+- `detour`: el presupuesto de desvío aplicado.
+  - `shortestDistanceMeters`: largo de la ruta más corta;
+  - `detourRatio`: largo de la ruta / el de la más corta;
+  - `maxDetourRatio`: el presupuesto usado;
+  - `binding`: `true` si el presupuesto cambió la ruta;
+  - `lambda` y `gap`: multiplicador de LARAC y brecha relativa con la cota inferior (0 si el presupuesto no ata). Con brecha > 0 puede existir una ruta factible algo mejor que la devuelta.
 
 Errores del ajuste (snap), con HTTP 404:
 
@@ -118,6 +126,7 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | Se eliminan `stats.elevationGainMeters` y `stats.elevationLossMeters` (antes `null`): el backend ya no maneja elevación. | Rompe a los clientes que leen esos campos; el desnivel, si se muestra, lo obtiene el frontend por su cuenta. |
 | 2026-10-18 | Se elimina `tripLength` (la "vuelta" con waypoints desviados): enviarlo responde 400. La ruta es siempre la directa del perfil. | Rompe a los clientes que lo envían, aunque sea `direct`. |
 | 2026-10-18 | `GET /` ya no sirve el visor legado (`public/index.html`, D9); la vista es el frontend aparte. | Solo afecta a quien usaba ese visor. |
+| 2026-10-18 | Campo opcional `maxDetourRatio` (1,0–3,0; por defecto el del perfil) y bloque `detour` en la respuesta. La ruta respeta siempre el presupuesto, así que puede cambiar donde la óptima lo excedía (en la línea base, La Dehesa→Colina en 4x4). | Compatible (campos nuevos); cambia la ruta solo donde el presupuesto ata. |
 
 ## Función de costo
 
@@ -140,7 +149,7 @@ recargo de superficie = surfaceWeight · sinPavimentar          si surfaceWeight
 | 4x4 | 0 | -4 | ×2,0 |
 | scenic | 4 | 2 | ×1,5 |
 
-El presupuesto de desvío (largo de la ruta / distancia mínima) se usa por ahora para medir; el motor todavía no lo impone.
+El presupuesto de desvío (largo de la ruta / distancia mínima) lo impone el motor con LARAC: si la ruta óptima del perfil lo excede, se busca la mejor que cabe, con una poda elíptica exacta. El usuario lo puede cambiar con `maxDetourRatio`.
 
 ## Arquitectura
 

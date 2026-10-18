@@ -18,10 +18,11 @@ export const PROFILES: Record<Exclude<ProfileName, 'custom'>, RouteWeights> = {
 };
 
 /**
- * Presupuesto de desvío por defecto de cada perfil (D5): largo máximo de la
- * ruta / distancia mínima. Lo usa la línea base para el máximo alcanzable y lo
- * impondrá el motor en F4. 4x4 necesita más margen para llegar a caminos sin
- * pavimentar; para curvas, más de 1,5 no aporta.
+ * Presupuesto de desvío por defecto de cada perfil (D5, resuelta): largo máximo
+ * de la ruta / distancia mínima. El motor lo impone con LARAC (F4) y la línea
+ * base lo usa para el máximo alcanzable. 4x4 necesita más margen para llegar a
+ * caminos sin pavimentar; para curvas, más de 1,5 no aporta. El usuario lo
+ * puede cambiar con `maxDetourRatio`.
  */
 export const PROFILE_DETOUR_BUDGET: Record<ProfileName, number> = {
   'moto-curvas': 1.5,
@@ -29,3 +30,7 @@ export const PROFILE_DETOUR_BUDGET: Record<ProfileName, number> = {
   scenic: 1.5,
   custom: 1.5,
 };
+
+/** Rango permitido de `maxDetourRatio` (F4). */
+export const MIN_DETOUR_RATIO = 1.0;
+export const MAX_DETOUR_RATIO = 3.0;

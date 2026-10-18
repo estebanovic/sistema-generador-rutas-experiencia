@@ -54,3 +54,17 @@ describe('CalculateRouteDto: campos retirados en F0.6', () => {
     expect(await errores({ ...base, profile: '4x4' })).toEqual([]);
   });
 });
+
+describe('CalculateRouteDto: presupuesto de desvío (F4)', () => {
+  it.each([1, 1.5, 2.25, 3])('acepta maxDetourRatio = %s', async (v) => {
+    expect(await errores({ ...base, profile: '4x4', maxDetourRatio: v })).toEqual([]);
+  });
+
+  it.each([0.9, 3.5, -1])('rechaza maxDetourRatio = %s (rango 1–3)', async (v) => {
+    expect(await errores({ ...base, profile: '4x4', maxDetourRatio: v })).toEqual(['maxDetourRatio']);
+  });
+
+  it('no acepta un mínimo de desvío (solo hay límite superior)', async () => {
+    expect(await errores({ ...base, profile: '4x4', minDetourRatio: 1.2 })).toEqual(['minDetourRatio']);
+  });
+});

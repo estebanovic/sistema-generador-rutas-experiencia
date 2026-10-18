@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { W_MAX } from '../../dijkstra/cost';
-import { PROFILE_NAMES, ProfileName } from '../profiles';
+import { MAX_DETOUR_RATIO, MIN_DETOUR_RATIO, PROFILE_NAMES, ProfileName } from '../profiles';
 
 export class LatLonDto {
   @Type(() => Number)
@@ -66,4 +66,16 @@ export class CalculateRouteDto {
   @ValidateNested()
   @Type(() => RouteWeightsDto)
   customWeights?: RouteWeightsDto;
+
+  /**
+   * Presupuesto de desvío (F4, D5): largo máximo de la ruta / distancia mínima.
+   * Por defecto el del perfil (moto-curvas ×1,5, 4x4 ×2,0, scenic ×1,5,
+   * custom ×1,5). Solo hay límite superior.
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(MIN_DETOUR_RATIO)
+  @Max(MAX_DETOUR_RATIO)
+  maxDetourRatio?: number;
 }
