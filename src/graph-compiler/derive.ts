@@ -9,11 +9,11 @@ import {
   parseHighway,
   parseOneway,
   parseSmoothness,
-  parseSurface,
 } from './normalize';
 import { RawWay } from './raw';
+import { SurfaceSource, inferSurfaces } from './surface';
 
-export type DerivedEdge = GraphEdge & { osmWayId: string };
+export type DerivedEdge = GraphEdge & { osmWayId: string; surfaceSource?: SurfaceSource };
 
 export interface DeriveStats {
   waysIn: number;
@@ -57,6 +57,9 @@ export function deriveGraph(
   const used = new Map<string, GraphNode>();
   const seen = new Set<string>();
 
+  // Primera pasada: coordenadas y exclusiones; la superficie se infiere con
+  // todos los ways incluidos a la vista (votación de vecinos, F0.5).
+  const included: { way: RawWay; coords: { osmId: string; lat: number; lon: number }[]; length: number }[] = [];
   for (const way of ways) {
     stats.waysIn++;
     const coords: { osmId: string; lat: number; lon: number }[] = [];
@@ -76,10 +79,18 @@ export function deriveGraph(
       continue;
     }
     if (coords.length < 2) continue;
-    stats.waysUsed++;
+    let length = 0;
+    for (let i = 0; i < coords.length - 1; i++) length += haversine(coords[i].lat, coords[i].lon, coords[i + 1].lat, coords[i + 1].lon);
+    included.push({ way, coords, length });
+  }
+  const surfaces = inferSurfaces(
+    included.map(({ way, length }) => ({ id: way.osmWayId, highway: parseHighway(way.tags.highway), nodeIds: way.nodeIds, tags: way.tags, length })),
+  );
 
+  for (const { way, coords } of included) {
+    stats.waysUsed++;
     const highwayType = parseHighway(way.tags.highway);
-    const surface = parseSurface(way.tags.surface);
+    const { surface, source: surfaceSource } = surfaces.get(way.osmWayId)!;
     const smoothness = parseSmoothness(way.tags.smoothness);
     const oneway = parseOneway(way.tags);
     const destinationOnly = isDestinationOnly(way.tags);
@@ -101,6 +112,7 @@ export function deriveGraph(
         elevationLoss: 0,
         highwayType,
         surface,
+        surfaceSource,
         smoothness,
         ...(destinationOnly ? { destinationOnly: true } : {}),
         osmWayId: way.osmWayId,

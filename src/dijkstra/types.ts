@@ -68,6 +68,8 @@ export interface RouteStats {
   // Metros recorridos por cada tipo de vía / superficie (para gráficos).
   highwayBreakdown: Record<string, number>;
   surfaceBreakdown: Record<string, number>;
+  /** Metros por procedencia de la superficie: declarada, tracktype, vecindad, tipo (F0.5). */
+  surfaceSourceBreakdown: Record<string, number>;
 }
 
 export interface RouteResult {

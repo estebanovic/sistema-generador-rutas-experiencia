@@ -58,6 +58,7 @@ const ARRAYS: [keyof CompiledGraph, TypedArrayCtor][] = [
   ['segLoss', Float32Array],
   ['segHighway', Uint8Array],
   ['segSurface', Uint8Array],
+  ['segSurfaceSource', Uint8Array],
   ['segWay', Float64Array],
   ['twinStart', Int32Array],
   ['twinEdge', Int32Array],

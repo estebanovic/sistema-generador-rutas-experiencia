@@ -1,4 +1,4 @@
-import { HighwayType, SmoothnessType, SurfaceType } from '../dijkstra/types';
+import { HighwayType, SmoothnessType } from '../dijkstra/types';
 
 /**
  * Normalización de tags crudos de OSM a atributos de ruteo, y reglas de
@@ -102,20 +102,6 @@ export function isDestinationOnly(tags: Record<string, string>): boolean {
 
 export function parseHighway(value?: string): HighwayType {
   return (value && HIGHWAY_MAP[value]) || 'residential';
-}
-
-const SURFACE_VALUES: ReadonlySet<string> = new Set([
-  'asphalt', 'concrete', 'gravel', 'dirt', 'sand', 'cobblestone', 'unknown',
-]);
-
-/** Igual que el parser anterior a F0 (la normalización nueva llega en F0.5). */
-export function parseSurface(value?: string): SurfaceType {
-  if (!value) return 'unknown';
-  if (SURFACE_VALUES.has(value)) return value as SurfaceType;
-  if (value.startsWith('paved') || value === 'paving_stones') return 'concrete';
-  if (value === 'unpaved' || value === 'compacted' || value === 'fine_gravel') return 'gravel';
-  if (value === 'ground' || value === 'earth' || value === 'mud') return 'dirt';
-  return 'unknown';
 }
 
 const SMOOTHNESS_VALUES: ReadonlySet<string> = new Set([

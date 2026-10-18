@@ -1,5 +1,6 @@
 import { RouteResult } from './types';
 import { CURVY_THRESHOLD_DEG_PER_KM } from '../graph-compiler/curviness';
+import { SURFACE_SOURCES } from '../graph-compiler/surface';
 import { RouteWeights, costFromSums } from './cost';
 import {
   CompiledGraph,
@@ -513,6 +514,7 @@ export function buildRouteResult(
   let curvyMeters = 0;
   const highwayBreakdown: Record<string, number> = {};
   const surfaceBreakdown: Record<string, number> = {};
+  const surfaceSourceBreakdown: Record<string, number> = {};
 
   const pushId = (p: number) => {
     const id = geoOsmIdString(g, p);
@@ -573,6 +575,8 @@ export function buildRouteResult(
       const sf = SURFACE_CODES[g.segSurface[j]];
       highwayBreakdown[hw] = (highwayBreakdown[hw] ?? 0) + len;
       surfaceBreakdown[sf] = (surfaceBreakdown[sf] ?? 0) + len;
+      const ss = SURFACE_SOURCES[g.segSurfaceSource[j]] ?? 'sin dato';
+      surfaceSourceBreakdown[ss] = (surfaceSourceBreakdown[ss] ?? 0) + len;
     }
   }
 
@@ -590,6 +594,7 @@ export function buildRouteResult(
       curvyShare: distanceMeters > 0 ? curvyMeters / distanceMeters : 0,
       highwayBreakdown,
       surfaceBreakdown,
+      surfaceSourceBreakdown,
     },
     nodeIdx: nodes,
     edgeIdx: edges,

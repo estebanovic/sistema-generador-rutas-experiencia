@@ -85,6 +85,8 @@ export interface CompiledGraph {
   segLoss: Float32Array;
   segHighway: Uint8Array;
   segSurface: Uint8Array;
+  /** Procedencia de la superficie: índice en SURFACE_SOURCES (declarada, tracktype, vecindad, tipo); 255 = sin dato. */
+  segSurfaceSource: Uint8Array;
   segWay: Float64Array;
 
   // ── Calzadas gemelas (D13), CSR por arista dirigida ──

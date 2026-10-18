@@ -300,6 +300,10 @@ function mergeRoutes(a: EngineRoute, b: EngineRoute): EngineRoute {
         a.stats.surfaceBreakdown,
         b.stats.surfaceBreakdown,
       ),
+      surfaceSourceBreakdown: sumBreakdown(
+        a.stats.surfaceSourceBreakdown,
+        b.stats.surfaceSourceBreakdown,
+      ),
     },
   };
 }

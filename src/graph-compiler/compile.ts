@@ -8,6 +8,7 @@ import { edgeFeatures } from '../dijkstra/cost';
 import { GraphEdge, GraphNode } from '../dijkstra/types';
 import { bridges } from './bridges';
 import { CURVATURE_SATURATION_DEG_PER_KM } from './curviness';
+import { SURFACE_SOURCES, SurfaceSource } from './surface';
 import { stronglyConnectedComponents } from './scc';
 import { oppositeTwins, WayLabels } from './twins';
 
@@ -15,11 +16,11 @@ import { oppositeTwins, WayLabels } from './twins';
  * Versión de la lógica derivada (normalización, compactación, features, CFC…).
  * Subirla invalida los snapshots y obliga a recompilar, sin reimportar.
  */
-export const COMPILER_VERSION = 'f0.4-1';
+export const COMPILER_VERSION = 'f0.5-1';
 
 export interface CompileInput {
   nodes: GraphNode[];
-  edges: (GraphEdge & { osmWayId?: string })[];
+  edges: (GraphEdge & { osmWayId?: string; surfaceSource?: SurfaceSource })[];
   source: string;
   dataVersion: number;
   hasElevation: boolean;
@@ -33,7 +34,7 @@ interface Segment {
   b: number;
   ab: boolean; // se puede ir a→b
   ba: boolean; // se puede ir b→a
-  edge: GraphEdge & { osmWayId?: string }; // atributos (los de la arista a→b o b→a)
+  edge: GraphEdge & { osmWayId?: string; surfaceSource?: SurfaceSource }; // atributos (los de la arista a→b o b→a)
   gainAB: number;
   lossAB: number;
   private: boolean;
@@ -180,6 +181,8 @@ export function compileGraph(input: CompileInput): CompiledGraph {
   const segLoss = new Float32Array(P);
   const segHighway = new Uint8Array(P);
   const segSurface = new Uint8Array(P);
+  /** Procedencia de la superficie (índice en SURFACE_SOURCES; 255 = sin dato, p. ej. legacy). */
+  const segSurfaceSource = new Uint8Array(P).fill(255);
   const segWay = new Float64Array(P);
   const chainFlags = new Uint8Array(T);
   const chainNode0 = new Int32Array(T);
@@ -224,6 +227,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
       segHighway[p - 1] = h < 0 ? HIGHWAY_CODES.indexOf('residential') : h;
       const sf = SURFACE_CODES.indexOf(e.surface);
       segSurface[p - 1] = sf < 0 ? SURFACE_CODES.indexOf('unknown') : sf;
+      if (e.surfaceSource) segSurfaceSource[p - 1] = SURFACE_SOURCES.indexOf(e.surfaceSource);
       segWay[p - 1] = e.osmWayId && /^\d+$/.test(e.osmWayId) ? Number(e.osmWayId) : 0;
     }
   }
@@ -314,7 +318,7 @@ export function compileGraph(input: CompileInput): CompiledGraph {
     inStart, inEdge,
     chainStart, chainFwd, chainBwd, chainNode0, chainNode1, chainIsBridge, chainFlags,
     geoOsmId, geoLat, geoLon, geoCumLen, geoCumStraight, geoCumRough, geoCumGrade, geoCumMinor,
-    segCurv, segCurvDeg, segGain, segLoss, segHighway, segSurface, segWay,
+    segCurv, segCurvDeg, segGain, segLoss, segHighway, segSurface, segSurfaceSource, segWay,
     twinStart: new Int32Array(M + 1),
     twinEdge: new Int32Array(0),
     twinFrac: new Float32Array(0),
