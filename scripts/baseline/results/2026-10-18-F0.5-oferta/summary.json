@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-18T19:19:49.167Z",
+  "api": "http://localhost:3000",
+  "set": "oferta",
+  "dataSource": "osm",
+  "coldMs": 55,
+  "routesOk": 45,
+  "routesTotal": 45,
+  "params": {
+    "curvyThresholdDegPerKm": 100,
+    "curvature": {
+      "W": 100,
+      "theta": 5,
+      "step": 10,
+      "R": 150
+    },
+    "budgets": {
+      "moto-curvas": 1.5,
+      "4x4": 2,
+      "scenic": 1.5
+    },
+    "minOffer": 0.1,
+    "targetOfMax": 0.7
+  },
+  "profiles": {
+    "moto-curvas": {
+      "n": 15,
+      "msP50": 5,
+      "msP95": 32,
+      "criterionMean": 0.471,
+      "criterionMedian": 0.39,
+      "routesAtLeast70": 3,
+      "detourMean": 1.058,
+      "detourMax": 1.247,
+      "curvyOldMetricMean": 0.496,
+      "routesWithRepeatedSegments": 0,
+      "budget": 1.5,
+      "maxMean": 0.495,
+      "pairsWithOffer": 15,
+      "ofMaxMean": 0.941,
+      "ofMaxMedian": 0.981,
+      "routesAtLeast70OfMax": 15,
+      "routesOverBudget": 0
+    },
+    "4x4": {
+      "n": 15,
+      "msP50": 6,
+      "msP95": 36,
+      "criterionMean": 0.157,
+      "criterionMedian": 0.133,
+      "routesAtLeast70": 0,
+      "detourMean": 1.009,
+      "detourMax": 1.051,
+      "curvyOldMetricMean": 0.426,
+      "routesWithRepeatedSegments": 0,
+      "budget": 2,
+      "maxMean": 0.283,
+      "pairsWithOffer": 13,
+      "ofMaxMean": 0.485,
+      "ofMaxMedian": 0.576,
+      "routesAtLeast70OfMax": 2,
+      "routesOverBudget": 0
+    },
+    "scenic": {
+      "n": 15,
+      "msP50": 5,
+      "msP95": 31,
+      "criterionMean": 0.377,
+      "criterionMedian": 0.333,
+      "routesAtLeast70": 3,
+      "detourMean": 1.033,
+      "detourMax": 1.216,
+      "curvyOldMetricMean": 0.465,
+      "routesWithRepeatedSegments": 0,
+      "budget": 1.5,
+      "maxMean": 0.406,
+      "pairsWithOffer": 15,
+      "ofMaxMean": 0.867,
+      "ofMaxMedian": 0.949,
+      "routesAtLeast70OfMax": 13,
+      "routesOverBudget": 0
+    }
+  },
+  "overlap": {
+    "moto-curvas/4x4": {
+      "mean": 0.82,
+      "median": 0.963
+    },
+    "moto-curvas/scenic": {
+      "mean": 0.888,
+      "median": 0.951
+    },
+    "4x4/scenic": {
+      "mean": 0.79,
+      "median": 0.91
+    }
+  },
+  "pairsAllIdentical": "2/15",
+  "surfaceDeclaredOnRouteMeters": 0.97,
+  "errors": []
+}

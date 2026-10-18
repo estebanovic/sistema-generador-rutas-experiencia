@@ -16,6 +16,16 @@ const raw = JSON.parse(fs.readFileSync(path.join(DIR, 'raw.json'), 'utf8'));
 // Parámetros de las métricas (ver el plan de desarrollo, §1.1, §1.3 y decisión D1).
 const CURVY = 100; // °/km — umbral de "tramo curvo"
 const CURV_PARAMS = { W: 100, theta: 5, step: 10, R: 150 };
+// Presupuesto de desvío por perfil (largo máximo / distancia mínima) para el
+// máximo alcanzable (D2). Deben coincidir con los presupuestos por defecto de
+// los perfiles (D5). Se puede sobrescribir con
+// BASELINE_BUDGETS="moto-curvas=1.5,4x4=2,scenic=1.5".
+const BUDGETS = { 'moto-curvas': 1.5, '4x4': 2.0, scenic: 1.5 };
+for (const kv of (process.env.BASELINE_BUDGETS || '').split(',').filter(Boolean)) { const [k, v] = kv.split('='); BUDGETS[k.trim()] = Number(v); }
+// Un par "tiene oferta" si su máximo alcanzable es al menos este porcentaje.
+const MIN_OFFER = 0.10;
+// Meta RNF07 relativa (D2): llegar al 70% del máximo alcanzable del par.
+const TARGET_OF_MAX = 0.7;
 const TYPE_RULE = { motorway: 'paved', trunk: 'paved', primary: 'paved', secondary: 'paved', tertiary: 'paved', residential: 'paved', service: 'paved', unclassified: 'unpaved', track: 'unpaved', path: 'unpaved' };
 
 const lines = [];
@@ -51,6 +61,13 @@ const log = (s) => { lines.push(s); console.log(s); };
     return c !== 'unknown' ? { cat: c, declared: true } : { cat: inferred.get(g.eWay[k]) ?? 'unknown', declared: false };
   };
 
+  // Máscaras de los criterios por perfil (D1), para el máximo alcanzable (D2).
+  const mask = { 'moto-curvas': new Uint8Array(g.M), '4x4': new Uint8Array(g.M), scenic: new Uint8Array(g.M) };
+  for (let k = 0; k < g.M; k++) {
+    const curvy = dens[k] >= CURVY; const cat = catOf(k).cat;
+    mask['moto-curvas'][k] = curvy ? 1 : 0; mask['4x4'][k] = cat === 'unpaved' ? 1 : 0; mask.scenic[k] = curvy && cat === 'paved' ? 1 : 0;
+  }
+
   // Arista usada entre dos nodos consecutivos: la más corta (como buildRouteResult).
   const edgeOf = (u, v) => { let best = -1; for (let p = g.off[u]; p < g.off[u + 1]; p++) { const k = g.outE[p]; if (g.eTo[k] === v && (best < 0 || g.eLen[k] < g.eLen[best])) best = k; } return best; };
 
@@ -71,12 +88,17 @@ const log = (s) => { lines.push(s); console.log(s); };
       if (segs.has(key)) repeatedM += l; else segs.set(key, l);
     }
     const shortest = L.shortestLen(g, ids[0], ids[ids.length - 1]);
+    const budget = BUDGETS[r.profile] ?? 1.5;
+    const mx = mask[r.profile] ? L.maxCriterion(g, ids[0], ids[ids.length - 1], mask[r.profile], budget) : null;
     const m = {
       pair: r.pair, profile: r.profile, ms: r.ms, km: len / 1000, detour: len / shortest,
       pctCurvyNew: curvyNew / len, pctCurvyOld: curvyOld / len, pctUnpaved: unpavedAll / len, pctCurvyPaved: curvyPaved / len,
       pctSurfDeclared: surfDecl / len, repeatedMeters: repeatedM, segs,
     };
     m.criterion = r.profile === 'moto-curvas' ? m.pctCurvyNew : r.profile === '4x4' ? m.pctUnpaved : m.pctCurvyPaved;
+    m.budget = budget; m.max = mx ? mx.share : null; m.overBudget = m.detour > budget + 1e-6;
+    // % del máximo: puede superar 100% porque el máximo es una cota factible (LARAC), no el óptimo exacto.
+    m.ofMax = m.max != null && m.max >= MIN_OFFER ? m.criterion / m.max : null;
     (routes[r.pair] = routes[r.pair] || {})[r.profile] = m;
   }
 
@@ -86,7 +108,7 @@ const log = (s) => { lines.push(s); console.log(s); };
   const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
   const p95 = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.ceil(0.95 * s.length) - 1)]; };
 
-  const agg = Object.fromEntries(PROFILES.map((p) => [p, { ms: [], crit: [], detour: [], old: [], n70: 0, n: 0, repeated: 0 }]));
+  const agg = Object.fromEntries(PROFILES.map((p) => [p, { ms: [], crit: [], detour: [], old: [], n70: 0, n: 0, repeated: 0, max: [], ofMax: [], nOfMax70: 0, overBudget: 0 }]));
   const ovl = { 'moto-curvas/4x4': [], 'moto-curvas/scenic': [], '4x4/scenic': [] };
   const rows = []; let identical = 0, pairsAll = 0, surfW = 0, surfD = 0;
   for (const [pair, byP] of Object.entries(routes)) {
@@ -94,6 +116,8 @@ const log = (s) => { lines.push(s); console.log(s); };
       const m = byP[p]; if (!m) continue; const a = agg[p];
       a.ms.push(m.ms); a.crit.push(m.criterion); a.detour.push(m.detour); a.old.push(m.pctCurvyOld); a.n++;
       if (m.criterion >= 0.7) a.n70++; if (m.repeatedMeters > 0) a.repeated++;
+      if (m.max != null) a.max.push(m.max); if (m.overBudget) a.overBudget++;
+      if (m.ofMax != null) { a.ofMax.push(m.ofMax); if (m.ofMax >= TARGET_OF_MAX) a.nOfMax70++; }
       surfW += m.km; surfD += m.pctSurfDeclared * m.km;
     }
     const o = {};
@@ -105,6 +129,8 @@ const log = (s) => { lines.push(s); console.log(s); };
         km: +byP[p].km.toFixed(2), ms: Math.round(byP[p].ms), criterion: +byP[p].criterion.toFixed(3), detour: +byP[p].detour.toFixed(3),
         pctCurvyNew: +byP[p].pctCurvyNew.toFixed(3), pctUnpaved: +byP[p].pctUnpaved.toFixed(3), pctCurvyPaved: +byP[p].pctCurvyPaved.toFixed(3),
         repeatedMeters: +byP[p].repeatedMeters.toFixed(1),
+        max: byP[p].max == null ? null : +byP[p].max.toFixed(3), ofMax: byP[p].ofMax == null ? null : +byP[p].ofMax.toFixed(3),
+        budget: byP[p].budget, overBudget: byP[p].overBudget,
       } : null])),
       overlap: Object.fromEntries(Object.entries(o).map(([k, v]) => [k, +v.toFixed(3)])),
     });
@@ -112,13 +138,17 @@ const log = (s) => { lines.push(s); console.log(s); };
 
   const okRuns = raw.runs.filter((r) => r.ok).length;
   const summary = {
-    date: raw.date, api: raw.api, dataSource: g.source, coldMs: Math.round(raw.coldMs), routesOk: okRuns, routesTotal: raw.runs.length,
-    params: { curvyThresholdDegPerKm: CURVY, curvature: CURV_PARAMS },
+    date: raw.date, api: raw.api, set: raw.set || 'referencia', dataSource: g.source, coldMs: Math.round(raw.coldMs), routesOk: okRuns, routesTotal: raw.runs.length,
+    params: { curvyThresholdDegPerKm: CURVY, curvature: CURV_PARAMS, budgets: BUDGETS, minOffer: MIN_OFFER, targetOfMax: TARGET_OF_MAX },
     profiles: Object.fromEntries(PROFILES.map((p) => { const a = agg[p]; return [p, {
       n: a.n, msP50: Math.round(med(a.ms)), msP95: Math.round(p95(a.ms)),
       criterionMean: +mean(a.crit).toFixed(3), criterionMedian: +med(a.crit).toFixed(3), routesAtLeast70: a.n70,
       detourMean: +mean(a.detour).toFixed(3), detourMax: +Math.max(...a.detour).toFixed(3),
       curvyOldMetricMean: +mean(a.old).toFixed(3), routesWithRepeatedSegments: a.repeated,
+      // D2: máximo alcanzable con el presupuesto del perfil y % del máximo en los pares con oferta.
+      budget: BUDGETS[p], maxMean: a.max.length ? +mean(a.max).toFixed(3) : null, pairsWithOffer: a.ofMax.length,
+      ofMaxMean: a.ofMax.length ? +mean(a.ofMax).toFixed(3) : null, ofMaxMedian: a.ofMax.length ? +med(a.ofMax).toFixed(3) : null,
+      routesAtLeast70OfMax: a.nOfMax70, routesOverBudget: a.overBudget,
     }]; })),
     overlap: Object.fromEntries(Object.entries(ovl).map(([k, v]) => [k, { mean: +mean(v).toFixed(3), median: +med(v).toFixed(3) }])),
     pairsAllIdentical: `${identical}/${pairsAll}`,
@@ -130,15 +160,16 @@ const log = (s) => { lines.push(s); console.log(s); };
   log(`primera llamada ${(raw.coldMs / 1000).toFixed(1)} s | rutas OK ${okRuns}/${raw.runs.length}`);
   for (const p of PROFILES) {
     const s = summary.profiles[p];
+    log(`${p} [D2, presupuesto ×${s.budget}]: máximo medio=${s.maxMean == null ? '—' : (100 * s.maxMean).toFixed(0) + '%'} | pares con oferta (máx ≥ ${100 * MIN_OFFER}%)=${s.pairsWithOffer}/${s.n} | % del máximo media=${s.ofMaxMean == null ? '—' : (100 * s.ofMaxMean).toFixed(0) + '%'} mediana=${s.ofMaxMedian == null ? '—' : (100 * s.ofMaxMedian).toFixed(0) + '%'} | rutas ≥ ${100 * TARGET_OF_MAX}% del máximo=${s.routesAtLeast70OfMax}/${s.pairsWithOffer} | rutas sobre el presupuesto=${s.routesOverBudget}`);
     log(`${p}: n=${s.n} tiempo p50=${s.msP50} ms p95=${s.msP95} ms | criterio media=${(100 * s.criterionMean).toFixed(0)}% mediana=${(100 * s.criterionMedian).toFixed(0)}% rutas≥70%=${s.routesAtLeast70}/${s.n} | desvío media=${s.detourMean.toFixed(2)} máx=${s.detourMax.toFixed(2)} | rutas con tramos repetidos=${s.routesWithRepeatedSegments} | (curvas métrica vieja=${(100 * s.curvyOldMetricMean).toFixed(0)}%)`);
   }
-  for (const [k, v] of Object.entries(summary.overlap)) log(`solapamiento ${k}: media=${(100 * v.mean).toFixed(0)}% mediana=${(100 * v.median).toFixed(0)}%`);
+  for (const [k, v] of Object.entries(summary.overlap)) log(`solapamiento (informativo) ${k}: media=${(100 * v.mean).toFixed(0)}% mediana=${(100 * v.median).toFixed(0)}%`);
   log(`pares con las 3 rutas idénticas: ${summary.pairsAllIdentical}`);
   log(`superficie declarada en metros recorridos: ${(100 * summary.surfaceDeclaredOnRouteMeters).toFixed(1)}%`);
   if (summary.errors.length) log('errores:\n  ' + summary.errors.join('\n  '));
-  log('\n## por par (km | ms | criterio | desvío)');
+  log('\n## por par (km | ms | criterio / máximo | desvío; ! = sobre el presupuesto)');
   for (const r of rows) {
-    log(`${r.pair}: ` + PROFILES.map((p) => (r[p] ? `${p} ${r[p].km}km ${r[p].ms}ms ${(100 * r[p].criterion).toFixed(0)}% ×${r[p].detour.toFixed(2)}` : `${p} —`)).join(' | ') + ' | solap ' + JSON.stringify(r.overlap));
+    log(`${r.pair}: ` + PROFILES.map((p) => (r[p] ? `${p} ${r[p].km}km ${r[p].ms}ms ${(100 * r[p].criterion).toFixed(0)}%/${r[p].max == null ? '—' : (100 * r[p].max).toFixed(0) + '%'} ×${r[p].detour.toFixed(2)}${r[p].overBudget ? '!' : ''}` : `${p} —`)).join(' | ') + ' | solap ' + JSON.stringify(r.overlap));
   }
 
   fs.writeFileSync(path.join(DIR, 'summary.json'), JSON.stringify(summary, null, 2));

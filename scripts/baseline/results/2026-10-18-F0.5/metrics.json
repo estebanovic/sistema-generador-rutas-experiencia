@@ -9,7 +9,11 @@
    "pctCurvyNew": 0.703,
    "pctUnpaved": 0.002,
    "pctCurvyPaved": 0.702,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.719,
+   "ofMax": 0.978,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 47.8,
@@ -19,7 +23,11 @@
    "pctCurvyNew": 0.561,
    "pctUnpaved": 0.005,
    "pctCurvyPaved": 0.556,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.105,
+   "ofMax": 0.051,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 51.89,
@@ -29,7 +37,11 @@
    "pctCurvyNew": 0.658,
    "pctUnpaved": 0.002,
    "pctCurvyPaved": 0.657,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.713,
+   "ofMax": 0.921,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.643,
@@ -47,7 +59,11 @@
    "pctCurvyNew": 0.819,
    "pctUnpaved": 0.003,
    "pctCurvyPaved": 0.816,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.824,
+   "ofMax": 0.994,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 34.19,
@@ -57,7 +73,11 @@
    "pctCurvyNew": 0.797,
    "pctUnpaved": 0.007,
    "pctCurvyPaved": 0.79,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.143,
+   "ofMax": 0.052,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 34.83,
@@ -67,7 +87,11 @@
    "pctCurvyNew": 0.819,
    "pctUnpaved": 0.003,
    "pctCurvyPaved": 0.816,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.816,
+   "ofMax": 1,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.96,
@@ -85,7 +109,11 @@
    "pctCurvyNew": 0.378,
    "pctUnpaved": 0.116,
    "pctCurvyPaved": 0.331,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.407,
+   "ofMax": 0.929,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 44.45,
@@ -95,7 +123,11 @@
    "pctCurvyNew": 0.025,
    "pctUnpaved": 0.015,
    "pctCurvyPaved": 0.018,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.092,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 44.87,
@@ -105,7 +137,11 @@
    "pctCurvyNew": 0.056,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.056,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.37,
+   "ofMax": 0.153,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0,
@@ -123,7 +159,11 @@
    "pctCurvyNew": 0.433,
    "pctUnpaved": 0.072,
    "pctCurvyPaved": 0.381,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.42,
+   "ofMax": 1.031,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 47.15,
@@ -133,7 +173,11 @@
    "pctCurvyNew": 0.313,
    "pctUnpaved": 0.014,
    "pctCurvyPaved": 0.302,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.11,
+   "ofMax": 0.125,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 47.37,
@@ -143,7 +187,11 @@
    "pctCurvyNew": 0.329,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.329,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.374,
+   "ofMax": 0.879,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.599,
@@ -161,7 +209,11 @@
    "pctCurvyNew": 0.335,
    "pctUnpaved": 0.187,
    "pctCurvyPaved": 0.187,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.335,
+   "ofMax": 1,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 22.58,
@@ -171,7 +223,11 @@
    "pctCurvyNew": 0.271,
    "pctUnpaved": 0.126,
    "pctCurvyPaved": 0.184,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.205,
+   "ofMax": 0.612,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 22.73,
@@ -181,7 +237,11 @@
    "pctCurvyNew": 0.277,
    "pctUnpaved": 0.124,
    "pctCurvyPaved": 0.191,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.255,
+   "ofMax": 0.75,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.835,
@@ -199,7 +259,11 @@
    "pctCurvyNew": 0.193,
    "pctUnpaved": 0.083,
    "pctCurvyPaved": 0.138,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.204,
+   "ofMax": 0.948,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 48.45,
@@ -209,7 +273,11 @@
    "pctCurvyNew": 0.029,
    "pctUnpaved": 0.013,
    "pctCurvyPaved": 0.023,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.085,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 49.32,
@@ -219,7 +287,11 @@
    "pctCurvyNew": 0.076,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.076,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.157,
+   "ofMax": 0.482,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.643,
@@ -237,7 +309,11 @@
    "pctCurvyNew": 0.367,
    "pctUnpaved": 0.071,
    "pctCurvyPaved": 0.312,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.36,
+   "ofMax": 1.021,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 59.2,
@@ -247,7 +323,11 @@
    "pctCurvyNew": 0.257,
    "pctUnpaved": 0.011,
    "pctCurvyPaved": 0.248,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.105,
+   "ofMax": 0.105,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 59.46,
@@ -257,7 +337,11 @@
    "pctCurvyNew": 0.271,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.271,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.323,
+   "ofMax": 0.84,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.67,
@@ -275,7 +359,11 @@
    "pctCurvyNew": 0.614,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.614,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.635,
+   "ofMax": 0.966,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 5.37,
@@ -285,7 +373,11 @@
    "pctCurvyNew": 0.614,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.614,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 5.37,
@@ -295,7 +387,11 @@
    "pctCurvyNew": 0.614,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.614,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.635,
+   "ofMax": 0.966,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 1,
@@ -313,7 +409,11 @@
    "pctCurvyNew": 0.072,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.072,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.08,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 20.61,
@@ -323,7 +423,11 @@
    "pctCurvyNew": 0.054,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.054,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 20.76,
@@ -333,7 +437,11 @@
    "pctCurvyNew": 0.057,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.057,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.08,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.737,
@@ -351,7 +459,11 @@
    "pctCurvyNew": 0.682,
    "pctUnpaved": 0.711,
    "pctCurvyPaved": 0.08,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.685,
+   "ofMax": 0.996,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 28.58,
@@ -361,7 +473,11 @@
    "pctCurvyNew": 0.195,
    "pctUnpaved": 0.172,
    "pctCurvyPaved": 0.104,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.69,
+   "ofMax": 0.25,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 27.91,
@@ -371,7 +487,11 @@
    "pctCurvyNew": 0.174,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.174,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.206,
+   "ofMax": 0.848,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0,
@@ -389,7 +509,11 @@
    "pctCurvyNew": 0.166,
    "pctUnpaved": 0.017,
    "pctCurvyPaved": 0.15,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.283,
+   "ofMax": 0.584,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 12.61,
@@ -399,7 +523,11 @@
    "pctCurvyNew": 0.166,
    "pctUnpaved": 0.017,
    "pctCurvyPaved": 0.15,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.219,
+   "ofMax": 0.079,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 12.61,
@@ -409,7 +537,11 @@
    "pctCurvyNew": 0.166,
    "pctUnpaved": 0.017,
    "pctCurvyPaved": 0.15,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.162,
+   "ofMax": 0.926,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 1,
@@ -427,7 +559,11 @@
    "pctCurvyNew": 0.262,
    "pctUnpaved": 0.336,
    "pctCurvyPaved": 0.088,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.334,
+   "ofMax": 0.785,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 22.19,
@@ -437,7 +573,11 @@
    "pctCurvyNew": 0.254,
    "pctUnpaved": 0.364,
    "pctCurvyPaved": 0.079,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.505,
+   "ofMax": 0.722,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 22.26,
@@ -447,7 +587,11 @@
    "pctCurvyNew": 0.262,
    "pctUnpaved": 0.336,
    "pctCurvyPaved": 0.088,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.095,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.795,
@@ -465,7 +609,11 @@
    "pctCurvyNew": 0.028,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.028,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.087,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 20.58,
@@ -475,7 +623,11 @@
    "pctCurvyNew": 0.058,
    "pctUnpaved": 0.1,
    "pctCurvyPaved": 0.058,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.104,
+   "ofMax": 0.963,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 20.49,
@@ -485,7 +637,11 @@
    "pctCurvyNew": 0.028,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.028,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.087,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.592,
@@ -503,7 +659,11 @@
    "pctCurvyNew": 0.15,
    "pctUnpaved": 0.017,
    "pctCurvyPaved": 0.15,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.154,
+   "ofMax": 0.977,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 19.73,
@@ -513,7 +673,11 @@
    "pctCurvyNew": 0.055,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.055,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.018,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 20.2,
@@ -523,7 +687,11 @@
    "pctCurvyNew": 0.116,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.116,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.154,
+   "ofMax": 0.756,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.633,
@@ -541,7 +709,11 @@
    "pctCurvyNew": 0.129,
    "pctUnpaved": 0.013,
    "pctCurvyPaved": 0.12,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.154,
+   "ofMax": 0.838,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 25.66,
@@ -551,7 +723,11 @@
    "pctCurvyNew": 0.081,
    "pctUnpaved": 0.074,
    "pctCurvyPaved": 0.069,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.148,
+   "ofMax": 0.497,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 25.78,
@@ -561,7 +737,11 @@
    "pctCurvyNew": 0.129,
    "pctUnpaved": 0.013,
    "pctCurvyPaved": 0.12,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.144,
+   "ofMax": 0.835,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.751,
@@ -579,7 +759,11 @@
    "pctCurvyNew": 0.135,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.135,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.305,
+   "ofMax": 0.442,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 15.72,
@@ -589,7 +773,11 @@
    "pctCurvyNew": 0.106,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.106,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.332,
+   "ofMax": 0,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 15.8,
@@ -599,7 +787,11 @@
    "pctCurvyNew": 0.118,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.118,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.135,
+   "ofMax": 0.878,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.986,
@@ -617,7 +809,11 @@
    "pctCurvyNew": 0.027,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.027,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.045,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 17.93,
@@ -627,7 +823,11 @@
    "pctCurvyNew": 0,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 18.1,
@@ -637,7 +837,11 @@
    "pctCurvyNew": 0.017,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.017,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.045,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.97,
@@ -655,7 +859,11 @@
    "pctCurvyNew": 0.038,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.038,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.122,
+   "ofMax": 0.311,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 23.78,
@@ -665,7 +873,11 @@
    "pctCurvyNew": 0.004,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.004,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 23.9,
@@ -675,7 +887,11 @@
    "pctCurvyNew": 0.014,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.014,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.121,
+   "ofMax": 0.117,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.883,
@@ -693,7 +909,11 @@
    "pctCurvyNew": 0.032,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.032,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.032,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 4.1,
@@ -703,7 +923,11 @@
    "pctCurvyNew": 0.032,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.032,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 4.1,
@@ -713,7 +937,11 @@
    "pctCurvyNew": 0.032,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.032,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.032,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 1,
@@ -731,7 +959,11 @@
    "pctCurvyNew": 0.009,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.009,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.247,
+   "ofMax": 0.038,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 16.94,
@@ -741,7 +973,11 @@
    "pctCurvyNew": 0,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.298,
+   "ofMax": 0,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 16.94,
@@ -751,7 +987,11 @@
    "pctCurvyNew": 0,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.044,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.987,
@@ -769,7 +1009,11 @@
    "pctCurvyNew": 0.122,
    "pctUnpaved": 0.033,
    "pctCurvyPaved": 0.122,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.206,
+   "ofMax": 0.592,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 32.67,
@@ -779,7 +1023,11 @@
    "pctCurvyNew": 0.024,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.024,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.038,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 33.73,
@@ -789,7 +1037,11 @@
    "pctCurvyNew": 0.093,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.093,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.215,
+   "ofMax": 0.43,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.145,
@@ -807,7 +1059,11 @@
    "pctCurvyNew": 0.893,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.893,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.893,
+   "ofMax": 1,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 13.27,
@@ -817,7 +1073,11 @@
    "pctCurvyNew": 0.893,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.893,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 13.27,
@@ -827,7 +1087,11 @@
    "pctCurvyNew": 0.893,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.893,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.893,
+   "ofMax": 1,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 1,
@@ -845,7 +1109,11 @@
    "pctCurvyNew": 0,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 9.12,
@@ -855,7 +1123,11 @@
    "pctCurvyNew": 0,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.285,
+   "ofMax": 0,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 9.12,
@@ -865,7 +1137,11 @@
    "pctCurvyNew": 0,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 1,
@@ -883,7 +1159,11 @@
    "pctCurvyNew": 0.49,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.49,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.49,
+   "ofMax": 1,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 3.03,
@@ -893,7 +1173,11 @@
    "pctCurvyNew": 0.49,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.49,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 3.03,
@@ -903,7 +1187,11 @@
    "pctCurvyNew": 0.49,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.49,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.49,
+   "ofMax": 1,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 1,
@@ -921,7 +1209,11 @@
    "pctCurvyNew": 0.148,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.148,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.179,
+   "ofMax": 0.827,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 13.35,
@@ -931,7 +1223,11 @@
    "pctCurvyNew": 0.111,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.111,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 13.37,
@@ -941,7 +1237,11 @@
    "pctCurvyNew": 0.111,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.111,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.179,
+   "ofMax": 0.62,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.987,
@@ -959,7 +1259,11 @@
    "pctCurvyNew": 0.277,
    "pctUnpaved": 0.03,
    "pctCurvyPaved": 0.277,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.271,
+   "ofMax": 1.024,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 36.3,
@@ -969,7 +1273,11 @@
    "pctCurvyNew": 0.197,
    "pctUnpaved": 0.031,
    "pctCurvyPaved": 0.197,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.035,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 37.58,
@@ -979,7 +1287,11 @@
    "pctCurvyNew": 0.277,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.277,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.295,
+   "ofMax": 0.94,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.811,
@@ -997,7 +1309,11 @@
    "pctCurvyNew": 0.699,
    "pctUnpaved": 0.002,
    "pctCurvyPaved": 0.697,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.731,
+   "ofMax": 0.956,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 40.66,
@@ -1007,7 +1323,11 @@
    "pctCurvyNew": 0.656,
    "pctUnpaved": 0.006,
    "pctCurvyPaved": 0.651,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.122,
+   "ofMax": 0.051,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 41.21,
@@ -1017,7 +1337,11 @@
    "pctCurvyNew": 0.677,
    "pctUnpaved": 0.003,
    "pctCurvyPaved": 0.675,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.724,
+   "ofMax": 0.932,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.835,
@@ -1035,7 +1359,11 @@
    "pctCurvyNew": 0.692,
    "pctUnpaved": 0.762,
    "pctCurvyPaved": 0.047,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.7,
+   "ofMax": 0.989,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 38.16,
@@ -1045,7 +1373,11 @@
    "pctCurvyNew": 0.668,
    "pctUnpaved": 0.756,
    "pctCurvyPaved": 0.048,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.763,
+   "ofMax": 0.992,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 30.72,
@@ -1055,7 +1387,11 @@
    "pctCurvyNew": 0.28,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.28,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.293,
+   "ofMax": 0.955,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.913,
@@ -1073,7 +1409,11 @@
    "pctCurvyNew": 0.15,
    "pctUnpaved": 0.021,
    "pctCurvyPaved": 0.135,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.277,
+   "ofMax": 0.542,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 31.94,
@@ -1083,7 +1423,11 @@
    "pctCurvyNew": 0.045,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.045,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.432,
+   "ofMax": 0,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 32.65,
@@ -1093,7 +1437,11 @@
    "pctCurvyNew": 0.134,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.134,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.158,
+   "ofMax": 0.847,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.676,
@@ -1111,7 +1459,11 @@
    "pctCurvyNew": 0.049,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.049,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.19,
+   "ofMax": 0.259,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 27.65,
@@ -1121,7 +1473,11 @@
    "pctCurvyNew": 0.048,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.048,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.22,
+   "ofMax": 0,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 27.67,
@@ -1131,7 +1487,11 @@
    "pctCurvyNew": 0.05,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.05,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.143,
+   "ofMax": 0.354,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.946,
@@ -1149,7 +1509,11 @@
    "pctCurvyNew": 0.289,
    "pctUnpaved": 0.295,
    "pctCurvyPaved": 0.136,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.381,
+   "ofMax": 0.758,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 25.65,
@@ -1159,7 +1523,11 @@
    "pctCurvyNew": 0.278,
    "pctUnpaved": 0.421,
    "pctCurvyPaved": 0.043,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.53,
+   "ofMax": 0.794,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 25.39,
@@ -1169,7 +1537,11 @@
    "pctCurvyNew": 0.289,
    "pctUnpaved": 0.295,
    "pctCurvyPaved": 0.136,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.142,
+   "ofMax": 0.957,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.363,
@@ -1187,7 +1559,11 @@
    "pctCurvyNew": 0.121,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.121,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.129,
+   "ofMax": 0.935,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 9.49,
@@ -1197,7 +1573,11 @@
    "pctCurvyNew": 0.043,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.043,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0,
+   "ofMax": null,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 9.71,
@@ -1207,7 +1587,11 @@
    "pctCurvyNew": 0.113,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.113,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.129,
+   "ofMax": 0.877,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.56,
@@ -1225,7 +1609,11 @@
    "pctCurvyNew": 0.031,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.031,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.052,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "4x4": {
    "km": 18.78,
@@ -1235,7 +1623,11 @@
    "pctCurvyNew": 0.02,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.02,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.364,
+   "ofMax": 0,
+   "budget": 2,
+   "overBudget": false
   },
   "scenic": {
    "km": 18.82,
@@ -1245,7 +1637,11 @@
    "pctCurvyNew": 0.031,
    "pctUnpaved": 0,
    "pctCurvyPaved": 0.031,
-   "repeatedMeters": 0
+   "repeatedMeters": 0,
+   "max": 0.052,
+   "ofMax": null,
+   "budget": 1.5,
+   "overBudget": false
   },
   "overlap": {
    "moto-curvas/4x4": 0.89,

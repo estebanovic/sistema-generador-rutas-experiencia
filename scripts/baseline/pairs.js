@@ -28,6 +28,34 @@ const PAIRS = [
   ['puenteAlto', 'buin'], ['talagante', 'penaflor'], ['buin', 'caleraTango'],
 ];
 
+// Segundo conjunto ("oferta", FIJO desde el 2026-10-18): 15 pares en zonas con
+// oferta real de curvas y de caminos sin pavimentar, para medir el % del
+// máximo alcanzable (D2) donde hay algo que alcanzar: precordillera (8),
+// cuestas (3) y caminos rurales hacia la costa y Aculeo (4). Se eligieron entre
+// 20 candidatos por su máximo alcanzable (ver el README). Mismas reglas que
+// PAIRS: no modificar entre fases.
+const P_OFERTA = {
+  ...P,
+  elYeso: [-33.6760, -70.0880], lagunillas: [-33.6158, -70.2992], banosMorales: [-33.8180, -70.0630],
+  elAlfalfal: [-33.4950, -70.2050], elCanelo: [-33.5830, -70.4430], rioClarillo: [-33.7260, -70.4833],
+  laParva: [-33.3320, -70.2900], yerbaLoca: [-33.3350, -70.3450], noviciado: [-33.4300, -70.8800],
+  casablanca: [-33.3190, -71.4100], lasDichas: [-33.3000, -71.5600], melipilla: [-33.6890, -71.2150],
+  sanPedro: [-33.8930, -71.4620], paine: [-33.8070, -70.7410], aculeo: [-33.8280, -70.9050],
+  cuestaZapata: [-33.3700, -71.2500],
+};
+
+const PAIRS_OFERTA = [
+  // Precordillera
+  ['sanJoseMaipo', 'elYeso'], ['sanJoseMaipo', 'lagunillas'], ['sanAlfonso', 'banosMorales'], ['puenteAlto', 'elAlfalfal'],
+  ['puenteAlto', 'elCanelo'], ['pirque', 'rioClarillo'], ['laDehesa', 'laParva'], ['laDehesa', 'yerbaLoca'],
+  // Cuestas
+  ['noviciado', 'curacavi'], ['curacavi', 'casablanca'], ['curacavi', 'cuestaZapata'],
+  // Rurales hacia la costa y Aculeo
+  ['casablanca', 'lasDichas'], ['melipilla', 'sanPedro'], ['paine', 'aculeo'], ['islaMaipo', 'aculeo'],
+];
+
+const SETS = { referencia: { P, PAIRS }, oferta: { P: P_OFERTA, PAIRS: PAIRS_OFERTA } };
+
 const PROFILES = ['moto-curvas', '4x4', 'scenic'];
 
-module.exports = { P, PAIRS, PROFILES };
+module.exports = { P, PAIRS, PROFILES, SETS };

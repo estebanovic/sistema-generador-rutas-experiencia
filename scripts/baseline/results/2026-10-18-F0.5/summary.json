@@ -1,6 +1,7 @@
 {
   "date": "2026-10-18T18:58:43.886Z",
   "api": "http://localhost:3000",
+  "set": "referencia",
   "dataSource": "osm",
   "coldMs": 563,
   "routesOk": 99,
@@ -12,7 +13,14 @@
       "theta": 5,
       "step": 10,
       "R": 150
-    }
+    },
+    "budgets": {
+      "moto-curvas": 1.5,
+      "4x4": 2,
+      "scenic": 1.5
+    },
+    "minOffer": 0.1,
+    "targetOfMax": 0.7
   },
   "profiles": {
     "moto-curvas": {
@@ -25,7 +33,14 @@
       "detourMean": 1.057,
       "detourMax": 1.488,
       "curvyOldMetricMean": 0.343,
-      "routesWithRepeatedSegments": 0
+      "routesWithRepeatedSegments": 0,
+      "budget": 1.5,
+      "maxMean": 0.331,
+      "pairsWithOffer": 27,
+      "ofMaxMean": 0.804,
+      "ofMaxMedian": 0.948,
+      "routesAtLeast70OfMax": 20,
+      "routesOverBudget": 0
     },
     "4x4": {
       "n": 33,
@@ -37,7 +52,14 @@
       "detourMean": 1.01,
       "detourMax": 1.253,
       "curvyOldMetricMean": 0.284,
-      "routesWithRepeatedSegments": 0
+      "routesWithRepeatedSegments": 0,
+      "budget": 2,
+      "maxMean": 0.18,
+      "pairsWithOffer": 19,
+      "ofMaxMean": 0.279,
+      "ofMaxMedian": 0.079,
+      "routesAtLeast70OfMax": 4,
+      "routesOverBudget": 0
     },
     "scenic": {
       "n": 33,
@@ -49,7 +71,14 @@
       "detourMean": 1.012,
       "detourMax": 1.081,
       "curvyOldMetricMean": 0.292,
-      "routesWithRepeatedSegments": 0
+      "routesWithRepeatedSegments": 0,
+      "budget": 1.5,
+      "maxMean": 0.262,
+      "pairsWithOffer": 25,
+      "ofMaxMean": 0.77,
+      "ofMaxMedian": 0.877,
+      "routesAtLeast70OfMax": 19,
+      "routesOverBudget": 0
     }
   },
   "overlap": {

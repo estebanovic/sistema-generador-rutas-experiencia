@@ -86,7 +86,44 @@ async function loadRaw(uri = process.env.MONGO_URI || 'mongodb://localhost:27017
   // Desde F0.4 el compilador entrega la sinuosidad nueva; la columna "métrica vieja"
   // se recalcula aquí con la fórmula congelada, para que siga siendo comparable.
   if (source === 'osm') g.eCurv = oldCurviness(g);
+  if (source === 'osm') g.enclaveEdges = markEnclaves(g);
   return g;
+}
+
+/**
+ * D16, igual que el compilador: las aristas públicas que no se pueden alcanzar
+ * desde la red pública principal, o desde las que no se puede volver a ella sin
+ * vías privadas, se tratan como parte del área privada vecina. La red principal
+ * es la componente fuertemente conexa (solo aristas públicas) que contiene al
+ * nodo más cercano a Plaza de Armas. Devuelve cuántas aristas se marcaron.
+ */
+function markEnclaves(g) {
+  const inOff = new Int32Array(g.N + 1);
+  for (let k = 0; k < g.M; k++) inOff[g.eTo[k] + 1]++;
+  for (let i = 0; i < g.N; i++) inOff[i + 1] += inOff[i];
+  const pos = inOff.slice(0, g.N); const inE = new Int32Array(g.M);
+  for (let k = 0; k < g.M; k++) inE[pos[g.eTo[k]]++] = k;
+  let seed = 0, bd = Infinity;
+  for (let i = 0; i < g.N; i++) { const d = hav(-33.4378, -70.6505, g.lat[i], g.lon[i]); if (d < bd && g.off[i + 1] > g.off[i]) { bd = d; seed = i; } }
+  const reach = (fwd, withPrivate) => {
+    const seen = new Uint8Array(g.N); const q = [seed]; seen[seed] = 1;
+    while (q.length) {
+      const u = q.pop();
+      const a = fwd ? g.off[u] : inOff[u], b = fwd ? g.off[u + 1] : inOff[u + 1];
+      for (let p = a; p < b; p++) { const k = fwd ? g.outE[p] : inE[p]; if (g.ePriv[k] && !withPrivate) continue; const v = fwd ? g.eTo[k] : g.eFrom[k]; if (!seen[v]) { seen[v] = 1; q.push(v); } }
+    }
+    return seen;
+  };
+  const R = reach(true, false), coR = reach(false, false);
+  const Rall = reach(true, true), coRall = reach(false, true);
+  let n = 0;
+  for (let k = 0; k < g.M; k++) {
+    if (g.ePriv[k]) continue;
+    const u = g.eFrom[k], v = g.eTo[k];
+    // Conectada a la red (ida y vuelta usando también vías privadas) pero no solo por vías públicas.
+    if (Rall[u] && coRall[v] && !(R[u] && coR[v])) { g.ePriv[k] = 1; n++; }
+  }
+  return n;
 }
 
 function forEachEdgeBetween(g, u, v, cb) {
@@ -180,7 +217,9 @@ class Heap {
  * Vías privadas (D7): solo en el tramo inicial/final, igual que el motor. Una
  * arista privada u→v es usable si u es interior del área privada del origen o
  * v es interior del área privada del destino (interior = todas sus aristas
- * salientes son privadas; el recorrido se detiene en el portón).
+ * salientes son privadas; el recorrido se detiene en el portón). El nodo de
+ * inicio y el de fin siempre abren su acceso: con los nodos fantasma (F0.3) la
+ * ruta puede empezar a mitad de un tramo privado cuyo primer nodo es el portón.
  */
 function privateAllowance(g, s, t) {
   const inside = (u) => { const a = g.off[u], b = g.off[u + 1]; if (a === b) return false; for (let p = a; p < b; p++) if (!g.ePriv[g.outE[p]]) return false; return true; };
@@ -190,8 +229,8 @@ function privateAllowance(g, s, t) {
     for (let k = 0; k < g.M; k++) if (g.ePriv[k]) { const v = g.eTo[k]; (g.privIn.get(v) || g.privIn.set(v, []).get(v)).push(k); }
   }
   const fromOrigin = new Set(), toDest = new Set();
-  if (inside(s)) { const q = [s]; fromOrigin.add(s); while (q.length) { const u = q.pop(); for (let p = g.off[u]; p < g.off[u + 1]; p++) { const k = g.outE[p], v = g.eTo[k]; if (g.ePriv[k] && !fromOrigin.has(v) && inside(v)) { fromOrigin.add(v); q.push(v); } } } }
-  if (inside(t)) { const q = [t]; toDest.add(t); while (q.length) { const v = q.pop(); for (const k of g.privIn.get(v) || []) { const u = g.eFrom[k]; if (!toDest.has(u) && inside(u)) { toDest.add(u); q.push(u); } } } }
+  { const q = [s]; fromOrigin.add(s); while (q.length) { const u = q.pop(); for (let p = g.off[u]; p < g.off[u + 1]; p++) { const k = g.outE[p], v = g.eTo[k]; if (g.ePriv[k] && !fromOrigin.has(v) && inside(v)) { fromOrigin.add(v); q.push(v); } } } }
+  { const q = [t]; toDest.add(t); while (q.length) { const v = q.pop(); for (const k of g.privIn.get(v) || []) { const u = g.eFrom[k]; if (!toDest.has(u) && inside(u)) { toDest.add(u); q.push(u); } } } }
   return { fromOrigin, toDest };
 }
 
@@ -229,4 +268,70 @@ function oldCurviness(g) {
   return out;
 }
 
-module.exports = { HW, SURF, SURF_CAT, hav, loadRaw, wayPolylines, curvature, edgeDensity, forEachEdgeBetween, shortestLen };
+/**
+ * Dijkstra genérico sobre el grafo crudo con la regla de vías privadas del motor.
+ * costOf(k) = costo de la arista k. Devuelve { len, crit } (metros totales y
+ * metros con crit[k] = 1) o null si no hay camino.
+ */
+function routeWith(g, s, t, costOf, crit) {
+  const priv = privateAllowance(g, s, t);
+  if (!g._ws) g._ws = { dist: new Float64Array(g.N), stamp: new Uint32Array(g.N), vis: new Uint32Array(g.N), prev: new Int32Array(g.N), st: 0 };
+  const W = g._ws; const st = ++W.st; const H = new Heap();
+  W.dist[s] = 0; W.stamp[s] = st; W.prev[s] = -1; H.push(s, 0);
+  while (H.size) {
+    const u = H.pop(); if (W.vis[u] === st) continue; W.vis[u] = st; if (u === t) break;
+    for (let p = g.off[u]; p < g.off[u + 1]; p++) {
+      const k = g.outE[p]; const v = g.eTo[k]; if (W.vis[v] === st) continue;
+      if (g.ePriv && g.ePriv[k] && !(priv && (priv.fromOrigin.has(u) || priv.toDest.has(v)))) continue;
+      const nd = W.dist[u] + costOf(k);
+      if (W.stamp[v] !== st || nd < W.dist[v]) { W.dist[v] = nd; W.stamp[v] = st; W.prev[v] = k; H.push(v, nd); }
+    }
+  }
+  if (W.vis[t] !== st) return null;
+  let len = 0, ok = 0;
+  for (let u = t; W.prev[u] >= 0; u = g.eFrom[W.prev[u]]) { const k = W.prev[u]; len += g.eLen[k]; if (crit && crit[k]) ok += g.eLen[k]; }
+  return { len, crit: ok };
+}
+
+/**
+ * Envolvente de LARAC para un criterio: todas las rutas que minimizan
+ * (metros que NO cumplen) + λ·largo para algún λ ≥ 0, desde la que más cumple
+ * (λ→0) hasta la más corta (λ→∞). Se recorre exactamente buscando el λ donde
+ * dos vértices empatan (búsqueda paramétrica), ~2 Dijkstra por vértice.
+ * Devuelve los vértices { len, crit } ordenados por largo.
+ */
+function criterionHull(g, s, t, crit) {
+  const pt = (r) => r && { len: r.len, crit: r.crit, nc: r.len - r.crit };
+  const run = (lambda) => pt(routeWith(g, s, t, (k) => (crit[k] ? 0 : g.eLen[k]) + lambda * g.eLen[k], crit));
+  // Extremos con desempate: el que menos no-criterio tiene (y, entre esos, el más corto), y el más corto.
+  const A = run(1e-6);
+  if (!A) return null;
+  const B = pt(routeWith(g, s, t, (k) => g.eLen[k] * (1 + (crit[k] ? 0 : 1e-6)), crit));
+  const out = [A];
+  const walk = (a, b) => {
+    if (a.len - b.len < 1e-6) return;
+    const lambda = (b.nc - a.nc) / (a.len - b.len);
+    if (!(lambda > 0)) return;
+    const c = run(lambda);
+    if (c.nc + lambda * c.len < a.nc + lambda * a.len - 1e-6) { walk(a, c); out.push(c); walk(c, b); }
+  };
+  walk(A, B);
+  if (B.len < A.len - 1e-6) out.push(B);
+  return out.sort((x, y) => x.len - y.len);
+}
+
+/**
+ * Máximo alcanzable del criterio (D2): la mayor fracción de metros que cumplen
+ * el criterio entre los vértices de la envolvente de LARAC con largo ≤ budget ×
+ * distancia mínima. Es una cota factible (puede quedar bajo el óptimo real por
+ * la brecha de dualidad). `hull` permite reutilizar la envolvente entre presupuestos.
+ */
+function maxCriterion(g, s, t, crit, budget, hull = criterionHull(g, s, t, crit)) {
+  if (!hull) return null;
+  const shortest = hull[0].len;
+  let share = 0;
+  for (const h of hull) if (h.len <= budget * shortest + 1e-6 && h.len > 0) share = Math.max(share, h.crit / h.len);
+  return { share, shortest };
+}
+
+module.exports = { HW, SURF, SURF_CAT, hav, loadRaw, wayPolylines, curvature, edgeDensity, forEachEdgeBetween, shortestLen, routeWith, criterionHull, maxCriterion };
