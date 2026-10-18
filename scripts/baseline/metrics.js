@@ -13,7 +13,7 @@ if (!DIR) {
 }
 const raw = JSON.parse(fs.readFileSync(path.join(DIR, 'raw.json'), 'utf8'));
 
-// Parámetros de las métricas (ver docs/PLAN_MOTOR.md §1.1, §1.3 y decisión D1).
+// Parámetros de las métricas (ver el plan de desarrollo, §1.1, §1.3 y decisión D1).
 const CURVY = 100; // °/km — umbral de "tramo curvo"
 const CURV_PARAMS = { W: 100, theta: 5, step: 10, R: 150 };
 const TYPE_RULE = { motorway: 'paved', trunk: 'paved', primary: 'paved', secondary: 'paved', tertiary: 'paved', residential: 'paved', service: 'paved', unclassified: 'unpaved', track: 'unpaved', path: 'unpaved' };

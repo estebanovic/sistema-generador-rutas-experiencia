@@ -79,7 +79,7 @@ function wayPolylines(g) {
 }
 
 /**
- * Sinuosidad propuesta (ver docs/PLAN_MOTOR.md §1.1): densidad de giro en °/km.
+ * Sinuosidad propuesta (ver el plan de desarrollo, §1.1): densidad de giro en °/km.
  * - rumbo en cada punto (paso `step`) = cuerda de largo W centrada (recortada en extremos)
  * - histéresis: solo se acumula giro cuando el rumbo se aparta >= theta de la referencia
  * - densidad de cada segmento = giros dentro de ±R de su punto medio / (2R)
