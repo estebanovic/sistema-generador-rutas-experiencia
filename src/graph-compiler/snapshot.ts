@@ -102,23 +102,56 @@ export function writeSnapshot(file: string, g: CompiledGraph): void {
   fs.renameSync(tmp, file);
 }
 
+/** Memoria compartida de cada grafo leído de un snapshot (para los workers de la ILS). */
+const sharedBuffers = new WeakMap<CompiledGraph, SharedArrayBuffer>();
+
+/**
+ * Lee un snapshot en memoria compartida (`SharedArrayBuffer`): las vistas del
+ * grafo apuntan a esa memoria y los workers de la ILS construyen las mismas
+ * vistas sin copiar el grafo (`graphFromShared`).
+ */
 export function readSnapshot(file: string): CompiledGraph {
-  const raw = fs.readFileSync(file);
-  if (raw.toString('ascii', 0, 8) !== MAGIC) throw new Error(`No es un snapshot de grafo: ${file}`);
-  // Las vistas tipadas exigen alineación: si el Buffer no empieza alineado, se copia.
-  const buf = raw.byteOffset % 8 === 0 ? raw : Buffer.from(raw);
+  const fd = fs.openSync(file, 'r');
+  try {
+    const size = fs.fstatSync(fd).size;
+    const sab = new SharedArrayBuffer(size);
+    const buf = Buffer.from(sab);
+    let off = 0;
+    while (off < size) {
+      const n = fs.readSync(fd, buf, off, size - off, off);
+      if (n <= 0) break;
+      off += n;
+    }
+    return graphFromShared(sab, file);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+/** Grafo con vistas sobre un snapshot ya cargado en memoria compartida (sin copiar). */
+export function graphFromShared(sab: SharedArrayBuffer, label = 'memoria compartida'): CompiledGraph {
+  const buf = Buffer.from(sab);
+  if (buf.length < 12 || buf.toString('ascii', 0, 8) !== MAGIC) throw new Error(`No es un snapshot de grafo: ${label}`);
   const headerLen = buf.readUInt32LE(8);
   const header = JSON.parse(buf.toString('utf8', 12, 12 + headerLen)) as Header;
-  const dataStart = buf.byteOffset + align8(12 + headerLen);
+  const dataStart = align8(12 + headerLen);
 
   const g: Partial<CompiledGraph> = { meta: header.meta };
   if (header.rawLabels) g.rawLabels = header.rawLabels;
   for (const [name, Ctor] of ARRAYS) {
     const d = header.arrays.find((a) => a.name === name);
     if (!d || d.type !== Ctor.name) throw new Error(`Snapshot incompatible: falta ${name} o cambió su tipo`);
-    (g as Record<string, unknown>)[name] = new Ctor(buf.buffer, dataStart + d.offset, d.length);
+    // Los constructores de vistas aceptan memoria compartida; el tipo de la unión de constructores solo declara ArrayBuffer.
+    (g as Record<string, unknown>)[name] = new Ctor(sab as unknown as ArrayBuffer, dataStart + d.offset, d.length);
   }
-  return g as CompiledGraph;
+  const graph = g as CompiledGraph;
+  sharedBuffers.set(graph, sab);
+  return graph;
+}
+
+/** Memoria compartida del grafo, si se leyó de un snapshot (los compilados en memoria, p. ej. legacy, no tienen). */
+export function sharedBufferOf(g: CompiledGraph): SharedArrayBuffer | undefined {
+  return sharedBuffers.get(g);
 }
 
 /** Borra los snapshots de la misma fuente distintos de `keep`. */

@@ -1,0 +1,48 @@
+## línea base — 2026-10-19T01:25:02.364Z — API http://localhost:3000 — datos: osm
+primera llamada 0.1 s | rutas OK 99/99
+moto-curvas [D2, presupuesto ×1.5]: máximo medio=33% | pares con oferta (máx ≥ 10%)=27/33 | % del máximo media=88% mediana=96% | rutas ≥ 70% del máximo=23/27 | rutas sobre el presupuesto=0
+moto-curvas: n=33 tiempo p50=13 ms p95=69 ms | criterio media=30% mediana=20% rutas≥70%=4/33 | desvío media=1.07 máx=1.46 | rutas con tramos repetidos=0 | (curvas métrica vieja=36%)
+4x4 [D2, presupuesto ×2]: máximo medio=18% | pares con oferta (máx ≥ 10%)=19/33 | % del máximo media=98% mediana=100% | rutas ≥ 70% del máximo=19/19 | rutas sobre el presupuesto=0
+4x4: n=33 tiempo p50=15 ms p95=102 ms | criterio media=18% mediana=10% rutas≥70%=2/33 | desvío media=1.09 máx=1.47 | rutas con tramos repetidos=0 | (curvas métrica vieja=34%)
+scenic [D2, presupuesto ×1.5]: máximo medio=27% | pares con oferta (máx ≥ 10%)=26/33 | % del máximo media=93% mediana=98% | rutas ≥ 70% del máximo=25/26 | rutas sobre el presupuesto=0
+scenic: n=33 tiempo p50=13 ms p95=62 ms | criterio media=26% mediana=16% rutas≥70%=4/33 | desvío media=1.06 máx=1.38 | rutas con tramos repetidos=0 | (curvas métrica vieja=33%)
+solapamiento (informativo) moto-curvas/4x4: media=69% mediana=73%
+solapamiento (informativo) moto-curvas/scenic: media=83% mediana=97%
+solapamiento (informativo) 4x4/scenic: media=55% mediana=62%
+pares con las 3 rutas idénticas: 2/33
+superficie declarada en metros recorridos: 94.2%
+
+## por par (km | ms | criterio / máximo | desvío; ! = sobre el presupuesto)
+plazaArmas→farellones: moto-curvas 53.56km 76ms 70%/72% ×1.12 | 4x4 51.21km 117ms 11%/11% ×1.07 | scenic 53.75km 71ms 70%/71% ×1.12 | solap {"moto-curvas/4x4":0.564,"moto-curvas/scenic":0.991,"4x4/scenic":0.561}
+laDehesa→farellones: moto-curvas 34.76km 12ms 82%/82% ×1.01 | 4x4 37.61km 49ms 14%/14% ×1.10 | scenic 34.95km 13ms 82%/82% ×1.02 | solap {"moto-curvas/4x4":0.89,"moto-curvas/scenic":0.986,"4x4/scenic":0.875}
+maipu→curacavi: moto-curvas 59.01km 48ms 38%/41% ×1.32 | 4x4 46.72km 65ms 9%/9% ×1.05 | scenic 61.72km 59ms 38%/37% ×1.38 | solap {"moto-curvas/4x4":0.165,"moto-curvas/scenic":0.765,"4x4/scenic":0.165}
+padreHurtado→curacavi: moto-curvas 50.62km 32ms 43%/42% ×1.08 | 4x4 49.28km 62ms 10%/11% ×1.05 | scenic 50.42km 37ms 39%/37% ×1.07 | solap {"moto-curvas/4x4":0.73,"moto-curvas/scenic":0.991,"4x4/scenic":0.718}
+curacavi→mariaPinto: moto-curvas 23.96km 4ms 34%/34% ×1.05 | 4x4 23.81km 3ms 21%/21% ×1.05 | scenic 23.96km 3ms 26%/26% ×1.05 | solap {"moto-curvas/4x4":0.478,"moto-curvas/scenic":1,"4x4/scenic":0.478}
+plazaArmas→curacavi: moto-curvas 53.88km 69ms 20%/20% ×1.11 | 4x4 50.71km 74ms 8%/9% ×1.05 | scenic 53.91km 62ms 16%/16% ×1.11 | solap {"moto-curvas/4x4":0.552,"moto-curvas/scenic":0.961,"4x4/scenic":0.513}
+talagante→curacavi: moto-curvas 63.31km 33ms 37%/36% ×1.07 | 4x4 62.01km 76ms 10%/11% ×1.05 | scenic 63.12km 36ms 33%/32% ×1.07 | solap {"moto-curvas/4x4":0.729,"moto-curvas/scenic":0.993,"4x4/scenic":0.719}
+providencia→sanCristobal: moto-curvas 5.53km 3ms 64%/64% ×1.03 | 4x4 5.37km 5ms 0%/0% ×1.00 | scenic 5.53km 3ms 64%/64% ×1.03 | solap {"moto-curvas/4x4":0.962,"moto-curvas/scenic":1,"4x4/scenic":0.962}
+quilicura→colina: moto-curvas 21.54km 13ms 9%/8% ×1.04 | 4x4 20.61km 20ms 0%/0% ×1.00 | scenic 21.54km 12ms 9%/8% ×1.04 | solap {"moto-curvas/4x4":0.66,"moto-curvas/scenic":1,"4x4/scenic":0.66}
+puenteAlto→sanJoseMaipo: moto-curvas 41km 21ms 66%/69% ×1.46 | 4x4 41.37km 22ms 71%/71% ×1.47 | scenic 28.42km 18ms 18%/21% ×1.03 | solap {"moto-curvas/4x4":0.982,"moto-curvas/scenic":0,"4x4/scenic":0}
+sanJoseMaipo→sanAlfonso: moto-curvas 13.76km 3ms 26%/28% ×1.09 | 4x4 14.08km 2ms 22%/22% ×1.12 | scenic 12.78km 2ms 17%/17% ×1.01 | solap {"moto-curvas/4x4":0.846,"moto-curvas/scenic":0.947,"4x4/scenic":0.782}
+pirque→buin: moto-curvas 23.04km 11ms 29%/33% ×1.04 | 4x4 24.43km 10ms 51%/51% ×1.10 | scenic 23.06km 13ms 12%/14% ×1.04 | solap {"moto-curvas/4x4":0.608,"moto-curvas/scenic":0.998,"4x4/scenic":0.606}
+buin→islaMaipo: moto-curvas 20.49km 6ms 3%/9% ×1.00 | 4x4 20.6km 7ms 10%/10% ×1.00 | scenic 20.53km 5ms 3%/9% ×1.01 | solap {"moto-curvas/4x4":0.583,"moto-curvas/scenic":0.997,"4x4/scenic":0.579}
+penaflor→elMonte: moto-curvas 20.43km 7ms 14%/15% ×1.04 | 4x4 19.86km 8ms 2%/2% ×1.01 | scenic 20.97km 6ms 14%/15% ×1.06 | solap {"moto-curvas/4x4":0.765,"moto-curvas/scenic":0.818,"4x4/scenic":0.593}
+colina→lampa: moto-curvas 26.05km 8ms 14%/15% ×1.02 | 4x4 26.63km 8ms 14%/15% ×1.05 | scenic 26.21km 6ms 14%/14% ×1.03 | solap {"moto-curvas/4x4":0.683,"moto-curvas/scenic":0.958,"4x4/scenic":0.691}
+lampa→aeropuerto: moto-curvas 17.17km 3ms 20%/31% ×1.09 | 4x4 18.72km 4ms 33%/33% ×1.19 | scenic 16.4km 3ms 13%/14% ×1.04 | solap {"moto-curvas/4x4":0.76,"moto-curvas/scenic":0.88,"4x4/scenic":0.629}
+providencia→maipu: moto-curvas 18.3km 32ms 2%/5% ×1.02 | 4x4 17.93km 38ms 0%/0% ×1.00 | scenic 18.73km 32ms 3%/5% ×1.04 | solap {"moto-curvas/4x4":0.794,"moto-curvas/scenic":0.757,"4x4/scenic":0.621}
+lasCondes→puenteAlto: moto-curvas 25.15km 39ms 8%/12% ×1.06 | 4x4 23.77km 48ms 0%/0% ×1.00 | scenic 26.67km 39ms 14%/16% ×1.10 | solap {"moto-curvas/4x4":0.465,"moto-curvas/scenic":0.494,"4x4/scenic":0.067}
+plazaArmas→providencia: moto-curvas 4.24km 4ms 3%/3% ×1.03 | 4x4 4.1km 3ms 0%/0% ×1.00 | scenic 4.24km 3ms 3%/3% ×1.03 | solap {"moto-curvas/4x4":0.731,"moto-curvas/scenic":1,"4x4/scenic":0.731}
+caleraTango→talagante: moto-curvas 16.94km 6ms 0%/25% ×1.00 | 4x4 21.7km 9ms 30%/30% ×1.28 | scenic 16.94km 5ms 0%/4% ×1.00 | solap {"moto-curvas/4x4":0.851,"moto-curvas/scenic":1,"4x4/scenic":0.851}
+colina→lasCondes: moto-curvas 35.61km 17ms 17%/21% ×1.09 | 4x4 33.18km 85ms 4%/4% ×1.02 | scenic 35.59km 19ms 17%/22% ×1.09 | solap {"moto-curvas/4x4":0.715,"moto-curvas/scenic":0.967,"4x4/scenic":0.715}
+farellones→valleNevado: moto-curvas 13.27km 3ms 89%/89% ×1.00 | 4x4 13.27km 2ms 0%/0% ×1.00 | scenic 13.27km 2ms 89%/89% ×1.00 | solap {"moto-curvas/4x4":1,"moto-curvas/scenic":1,"4x4/scenic":1}
+maipu→padreHurtado: moto-curvas 9.12km 7ms 0%/0% ×1.00 | 4x4 11.26km 8ms 28%/28% ×1.23 | scenic 9.12km 6ms 0%/0% ×1.00 | solap {"moto-curvas/4x4":0.078,"moto-curvas/scenic":1,"4x4/scenic":0.078}
+puenteAlto→pirque: moto-curvas 3.03km 2ms 49%/49% ×1.00 | 4x4 3.03km 3ms 0%/0% ×1.00 | scenic 3.03km 2ms 49%/49% ×1.00 | solap {"moto-curvas/4x4":1,"moto-curvas/scenic":1,"4x4/scenic":1}
+laFlorida→pirque: moto-curvas 13.79km 16ms 13%/18% ×1.03 | 4x4 13.35km 23ms 0%/0% ×1.00 | scenic 13.79km 18ms 13%/18% ×1.03 | solap {"moto-curvas/4x4":0.862,"moto-curvas/scenic":1,"4x4/scenic":0.862}
+laDehesa→colina: moto-curvas 37.71km 32ms 28%/27% ×1.04 | 4x4 36.34km 102ms 4%/4% ×1.00 | scenic 38.52km 32ms 29%/29% ×1.06 | solap {"moto-curvas/4x4":0.862,"moto-curvas/scenic":0.883,"4x4/scenic":0.741}
+lasCondes→farellones: moto-curvas 42.76km 31ms 71%/73% ×1.05 | 4x4 44.07km 77ms 12%/12% ×1.08 | scenic 46.31km 32ms 71%/72% ×1.13 | solap {"moto-curvas/4x4":0.74,"moto-curvas/scenic":0.807,"4x4/scenic":0.654}
+pirque→sanJoseMaipo: moto-curvas 38.18km 17ms 67%/70% ×1.25 | 4x4 38.56km 15ms 76%/76% ×1.27 | scenic 30.95km 23ms 29%/29% ×1.03 | solap {"moto-curvas/4x4":0.981,"moto-curvas/scenic":0.115,"4x4/scenic":0.115}
+maipu→lampa: moto-curvas 33.69km 32ms 15%/28% ×1.05 | 4x4 41.06km 55ms 43%/43% ×1.29 | scenic 32.99km 44ms 13%/16% ×1.03 | solap {"moto-curvas/4x4":0.203,"moto-curvas/scenic":0.937,"4x4/scenic":0.206}
+colina→aeropuerto: moto-curvas 30.16km 13ms 18%/19% ×1.09 | 4x4 30.03km 13ms 19%/22% ×1.09 | scenic 27.98km 15ms 6%/14% ×1.01 | solap {"moto-curvas/4x4":0.881,"moto-curvas/scenic":0.176,"4x4/scenic":0.149}
+puenteAlto→buin: moto-curvas 26.9km 19ms 31%/37% ×1.07 | 4x4 26.44km 23ms 44%/53% ×1.06 | scenic 26.19km 21ms 17%/18% ×1.05 | solap {"moto-curvas/4x4":0.605,"moto-curvas/scenic":0.552,"4x4/scenic":0.37}
+talagante→penaflor: moto-curvas 10.06km 4ms 15%/13% ×1.06 | 4x4 9.49km 4ms 0%/0% ×1.00 | scenic 10.06km 3ms 15%/13% ×1.06 | solap {"moto-curvas/4x4":0.558,"moto-curvas/scenic":1,"4x4/scenic":0.558}
+buin→caleraTango: moto-curvas 19.21km 7ms 3%/7% ×1.02 | 4x4 24.44km 10ms 37%/37% ×1.29 | scenic 21.65km 7ms 13%/7% ×1.15 | solap {"moto-curvas/4x4":0.361,"moto-curvas/scenic":0.437,"4x4/scenic":0.039}

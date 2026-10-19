@@ -8,7 +8,7 @@ import { assertSinRepeticion } from '../dijkstra/no-repeat';
 import { PROFILES } from '../routes/profiles';
 import { EdgeSpec, diamante, loadFixture, randomPairs, synthetic, toGraph } from '../../test/fixtures/graph-fixtures';
 import { compileGraph } from './compile';
-import { readSnapshot, snapshotFileName, writeSnapshot } from './snapshot';
+import { graphFromShared, readSnapshot, sharedBufferOf, snapshotFileName, writeSnapshot } from './snapshot';
 
 /** Etiquetas de la geometría de cada tramo, para afirmar la compactación. */
 function tramos(g: CompiledGraph): string[] {
@@ -306,6 +306,17 @@ describe('snapshot', () => {
       expect(r2?.path).toEqual(r1?.path);
       if (r2) assertSinRepeticion(r2);
     }
+  });
+
+  it('el snapshot se carga en memoria compartida y otro hilo puede armar el grafo sobre ella sin copiarla', () => {
+    const sab = sharedBufferOf(h);
+    expect(sab).toBeInstanceOf(SharedArrayBuffer);
+    expect(sharedBufferOf(g)).toBeUndefined(); // compilado en memoria: sin buffer compartido
+    const k = graphFromShared(sab!);
+    expect(k.meta).toEqual(h.meta);
+    expect(k.edgeTo.buffer).toBe(sab);
+    expect(Array.from(k.edgeTo)).toEqual(Array.from(h.edgeTo));
+    expect(Array.from(k.geoCumStraight)).toEqual(Array.from(h.geoCumStraight));
   });
 
   it('rechaza un archivo que no es snapshot', () => {

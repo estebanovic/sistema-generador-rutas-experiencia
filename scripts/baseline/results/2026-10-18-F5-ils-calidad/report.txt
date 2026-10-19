@@ -1,0 +1,75 @@
+
+## Evaluación de la ILS — 2026-10-19T01:47:23.719Z — snapshot graph-osm-v21-f3-1.bin — perfiles moto-curvas, 4x4, scenic — 1490 s
+
+### Circuitos (225 consultas)
+- éxito en los casos factibles del techo (dentro de ±15%): 202/204 (99%)
+- casos imposibles: 15 consultas; circuitos entregados: 0; ida y vuelta declarada: 15
+- casos indeterminados: 2/6 (33%) con circuito en la banda
+- violaciones del verificador: 0; errores: 0
+- tiempo por consulta: p50 2140 ms, p95 6199 ms, máx 6953 ms
+  moto-curvas  éxito 68/68 (100%) | p95 6115 ms | costo/m 2.69 | curvo 29% | sin pavimentar 14% | error de largo medio 7.9%
+  4x4          éxito 67/68 (99%) | p95 6294 ms | costo/m 5.18 | curvo 20% | sin pavimentar 31% | error de largo medio 8%
+  scenic       éxito 67/68 (99%) | p95 6231 ms | costo/m 3.43 | curvo 27% | sin pavimentar 6% | error de largo medio 8.4%
+- factibles sin éxito:
+  penaflor                     60 km 4x4         → ida-y-vuelta 63 km | no se encontró un circuito de ese largo sin repetir tramos
+  penaflor                     60 km scenic      → ida-y-vuelta 54.9 km | no se encontró un circuito de ese largo sin repetir tramos
+
+### Destino fijo (288 consultas)
+- éxito en los casos factibles del techo (dentro de ±15%): 257/273 (94%)
+- casos imposibles: 6 consultas; circuitos entregados: 0
+- casos indeterminados: 1/9 (11%) con ruta en la banda
+- violaciones del verificador: 0; errores: 0
+- tiempo por consulta: p50 1609 ms, p95 6158 ms, máx 6246 ms
+  moto-curvas  éxito 86/91 (95%) | p95 6138 ms | costo/m 2.46 | curvo 37% | sin pavimentar 18% | error de largo medio 8.7%
+  4x4          éxito 86/91 (95%) | p95 6161 ms | costo/m 5.07 | curvo 31% | sin pavimentar 32% | error de largo medio 8.5%
+  scenic       éxito 85/91 (93%) | p95 6176 ms | costo/m 3.21 | curvo 34% | sin pavimentar 8% | error de largo medio 9%
+- factibles sin éxito:
+  laDehesa→farellones          ×2.5 moto-curvas → ruta 34.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→farellones          ×2.5 4x4         → ruta 37.6 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→farellones          ×2.5 scenic      → ruta 35 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  sanAlfonso→banosMorales      ×1.5 scenic      → ruta 30.6 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  sanAlfonso→banosMorales      ×2.5 moto-curvas → ruta 38.5 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  sanAlfonso→banosMorales      ×2.5 scenic      → ruta 35.3 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→laParva             ×2.5 4x4         → ruta 42.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→yerbaLoca           ×2.5 moto-curvas → ruta 24.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→yerbaLoca           ×2.5 scenic      → ruta 24.9 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×1.5 moto-curvas → ruta 23.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×1.5 4x4         → ruta 21.3 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×1.5 scenic      → ruta 23.5 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×2.5 4x4         → ruta 59 km | no se encontró una ruta tan corta; se entrega la más cercana
+  casablanca→lasDichas         ×1.5 moto-curvas → ruta 29.4 km | no se encontró una ruta tan corta; se entrega la más cercana
+  casablanca→lasDichas         ×1.5 4x4         → ruta 29.3 km | no se encontró una ruta tan corta; se entrega la más cercana
+  casablanca→lasDichas         ×1.5 scenic      → ruta 29.4 km | no se encontró una ruta tan corta; se entrega la más cercana
+
+### Calidad de experiencia: criterio priorizado, ILS del perfil frente a la misma ILS con los pesos en 0
+Casos pareados: los dos dentro de la banda con circuito (o ruta). Criterio: moto = % curvo (≥ 100 °/km); 4x4 = % sin pavimentar declarado; scenic = % curvo y pavimentado. Zona = la del origen.
+
+#### Circuitos (neutro: 69/75 en la banda, p50 1194 ms)
+perfil       zona             n  perfil media (mediana)  neutro media (mediana)  dif. media  mejora / empeora
+moto-curvas  valle           27  30% (29%)               7% (5%)                 +23 pts     27 / 0
+moto-curvas  precordillera    7  38% (34%)               21% (18%)               +17 pts     7 / 0
+moto-curvas  rural           35  26% (26%)               12% (9%)                +14 pts     31 / 4
+moto-curvas  todas           69  29% (28%)               11% (9%)                +18 pts     65 / 4
+4x4          valle           27  23% (21%)               2% (0%)                 +22 pts     26 / 0
+4x4          precordillera    6  46% (45%)               12% (2%)                +34 pts     6 / 0
+4x4          rural           34  34% (28%)               7% (4%)                 +27 pts     33 / 1
+4x4          todas           67  31% (27%)               5% (2%)                 +25 pts     65 / 1
+scenic       valle           27  28% (29%)               6% (5%)                 +22 pts     27 / 0
+scenic       precordillera    7  21% (21%)               12% (12%)               +9 pts      7 / 0
+scenic       rural           34  19% (17%)               9% (6%)                 +10 pts     31 / 3
+scenic       todas           68  23% (21%)               9% (6%)                 +15 pts     65 / 3
+
+#### Destino fijo (neutro: 87/96 en la banda, p50 898 ms)
+perfil       zona             n  perfil media (mediana)  neutro media (mediana)  dif. media  mejora / empeora
+moto-curvas  valle           41  40% (32%)               17% (7%)                +22 pts     40 / 1
+moto-curvas  precordillera   10  47% (39%)               24% (20%)               +24 pts     10 / 0
+moto-curvas  rural           34  31% (30%)               13% (11%)               +18 pts     32 / 1
+moto-curvas  todas           85  37% (32%)               16% (11%)               +21 pts     82 / 2
+4x4          valle           42  27% (26%)               1% (0%)                 +26 pts     38 / 0
+4x4          precordillera   11  41% (38%)               10% (6%)                +31 pts     11 / 0
+4x4          rural           33  36% (31%)               6% (4%)                 +30 pts     33 / 0
+4x4          todas           86  32% (30%)               4% (1%)                 +28 pts     82 / 0
+scenic       valle           41  33% (27%)               17% (7%)                +16 pts     39 / 2
+scenic       precordillera    9  28% (22%)               18% (12%)               +10 pts     9 / 0
+scenic       rural           34  23% (22%)               10% (8%)                +13 pts     33 / 1
+scenic       todas           84  28% (25%)               14% (9%)                +14 pts     81 / 3

@@ -182,11 +182,11 @@ El presupuesto de desvío (largo de la ruta / distancia mínima) lo impone el mo
 src/
   dijkstra/        motor puro (sin Nest): grafo compilado, costo, búsqueda con nodos fantasma (A* y Dijkstra), presupuesto de desvío (LARAC), snap, routeVia con bloqueo de tramos, ILS con longitud objetivo y estructura de la red (puentes públicos, núcleo, cotas), verificador de no repetición
   graph-compiler/  compilador puro: normalización de tags, derivación, compactación, CFC, puentes, gemelas, snapshot
-  graph/           almacén por way (Mongo) + GraphService (carga el snapshot, recompila en un worker)
+  graph/           almacén por way (Mongo) + GraphService (carga el snapshot en memoria compartida, recompila en un worker)
   osm/             OsmService (Overpass) + OsmParser (ways crudos)
   import/          import con reemplazo por way
   cli/             reimportación masiva por teselas
-  routes/          endpoint de cálculo + perfiles de manejo
+  routes/          endpoint de cálculo + perfiles de manejo + pool de workers de la ILS (ILS_WORKERS, por defecto 2)
 ```
 
 ## Correcciones aplicadas sobre la guía original

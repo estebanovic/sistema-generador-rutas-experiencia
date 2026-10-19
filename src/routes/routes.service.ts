@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DetourInfo, constrainedRoute } from '../dijkstra/constrained';
-import { TargetLengthResult, targetLengthRoute } from '../dijkstra/ils';
+import { TargetLengthResult } from '../dijkstra/ils';
 import { haversine } from '../graph-compiler/geo';
 import { Endpoint, EngineRoute } from '../dijkstra/dijkstra';
 import { RouteWeights } from '../dijkstra/cost';
@@ -8,6 +8,7 @@ import { RouteResult } from '../dijkstra/types';
 import { SNAP_K, SnapCandidate } from '../dijkstra/snap';
 import { GraphService } from '../graph/graph.service';
 import { CalculateRouteDto } from './dto/calculate-route.dto';
+import { IlsPool } from './ils-pool';
 import { PROFILES, PROFILE_DETOUR_BUDGET } from './profiles';
 
 /**
@@ -109,7 +110,10 @@ function targetLengthResponse(r: TargetLengthResult): TargetLengthResponse {
 
 @Injectable()
 export class RoutesService {
-  constructor(private readonly graphService: GraphService) {}
+  constructor(
+    private readonly graphService: GraphService,
+    private readonly ilsPool: IlsPool,
+  ) {}
 
   async calculate(dto: CalculateRouteDto): Promise<RouteResponse> {
     if (dto.targetLengthKm !== undefined) return this.calculateTargetLength(dto);
@@ -136,7 +140,8 @@ export class RoutesService {
       !dto.destination || haversine(dto.origin.lat, dto.origin.lon, dto.destination.lat, dto.destination.lon) < 50;
     const origins = await this.graphService.snap(dto.origin.lat, dto.origin.lon, SNAP_K);
     const dests = circuit ? [] : await this.graphService.snap(dto.destination!.lat, dto.destination!.lon, SNAP_K);
-    const res = targetLengthRoute(graph, { origins, dests, weights, targetMeters: dto.targetLengthKm! * 1000 });
+    // En un worker: la ILS tarda hasta ~6 s y no debe bloquear el hilo de la API.
+    const res = await this.ilsPool.run(graph, { origins, dests, weights, targetMeters: dto.targetLengthKm! * 1000 });
     if ('error' in res) throw new BadRequestException(res.error);
     const { nodeIdx: _n, edgeIdx: _e, tramos: _t, sums: _s, origin, dest, ...result } = res.route;
     return {
