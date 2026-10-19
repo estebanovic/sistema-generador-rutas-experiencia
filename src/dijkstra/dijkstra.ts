@@ -84,6 +84,13 @@ export interface DijkstraOptions {
   lambda?: number;
   /** Minimiza solo el largo: la ruta más corta pura, base del presupuesto de desvío (F4). */
   lengthOnly?: boolean;
+  /**
+   * Penalización blanda por arista (overlay blando, §5): el costo de la arista e
+   * se multiplica por 1 + edgeFactor[e]. La usa la ILS para desincentivar las
+   * calzadas gemelas de los tramos ya usados (D13). Solo encarece, así que A*
+   * sigue siendo exacto.
+   */
+  edgeFactor?: Float32Array;
 }
 
 /** Nodos que la búsqueda puede usar (poda elíptica de F4); los demás se descartan. */
@@ -288,6 +295,23 @@ function privateAllowance(g: CompiledGraph, originNodes: number[], targetNodes: 
 
 // ── Extremos ──
 
+/** Posición a `s` metros del inicio de la geometría del tramo `c` (búsqueda binaria en las sumas prefijas). */
+export function positionAtMeters(g: CompiledGraph, c: number, s: number): Position {
+  const a = g.chainStart[c];
+  const last = chainLast(g, c);
+  if (s <= 0) return { chain: c, point: a, t: 0 };
+  if (s >= g.geoCumLen[last]) return { chain: c, point: last - 1, t: 1 };
+  let lo = a;
+  let hi = last;
+  while (hi - lo > 1) {
+    const m = (lo + hi) >> 1;
+    if (g.geoCumLen[m] <= s) lo = m;
+    else hi = m;
+  }
+  const seg = g.geoCumLen[hi] - g.geoCumLen[lo];
+  return { chain: c, point: lo, t: seg > 0 ? (s - g.geoCumLen[lo]) / seg : 0 };
+}
+
 /** Normaliza: una posición justo en el extremo de su tramo es ese nodo de unión. */
 function asNode(g: CompiledGraph, ep: Endpoint): number | null {
   if ('node' in ep) return ep.node;
@@ -376,6 +400,7 @@ export function searchMultiSource(
   // Costo de la búsqueda: ca·costo del perfil + cb·largo. Con (1, 0) es el costo
   // del perfil, bit a bit igual que antes de F4; con (1, λ), el de LARAC; con (0, 1), el largo.
   const lengthOnly = options?.lengthOnly === true;
+  const edgeFactor = options?.edgeFactor;
   const ca = lengthOnly ? 0 : 1;
   const cb = lengthOnly ? 1 : (options?.lambda ?? 0);
   const pieceCost = (s: Sums) => ca * costOf(s, weights) + cb * s.len;
@@ -504,7 +529,9 @@ export function searchMultiSource(
       }
       if (blocked && blocked.isUsed(edgeChain[e])) continue; // tramo ya recorrido por otra pierna
       if (filter && !filter(v)) continue; // fuera de la elipse del presupuesto (F4)
-      const cost = distU + ca * costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights) + cb * edgeLen[e];
+      let edgeCost = ca * costFromSums(edgeLen[e], edgeSumStraight[e], edgeSumUnpaved[e], edgeSumMinor[e], weights) + cb * edgeLen[e];
+      if (edgeFactor) edgeCost *= 1 + edgeFactor[e];
+      const cost = distU + edgeCost;
       if (cost < (distStamp[v] === stamp ? dist[v] : Infinity)) {
         dist[v] = cost;
         distStamp[v] = stamp;

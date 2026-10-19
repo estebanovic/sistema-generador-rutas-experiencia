@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsDefined,
   IsIn,
   IsLatitude,
   IsLongitude,
@@ -7,6 +8,7 @@ import {
   IsOptional,
   Max,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { W_MAX } from '../../dijkstra/cost';
@@ -45,18 +47,25 @@ export class RouteWeightsDto {
   surfaceWeight: number;
 }
 
+/** Rango permitido de `targetLengthKm` (F5). */
+export const MIN_TARGET_KM = 2;
+export const MAX_TARGET_KM = 300;
+
 /**
  * Desde F0.6 no existe `tripLength` (la "vuelta" con waypoints desviados): la
- * modalidad con longitud objetivo se hará con la ILS. Enviarlo es un error.
+ * modalidad con longitud objetivo es `targetLengthKm` (F5). Enviarlo es un error.
  */
 export class CalculateRouteDto {
   @ValidateNested()
   @Type(() => LatLonDto)
   origin: LatLonDto;
 
+  // Obligatorio salvo en el circuito (targetLengthKm sin destino).
+  @ValidateIf((o: CalculateRouteDto) => o.targetLengthKm === undefined || o.destination !== undefined)
+  @IsDefined()
   @ValidateNested()
   @Type(() => LatLonDto)
-  destination: LatLonDto;
+  destination?: LatLonDto;
 
   // `@IsIn` es lo correcto para validar contra un array de literales.
   @IsIn(PROFILE_NAMES)
@@ -78,4 +87,17 @@ export class CalculateRouteDto {
   @Min(MIN_DETOUR_RATIO)
   @Max(MAX_DETOUR_RATIO)
   maxDetourRatio?: number;
+
+  /**
+   * Longitud objetivo (F5), en km. Sin `destination` (o con el destino en el
+   * mismo punto que el origen) es un circuito que vuelve al origen; con
+   * destino, una ruta de esa longitud hasta él. La banda es ±15%. No se
+   * combina con `maxDetourRatio`.
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(MIN_TARGET_KM)
+  @Max(MAX_TARGET_KM)
+  targetLengthKm?: number;
 }

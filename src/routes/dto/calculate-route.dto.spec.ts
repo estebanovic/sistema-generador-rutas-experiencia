@@ -69,3 +69,21 @@ describe('CalculateRouteDto: presupuesto de desvío (F4)', () => {
     expect(await errores({ ...base, profile: '4x4', minDetourRatio: 1.2 })).toEqual(['minDetourRatio']);
   });
 });
+
+describe('CalculateRouteDto: longitud objetivo (F5)', () => {
+  it('circuito: targetLengthKm sin destino es válido', async () => {
+    expect(await errores({ origin: base.origin, profile: 'moto-curvas', targetLengthKm: 40 })).toEqual([]);
+  });
+
+  it('destino fijo con longitud objetivo es válido', async () => {
+    expect(await errores({ ...base, profile: 'scenic', targetLengthKm: 60 })).toEqual([]);
+  });
+
+  it('sin targetLengthKm el destino es obligatorio', async () => {
+    expect(await errores({ origin: base.origin, profile: 'moto-curvas' })).toEqual(['destination']);
+  });
+
+  it.each([1, 301])('rechaza targetLengthKm = %s (rango 2–300)', async (v) => {
+    expect(await errores({ origin: base.origin, profile: '4x4', targetLengthKm: v })).toEqual(['targetLengthKm']);
+  });
+});

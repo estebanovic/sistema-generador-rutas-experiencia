@@ -1,0 +1,42 @@
+
+## Evaluación de la ILS — 2026-10-19T00:57:29.611Z — snapshot graph-osm-v21-f3-1.bin — perfiles moto-curvas, 4x4, scenic — 1117 s
+
+### Circuitos (225 consultas)
+- éxito en los casos factibles del techo (dentro de ±15%): 202/204 (99%)
+- casos imposibles: 15 consultas; circuitos entregados: 0; ida y vuelta declarada: 15
+- casos indeterminados: 2/6 (33%) con circuito en la banda
+- violaciones del verificador: 0; errores: 0
+- tiempo por consulta: p50 1804 ms, p95 6113 ms, máx 6470 ms
+  moto-curvas  éxito 68/68 (100%) | p95 4478 ms | costo/m 2.71 | curvo 28% | sin pavimentar 14% | error de largo medio 8.2%
+  4x4          éxito 67/68 (99%) | p95 6172 ms | costo/m 5.19 | curvo 20% | sin pavimentar 30% | error de largo medio 8%
+  scenic       éxito 67/68 (99%) | p95 6102 ms | costo/m 3.41 | curvo 27% | sin pavimentar 6% | error de largo medio 8.6%
+- factibles sin éxito:
+  penaflor                     60 km 4x4         → ida-y-vuelta 65.7 km | no se encontró un circuito de ese largo sin repetir tramos
+  penaflor                     60 km scenic      → ida-y-vuelta 60.1 km | no se encontró un circuito de ese largo sin repetir tramos
+
+### Destino fijo (288 consultas)
+- éxito en los casos factibles del techo (dentro de ±15%): 257/273 (94%)
+- casos imposibles: 6 consultas; circuitos entregados: 0
+- casos indeterminados: 1/9 (11%) con ruta en la banda
+- violaciones del verificador: 0; errores: 0
+- tiempo por consulta: p50 1429 ms, p95 6135 ms, máx 6214 ms
+  moto-curvas  éxito 86/91 (95%) | p95 6116 ms | costo/m 2.45 | curvo 37% | sin pavimentar 18% | error de largo medio 8.9%
+  4x4          éxito 86/91 (95%) | p95 6135 ms | costo/m 5.07 | curvo 31% | sin pavimentar 32% | error de largo medio 8.5%
+  scenic       éxito 85/91 (93%) | p95 6169 ms | costo/m 3.2 | curvo 34% | sin pavimentar 8% | error de largo medio 9.1%
+- factibles sin éxito:
+  laDehesa→farellones          ×2.5 moto-curvas → ruta 34.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→farellones          ×2.5 4x4         → ruta 37.6 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→farellones          ×2.5 scenic      → ruta 35 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  sanAlfonso→banosMorales      ×1.5 scenic      → ruta 30.6 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  sanAlfonso→banosMorales      ×2.5 moto-curvas → ruta 38.5 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  sanAlfonso→banosMorales      ×2.5 scenic      → ruta 35.3 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→laParva             ×2.5 4x4         → ruta 42.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→yerbaLoca           ×2.5 moto-curvas → ruta 24.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  laDehesa→yerbaLoca           ×2.5 scenic      → ruta 24.9 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×1.5 moto-curvas → ruta 23.8 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×1.5 4x4         → ruta 21.3 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×1.5 scenic      → ruta 23.5 km | no se encontró una ruta tan larga sin repetir tramos; se entrega la más cercana
+  curacavi→cuestaZapata        ×2.5 4x4         → ruta 59 km | no se encontró una ruta tan corta; se entrega la más cercana
+  casablanca→lasDichas         ×1.5 moto-curvas → ruta 29.4 km | no se encontró una ruta tan corta; se entrega la más cercana
+  casablanca→lasDichas         ×1.5 4x4         → ruta 29.3 km | no se encontró una ruta tan corta; se entrega la más cercana
+  casablanca→lasDichas         ×1.5 scenic      → ruta 29.4 km | no se encontró una ruta tan corta; se entrega la más cercana

@@ -27,6 +27,8 @@ describe('verificador RNF-SinRepetición', () => {
     expect(sinRepeticionViolations([uso(7, 0, 150, -1), uso(7, 0, 150, 1)], ex)).toEqual([]);
     expect(sinRepeticionViolations([uso(7, 0, 150, 1), uso(7, 0, 150, 1)], ex)).toHaveLength(1);
     expect(sinRepeticionViolations([uso(7, 0, 150, 1), uso(7, 0, 150, -1), uso(7, 0, 10, 1)], ex)).toHaveLength(1);
+    // Dos pedazos sin superposición, aunque vayan en el mismo sentido (calle de un sentido a cada lado del origen).
+    expect(sinRepeticionViolations([uso(7, 0, 52, 1), uso(7, 52, 93, 1)], ex)).toEqual([]);
     // Sin la exención declarada, el mismo recorrido falla: la excepción es lo que lo permite.
     expect(() => assertSinRepeticion({ tramos: [uso(7, 0, 150, -1), uso(7, 0, 150, 1)] })).toThrow(/RNF-SinRepetición/);
   });

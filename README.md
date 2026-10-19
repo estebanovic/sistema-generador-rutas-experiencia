@@ -111,6 +111,29 @@ Errores del ajuste (snap), con HTTP 404:
 
 Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías privadas.
 
+#### Longitud objetivo (`targetLengthKm`)
+
+Con `targetLengthKm` (2 a 300) la ruta tiene esa longitud, ±15%, sin recorrer dos veces el mismo tramo:
+
+- **Circuito:** sin `destination`, o con el destino en el mismo punto que el origen. Sale y vuelve al origen.
+
+  ```json
+  { "origin": { "lat": -33.64, "lon": -70.35 }, "profile": "moto-curvas", "targetLengthKm": 60 }
+  ```
+
+- **Destino fijo:** con `destination`. Llega al destino recorriendo aproximadamente esa longitud.
+
+Si el origen está en una calle o un camino sin salida, el tramo hasta la red con ciclos se recorre de ida y de vuelta (acceso). El acceso repetido no puede superar el 25% del largo total. Si no existe un circuito (o el acceso superaría el 25%), se entrega una **ida y vuelta declarada**: hasta un punto de giro a la mitad de la longitud y de regreso por el mismo camino, marcada como tal. No se combina con `maxDetourRatio` (HTTP 400).
+
+La respuesta trae, en lugar de `detour`, el bloque `targetLength`:
+
+- `modalidad`: `circuito`, `ida-y-vuelta` o `ruta` (destino fijo);
+- `targetMeters`, `tolerance` (0,15), `achievedMeters` y `withinBand`;
+- `repeatedMeters` (lo recorrido dos veces) y `accessRepeatedMeters` (el acceso);
+- en la ida y vuelta, `turnaround` (punto de giro), `message` y `circuitImpossible`: `true` si está demostrado que no existe un circuito, `false` si solo no se encontró;
+- en la ruta con destino fijo, `message` si queda fuera de la banda;
+- `waypoints`, `iterations` y `elapsedMs` de la búsqueda.
+
 ### Cambios de contrato de la API
 
 | Fecha | Cambio | Compatibilidad |
@@ -128,6 +151,7 @@ Sin camino (HTTP 400): origen y destino solo se conectan pasando por vías priva
 | 2026-10-18 | `GET /` ya no sirve el visor legado (`public/index.html`, D9); la vista es el frontend aparte. | Solo afecta a quien usaba ese visor. |
 | 2026-10-18 | Campo opcional `maxDetourRatio` (1,0–3,0; por defecto el del perfil) y bloque `detour` en la respuesta. La ruta respeta siempre el presupuesto, así que puede cambiar donde la óptima lo excedía (en la línea base, La Dehesa→Colina en 4x4). | Compatible (campos nuevos); cambia la ruta solo donde el presupuesto ata. |
 | 2026-10-18 | El peso máximo de `customWeights` sube de 4 a 6: `curvinessWeight` 0 a 6 y `surfaceWeight` -6 a 6 (D4). El perfil 4x4 pasa de `surfaceWeight` -4 a -6, así que algunas de sus rutas cambian. | Compatible para quien enviaba valores válidos; amplía el rango. |
+| 2026-10-18 | Campo opcional `targetLengthKm` (2–300; F5): circuito sin `destination` o ruta con destino fijo, ±15%, sin repetir tramos. Con él, `destination` pasa a ser opcional; la respuesta trae `targetLength` en lugar de `detour`; no se combina con `maxDetourRatio` (400). | Compatible (campo nuevo); `detour` solo aparece en la ruta directa. |
 
 ## Función de costo
 
@@ -156,7 +180,7 @@ El presupuesto de desvío (largo de la ruta / distancia mínima) lo impone el mo
 
 ```
 src/
-  dijkstra/        motor puro (sin Nest): grafo compilado, costo, búsqueda con nodos fantasma (A* y Dijkstra), snap, routeVia con bloqueo de tramos, verificador de no repetición
+  dijkstra/        motor puro (sin Nest): grafo compilado, costo, búsqueda con nodos fantasma (A* y Dijkstra), presupuesto de desvío (LARAC), snap, routeVia con bloqueo de tramos, ILS con longitud objetivo y estructura de la red (puentes públicos, núcleo, cotas), verificador de no repetición
   graph-compiler/  compilador puro: normalización de tags, derivación, compactación, CFC, puentes, gemelas, snapshot
   graph/           almacén por way (Mongo) + GraphService (carga el snapshot, recompila en un worker)
   osm/             OsmService (Overpass) + OsmParser (ways crudos)

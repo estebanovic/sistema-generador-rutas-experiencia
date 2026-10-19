@@ -1,0 +1,38 @@
+
+## Techo estructural (referencia definitiva: D19, banda ±15%, acceso ≤ 25%) — 2026-10-19T00:15:07.512Z — snapshot graph-osm-v21-f3-1.bin — 79 s
+
+### Circuitos (25 orígenes × 30/60/100 km)
+valle (9)                30 km     0 imposibles ·   9 factibles ·   0 indeterminados
+valle (9)                60 km     0 imposibles ·   9 factibles ·   0 indeterminados
+valle (9)               100 km     0 imposibles ·   9 factibles ·   0 indeterminados
+precordillera (4)        30 km     2 imposibles ·   1 factibles ·   1 indeterminados
+precordillera (4)        60 km     1 imposibles ·   2 factibles ·   1 indeterminados
+precordillera (4)       100 km     1 imposibles ·   3 factibles ·   0 indeterminados
+rural (12)               30 km     1 imposibles ·  11 factibles ·   0 indeterminados
+rural (12)               60 km     0 imposibles ·  12 factibles ·   0 indeterminados
+rural (12)              100 km     0 imposibles ·  12 factibles ·   0 indeterminados
+todas                    30 km     3 imposibles ·  21 factibles ·   1 indeterminados
+todas                    60 km     1 imposibles ·  23 factibles ·   1 indeterminados
+todas                   100 km     1 imposibles ·  24 factibles ·   0 indeterminados
+total                              5 imposibles ·  68 factibles ·   2 indeterminados
+
+### Destino fijo (48 pares × ×1.5, ×2.5 la distancia mínima)
+referencia             ×1.5       1 imposibles ·  32 factibles ·   0 indeterminados
+referencia             ×2.5       1 imposibles ·  31 factibles ·   1 indeterminados
+oferta                 ×1.5       0 imposibles ·  14 factibles ·   1 indeterminados
+oferta                 ×2.5       0 imposibles ·  14 factibles ·   1 indeterminados
+total                             2 imposibles ·  91 factibles ·   3 indeterminados
+
+### Casos no factibles
+circuito precordillera sanJoseMaipo   30 km  indeterminado más cercano 45.1 km | acceso 0 km
+circuito precordillera farellones     30 km  imposible     acceso repetido 62.09 km > 25% del largo: ida y vuelta (D18) | acceso 62.09 km
+circuito precordillera farellones     60 km  imposible     acceso repetido 62.09 km > 25% del largo: ida y vuelta (D18) | acceso 62.09 km
+circuito precordillera farellones    100 km  imposible     acceso repetido 62.09 km > 25% del largo: ida y vuelta (D18) | acceso 62.09 km
+circuito precordillera sanAlfonso     30 km  imposible     acceso repetido 16.7 km > 25% del largo: ida y vuelta (D18) | acceso 16.7 km
+circuito precordillera sanAlfonso     60 km  indeterminado más cercano 70.6 km | acceso 16.7 km
+circuito rural         noviciado      30 km  imposible     acceso repetido 13.77 km > 25% del largo: ida y vuelta (D18) | acceso 13.77 km
+destino  referencia  sanJoseMaipo→sanAlfonso      ×2.5  indeterminado más cercano 18.3 km
+destino  referencia  farellones→valleNevado       ×1.5  imposible     red disponible 15 km < 17.0 km
+destino  referencia  farellones→valleNevado       ×2.5  imposible     red disponible 15 km < 28.1 km
+destino  oferta      sanJoseMaipo→elYeso          ×1.5  indeterminado más cercano 79.3 km
+destino  oferta      sanJoseMaipo→lagunillas      ×2.5  indeterminado más cercano 17.7 km

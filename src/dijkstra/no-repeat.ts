@@ -6,8 +6,11 @@ import { TramoUse } from './dijkstra';
  * parciales de un tramo (nodos fantasma) son válidos si sus intervalos no se
  * superponen.
  *
- * `exenciones`: tramos del acceso desde un origen sin salida (puentes, D14),
- * que pueden usarse exactamente dos veces, una en cada sentido.
+ * `exenciones`: tramos del acceso desde un origen sin salida (puentes, D14 y
+ * D19) o de una ida y vuelta declarada (D18): cada punto del tramo puede
+ * recorrerse a lo sumo dos veces, en sentidos opuestos. Usos que no se
+ * superponen (por ejemplo, los dos pedazos de una calle de un sentido a cada
+ * lado del origen) no cuentan como repetición.
  */
 export interface Exencion {
   chain: number;
@@ -27,8 +30,23 @@ export function sinRepeticionViolations(tramos: TramoUse[], exenciones: Exencion
   const errors: string[] = [];
   for (const [chain, uses] of byChain) {
     if (exentos.has(chain)) {
-      if (uses.length > 2) errors.push(`tramo ${chain}: exento, pero usado ${uses.length} veces (máximo 2)`);
-      else if (uses.length === 2 && uses[0].dir === uses[1].dir) errors.push(`tramo ${chain}: exento, pero usado dos veces en el mismo sentido`);
+      // Pares que se superponen: deben ir en sentidos opuestos, y ningún punto puede cubrirse tres veces.
+      let sameDir = false;
+      for (let i = 0; i < uses.length; i++) {
+        for (let j = i + 1; j < uses.length; j++) {
+          const overlap = Math.min(uses[i].s1, uses[j].s1) - Math.max(uses[i].s0, uses[j].s0);
+          if (overlap > EPS_M && uses[i].dir === uses[j].dir) sameDir = true;
+        }
+      }
+      const events = uses.flatMap((u) => [[u.s0, 1], [u.s1, -1]] as [number, number][]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      let depth = 0;
+      let maxDepth = 0;
+      for (const [, d] of events) {
+        depth += d;
+        maxDepth = Math.max(maxDepth, depth);
+      }
+      if (maxDepth > 2) errors.push(`tramo ${chain}: exento, pero recorrido ${maxDepth} veces (máximo 2)`);
+      else if (sameDir) errors.push(`tramo ${chain}: exento, pero recorrido dos veces en el mismo sentido`);
       continue;
     }
     uses.sort((a, b) => a.s0 - b.s0);
